@@ -54,7 +54,7 @@ const adminOptions: AdminOptions[] = [
   },
   {
     icon: ChartColumn,
-    href: "/",
+    href: "/admin/statystyki",
     name: "Statystyki",
   },
 ];

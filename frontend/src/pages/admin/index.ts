@@ -9,6 +9,7 @@ import AdminAdoptionsPage from "./adoptions";
 import AdminVetsPage from "./vets";
 import AddVetPage from "./add-vet";
 import EditVetPage from "./edit-vet";
+import AdminStatisticsPage from "./statistics";
 
 export {
   AdminAccountPage,
@@ -22,4 +23,5 @@ export {
   AdminVetsPage,
   AddVetPage,
   EditVetPage,
+  AdminStatisticsPage,
 };

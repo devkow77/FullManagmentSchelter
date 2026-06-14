@@ -22,7 +22,7 @@ import {
 import { MoreHorizontalIcon } from "lucide-react";
 import axios from "axios";
 import { Link } from "react-router";
-import { formatUserRole, styleUserRole } from "@/lib/utils";
+import { formatUserRole, styleUserRole, formatUserGender } from "@/lib/utils";
 import { toast } from "sonner";
 import { DeleteUserDialog } from "@/components/ui";
 import { MultiValueSelector } from "@/components/shared";
@@ -235,7 +235,7 @@ const AdminWorkersPage = () => {
                       {formatUserRole[worker.role]}
                     </span>
                   </TableCell>
-                  <TableCell>{worker.gender}</TableCell>
+                  <TableCell>{formatUserGender(worker.gender)}</TableCell>
                   <TableCell>{worker.city ?? "—"}</TableCell>
                   <TableCell>{worker.hasChildren ? "Tak" : "Nie"}</TableCell>
                   <TableCell>{worker.isFormFilled ? "Tak" : "Nie"}</TableCell>

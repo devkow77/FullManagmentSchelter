@@ -27,6 +27,7 @@ import {
   styleMedicalRecordType,
   formatMedicalRecordStatus,
   formatMedicalRecordType,
+  formatAnimalType,
 } from "@/lib/utils";
 import { MultiValueSelector } from "@/components/shared";
 import type { MedicalRecord } from "@/types/medical-record";
@@ -197,7 +198,9 @@ const MedicalRecordsPage = () => {
                     {medicalRecord.vet.clinic}
                   </TableCell>
                   <TableCell>{medicalRecord.animal.name}</TableCell>
-                  <TableCell>{medicalRecord.animal.type}</TableCell>
+                  <TableCell>
+                    {formatAnimalType[medicalRecord.animal.type]}
+                  </TableCell>
                   <TableCell>
                     <span
                       className={`${styleMedicalRecordType(medicalRecord.type)} rounded-2xl px-4 py-2 text-xs`}

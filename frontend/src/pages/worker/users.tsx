@@ -31,6 +31,7 @@ import {
   genderOptions,
   booleanFilterOptions,
 } from "@/constants/user.constants";
+import { formatUserGender } from "@/lib/utils";
 
 const WorkerUsersPage = () => {
   const [users, setUsers] = useState<User[]>([]);
@@ -221,7 +222,7 @@ const WorkerUsersPage = () => {
                     {user.fullName}
                   </TableCell>
                   <TableCell>{user.email}</TableCell>
-                  <TableCell>{user.gender}</TableCell>
+                  <TableCell>{formatUserGender(user.gender)}</TableCell>
                   <TableCell>{user.city ?? "—"}</TableCell>
                   <TableCell>{user.isBanned ? "Tak" : "Nie"}</TableCell>
                   <TableCell>{user.isFormFilled ? "Tak" : "Nie"}</TableCell>

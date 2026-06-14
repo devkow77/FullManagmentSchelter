@@ -13,7 +13,17 @@ export const getAnimals = async (_req: Request, res: Response) => {
       orderBy: {
         foundAt: 'desc',
       },
-      select: animalSelect,
+      select: {
+        id: true,
+        name: true,
+        type: true,
+        gender: true,
+        dateOfBirth: true,
+        status: true,
+        healthStatus: true,
+        imageUrl: true,
+        traits: true,
+      },
     });
 
     return res.status(StatusCodes.OK).json(animals);
@@ -39,7 +49,6 @@ export const getUniqueAnimal = async (req: Request, res: Response) => {
   try {
     const animal = await prisma.animal.findUnique({
       where: { id: numericId },
-      select: animalSelect,
     });
 
     if (!animal) {
@@ -78,7 +87,6 @@ export const updateUniqueAnimal = async (req: Request, res: Response) => {
   try {
     const existing = await prisma.animal.findUnique({
       where: { id: numericId },
-      select: animalSelect,
     });
 
     if (!existing) {
@@ -114,7 +122,6 @@ export const updateUniqueAnimal = async (req: Request, res: Response) => {
     const updatedAnimal = await prisma.animal.update({
       where: { id: numericId },
       data: parsedBody.data,
-      select: animalSelect,
     });
 
     if (
@@ -179,7 +186,6 @@ export const createAnimal = async (req: Request, res: Response) => {
   try {
     const newAnimal = await prisma.animal.create({
       data: parsedBody.data,
-      select: animalSelect,
     });
 
     triggerNewAnimalNotification(newAnimal);

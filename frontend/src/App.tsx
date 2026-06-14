@@ -33,6 +33,7 @@ import {
   AdminVetsPage,
   AddVetPage,
   EditVetPage,
+  AdminStatisticsPage,
 } from "./pages/admin";
 import { ProtectedRoute } from "./components/auth/ProtectedRoute";
 import {
@@ -184,6 +185,10 @@ const router = createBrowserRouter([
       {
         path: "/admin/weterynarze/:id/edycja",
         element: <EditVetPage />,
+      },
+      {
+        path: "/admin/statystyki",
+        element: <AdminStatisticsPage />,
       },
     ],
   },
