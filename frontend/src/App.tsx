@@ -30,9 +30,18 @@ import {
   EditUserPage,
   AddUserPage,
   AdminAdoptionsPage,
+  AdminVetsPage,
+  AddVetPage,
+  EditVetPage,
 } from "./pages/admin";
 import { ProtectedRoute } from "./components/auth/ProtectedRoute";
-import { WorkerUsersPage, EditAdoptionPage } from "./pages/worker";
+import {
+  WorkerUsersPage,
+  EditAdoptionPage,
+  MedicalRecordsPage,
+  AddMedicalRecordPage,
+  EditMedicalRecordPage,
+} from "./pages/worker";
 
 const queryClient = new QueryClient();
 
@@ -164,6 +173,18 @@ const router = createBrowserRouter([
         path: "/admin/adopcje",
         element: <AdminAdoptionsPage />,
       },
+      {
+        path: "/admin/weterynarze",
+        element: <AdminVetsPage />,
+      },
+      {
+        path: "/admin/weterynarze/dodaj",
+        element: <AddVetPage />,
+      },
+      {
+        path: "/admin/weterynarze/:id/edycja",
+        element: <EditVetPage />,
+      },
     ],
   },
   // SCIEZKI PRACOWNIKA I ADMINISTRATORA //
@@ -182,6 +203,18 @@ const router = createBrowserRouter([
       {
         path: "/pracownik/adopcje/:id/edycja",
         element: <EditAdoptionPage />,
+      },
+      {
+        path: "/pracownik/raporty-medyczne",
+        element: <MedicalRecordsPage />,
+      },
+      {
+        path: "/pracownik/raporty-medyczne/dodaj",
+        element: <AddMedicalRecordPage />,
+      },
+      {
+        path: "/pracownik/raporty-medyczne/:id/edycja",
+        element: <EditMedicalRecordPage />,
       },
     ],
   },

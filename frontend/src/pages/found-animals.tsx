@@ -1,22 +1,7 @@
 import { Container } from "@/components/ui";
 import { styleAnimalStatus } from "@/lib/utils";
-// import { useState } from "react";
-
-// interface Animal {
-//   slug: string;
-//   name: string;
-//   type: string;
-//   gender: string;
-//   size: string;
-//   traits: string[];
-//   age: number;
-//   img: string;
-//   description: string;
-// }
 
 const FoundAnimalsPage = () => {
-  // const [animals, setAnimals] = useState<Animal[]>([]);
-
   return (
     <main>
       <Container className="space-y-12 md:space-y-16">
@@ -35,7 +20,7 @@ const FoundAnimalsPage = () => {
               <a href={"/"} key={index} className="space-y-2">
                 <div className="relative grid aspect-video place-items-center overflow-hidden rounded-xl bg-black/10">
                   <span
-                    className={`${styleAnimalStatus("ZNALEZIONY")} absolute top-3 right-3 rounded-2xl p-2 text-xs font-semibold`}
+                    className={`${styleAnimalStatus("ZNALEZIONY")} absolute top-3 right-3 rounded-2xl px-4 py-2 text-xs font-semibold`}
                   >
                     ZNALEZIONY
                   </span>

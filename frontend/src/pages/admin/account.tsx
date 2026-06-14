@@ -10,7 +10,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { styleUserRole } from "@/lib/utils";
 import { useTotp } from "@/hooks/useTotp";
-import {VerifyTotpForm, DisableTotpForm} from "@/components/shared";
+import { VerifyTotpForm, DisableTotpForm } from "@/components/shared";
 
 const updatePasswordSchema = z
   .object({
@@ -97,7 +97,7 @@ const AdminAccountPage = () => {
               <li>
                 <span className="font-medium">Email:</span> {user?.email}
               </li>
-              <li>
+              <li className="mt-4">
                 <span
                   className={`${styleUserRole(user?.role as string)} rounded-sm p-2 px-4 font-medium`}
                 >
@@ -179,7 +179,7 @@ const AdminAccountPage = () => {
                 : "Kliknij przycisk poniżej aby włączyć weryfikację dwuetapową 2FA"}
             </p>
           </div>
-          {!user?.twoFactorEnabled &&  (
+          {!user?.twoFactorEnabled && (
             <div className="space-y-2">
               <p className="text-sm leading-6 md:text-base md:leading-7">
                 Zeskanuj poniższy kod QR w aplikacji Authenticator (np. Google

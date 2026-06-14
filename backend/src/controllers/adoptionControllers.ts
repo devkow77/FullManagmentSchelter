@@ -2,6 +2,10 @@ import { StatusCodes } from 'http-status-codes';
 import prisma from '../prisma';
 import { type Request, type Response } from 'express';
 import { editAdoptionStatusSchema } from '../validators/adoption.validator';
+import {
+  adoptionDetailInclude,
+  adoptionListInclude,
+} from '../selects/adoption.select';
 
 // 1. Pobierz wszystkie adopcje
 export const getAdoptions = async (_req: Request, res: Response) => {
@@ -10,10 +14,7 @@ export const getAdoptions = async (_req: Request, res: Response) => {
       orderBy: {
         createdAt: 'desc',
       },
-      include: {
-        user: true,
-        animal: true,
-      },
+      include: adoptionListInclude,
     });
 
     return res.status(StatusCodes.OK).json(adoptions);
@@ -41,10 +42,7 @@ export const getAdoptionById = async (req: Request, res: Response) => {
       where: {
         id: numericId,
       },
-      include: {
-        user: true,
-        animal: true,
-      },
+      include: adoptionDetailInclude,
     });
 
     if (!adoption) {
@@ -85,6 +83,9 @@ export const changeAdoptionStatus = async (req: Request, res: Response) => {
     const findAdoption = await prisma.adoption.findUnique({
       where: {
         id: numericId,
+      },
+      select: {
+        status: true,
       },
     });
 

@@ -1,5 +1,8 @@
 import prisma from '../../src/prisma';
-import { MedicalRecordType } from '../../src/generated/prisma/enums';
+import {
+  MedicalRecordType,
+  MedicalRecordStatus,
+} from '../../src/generated/prisma/enums';
 
 const medicalRecordsSeed = async () => {
   console.log('Seedowanie rekordów medycznych...');
@@ -22,6 +25,7 @@ const medicalRecordsSeed = async () => {
       type: MedicalRecordType.WIZYTA,
       description: 'Kontrola ogólna — stan dobry.',
       date: new Date('2025-12-01'),
+      status: MedicalRecordStatus.DO_REALIZACJI,
       cost: 80,
     },
     {
@@ -30,6 +34,7 @@ const medicalRecordsSeed = async () => {
       type: MedicalRecordType.BADANIE,
       description: 'Badanie krwi — lekkie anemia.',
       date: new Date('2026-01-10'),
+      status: MedicalRecordStatus.W_TRAKCIE,
       cost: 150,
     },
     {
@@ -38,6 +43,7 @@ const medicalRecordsSeed = async () => {
       type: MedicalRecordType.OPERACJA,
       description: 'Zaplanowana kastracja/sterylizacja.',
       date: new Date('2026-06-25'),
+      status: MedicalRecordStatus.ZREALIZOWANA,
       cost: 450,
     },
     {
@@ -46,6 +52,7 @@ const medicalRecordsSeed = async () => {
       type: MedicalRecordType.SZCZEPIENIE,
       description: 'Szczepienie przeciw wściekliźnie.',
       date: new Date('2025-11-15'),
+      status: MedicalRecordStatus.DO_REALIZACJI,
       cost: 60,
     },
     {
@@ -54,6 +61,7 @@ const medicalRecordsSeed = async () => {
       type: MedicalRecordType.URAZ,
       description: 'Skaleczenie łapy — opatrunek i antybiotyk.',
       date: new Date('2026-02-05'),
+      status: MedicalRecordStatus.DO_REALIZACJI,
       cost: 120,
     },
     {
@@ -62,13 +70,16 @@ const medicalRecordsSeed = async () => {
       type: MedicalRecordType.INNE,
       description: 'Konsultacja dietetyczna — karma specjalistyczna.',
       date: new Date('2026-03-01'),
+      status: MedicalRecordStatus.DO_REALIZACJI,
       cost: 0,
     },
   ];
 
   await prisma.medicalRecord.createMany({ data: records });
 
-  console.log(`Seedowanie zakończone. Dodano ${records.length} rekordów medycznych.`);
+  console.log(
+    `Seedowanie zakończone. Dodano ${records.length} rekordów medycznych.`,
+  );
 };
 
 export default medicalRecordsSeed;

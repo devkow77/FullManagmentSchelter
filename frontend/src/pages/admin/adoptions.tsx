@@ -20,94 +20,17 @@ import { Button } from "@/components/ui";
 import { MoreHorizontalIcon } from "lucide-react";
 import DashboardNavbar from "@/components/layout/admin/DashboardNavbar";
 import axios from "axios";
-import {
-  Combobox,
-  ComboboxContent,
-  ComboboxEmpty,
-  ComboboxItem,
-  ComboboxList,
-  ComboboxValue,
-  ComboboxChips,
-  ComboboxChipsInput,
-  ComboboxChip,
-} from "@/components/ui/combobox";
-import { styleAdoptionStatus } from "@/lib/utils";
+import { formatAdoptionStatus, styleAdoptionStatus } from "@/lib/utils";
 import { Label } from "@/components/ui";
-
-type AdoptionType = {
-  label: string;
-  value: string;
-};
-
-type Adoption = {
-  id: number;
-  userId: number;
-  animalId: number;
-  status: string;
-  message: string;
-  employeeNote: string;
-  createdAt: Date;
-  updatedAt: Date;
-
-  user: {
-    fullName: string;
-  };
-
-  animal: {
-    name: string;
-  };
-};
-
-type SelectorProps = {
-  items: AdoptionType[];
-  placeholder: string;
-  value: string[];
-  onValueChange: (v: string[]) => void;
-};
-
-const GenericSelector = ({
-  items,
-  placeholder,
-  value,
-  onValueChange,
-}: SelectorProps) => (
-  <Combobox items={items} multiple value={value} onValueChange={onValueChange}>
-    <ComboboxChips>
-      <ComboboxValue>
-        {value
-          .map((val) => items.find((i) => i.value === val)?.label)
-          .filter(Boolean)
-          .map((label) => (
-            <ComboboxChip key={label}>{label}</ComboboxChip>
-          ))}
-      </ComboboxValue>
-      <ComboboxChipsInput placeholder={placeholder} />
-    </ComboboxChips>
-    <ComboboxContent>
-      <ComboboxEmpty>Brak dostępnych opcji</ComboboxEmpty>
-      <ComboboxList>
-        {(item) => (
-          <ComboboxItem key={item.value} value={item.value}>
-            {item.label}
-          </ComboboxItem>
-        )}
-      </ComboboxList>
-    </ComboboxContent>
-  </Combobox>
-);
+import type { Adoption } from "@/types/adoption";
+import { MultiValueSelector } from "@/components/shared";
+import { adoptionStatusOptions } from "@/constants/adoption.constants";
 
 const AdminAdoptionsPage = () => {
   const [adoptions, setAdoptions] = useState<Adoption[]>([]);
   const [selectedStatutes, setSelectedStatutes] = useState<string[]>([
     "OCZEKUJACA",
   ]);
-
-  const adoptionStatuses: AdoptionType[] = [
-    { label: "Oczekująca", value: "OCZEKUJACA" },
-    { label: "Zaakceptowana", value: "ZAAKCEPTOWANA" },
-    { label: "Odrzucona", value: "ODRZUCONA" },
-    { label: "Anulowana", value: "ANULOWANA" },
-  ];
 
   useEffect(() => {
     const fetchAdoptions = async () => {
@@ -155,8 +78,8 @@ const AdminAdoptionsPage = () => {
           <div className="top-0 z-2 flex flex-wrap items-center gap-4 bg-white py-4 sm:sticky">
             <div className="flex flex-row gap-x-2">
               <Label>Wyszukaj po statusie</Label>
-              <GenericSelector
-                items={adoptionStatuses}
+              <MultiValueSelector
+                items={adoptionStatusOptions}
                 placeholder="Status"
                 value={selectedStatutes}
                 onValueChange={setSelectedStatutes}
@@ -188,9 +111,9 @@ const AdminAdoptionsPage = () => {
                   <TableCell>{adoption.animal.name}</TableCell>
                   <TableCell>
                     <span
-                      className={`${styleAdoptionStatus(adoption.status)} rounded-2xl p-2 text-xs`}
+                      className={`${styleAdoptionStatus(adoption.status)} rounded-2xl px-4 py-2 text-xs`}
                     >
-                      {adoption.status}
+                      {formatAdoptionStatus[adoption.status]}
                     </span>
                   </TableCell>
                   <TableCell>{adoption.message?.slice(0, 30)}...</TableCell>

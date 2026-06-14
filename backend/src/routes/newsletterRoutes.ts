@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { subscribe, unsubscribe } from '../controllers/newsletterController';
+import { subscribe, unsubscribe } from '../controllers/newsletterControllers';
 
 const router = Router();
 

@@ -4,6 +4,7 @@ import { type Request, type Response } from 'express';
 import { animalSchema } from '../validators/animal.validator';
 import { triggerNewAnimalNotification } from '../services/emailService';
 import { AnimalStatus } from '../generated/prisma/enums';
+import { animalSelect } from '../selects/animal.select';
 
 // 1. Pobierz wszystkie zwierzęta
 export const getAnimals = async (_req: Request, res: Response) => {
@@ -12,6 +13,7 @@ export const getAnimals = async (_req: Request, res: Response) => {
       orderBy: {
         foundAt: 'desc',
       },
+      select: animalSelect,
     });
 
     return res.status(StatusCodes.OK).json(animals);
@@ -37,6 +39,7 @@ export const getUniqueAnimal = async (req: Request, res: Response) => {
   try {
     const animal = await prisma.animal.findUnique({
       where: { id: numericId },
+      select: animalSelect,
     });
 
     if (!animal) {
@@ -75,6 +78,7 @@ export const updateUniqueAnimal = async (req: Request, res: Response) => {
   try {
     const existing = await prisma.animal.findUnique({
       where: { id: numericId },
+      select: animalSelect,
     });
 
     if (!existing) {
@@ -110,6 +114,7 @@ export const updateUniqueAnimal = async (req: Request, res: Response) => {
     const updatedAnimal = await prisma.animal.update({
       where: { id: numericId },
       data: parsedBody.data,
+      select: animalSelect,
     });
 
     if (
@@ -174,6 +179,7 @@ export const createAnimal = async (req: Request, res: Response) => {
   try {
     const newAnimal = await prisma.animal.create({
       data: parsedBody.data,
+      select: animalSelect,
     });
 
     triggerNewAnimalNotification(newAnimal);

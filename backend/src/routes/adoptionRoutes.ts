@@ -3,7 +3,7 @@ import {
   getAdoptions,
   getAdoptionById,
   changeAdoptionStatus,
-} from '../controllers/adoptionController';
+} from '../controllers/adoptionControllers';
 
 const router = Router();
 

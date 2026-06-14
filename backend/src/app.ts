@@ -5,6 +5,8 @@ import messageRoutes from './routes/messageRoutes';
 import userRoutes from './routes/userRoutes';
 import adoptionRoutes from './routes/adoptionRoutes';
 import newsletterRoutes from './routes/newsletterRoutes';
+import medicalRecordsRoutes from './routes/medicalRecordsRoutes';
+import vetsRoutes from './routes/vetsRoutes';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import { startAnimalStatusJob } from './jobs/animalStatus.job';
@@ -31,6 +33,8 @@ app.use('/api/contact', messageRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/adoptions', adoptionRoutes);
 app.use('/api/newsletter', newsletterRoutes);
+app.use('/api/medical-records', medicalRecordsRoutes);
+app.use('/api/vets', vetsRoutes);
 
 startAnimalStatusJob();
 

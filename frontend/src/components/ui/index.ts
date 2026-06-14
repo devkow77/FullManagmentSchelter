@@ -7,6 +7,8 @@ import { DropdownMenu } from "./dropdown-menu";
 import { NavigationMenu } from "./navigation-menu";
 import DeleteAnimalDialog from "./delete-animal-dialog";
 import DeleteUserDialog from "./delete-user-dialog";
+import DeleteVetDialog from "./delete-vet-dialog";
+import DeleteMedicalRecordDialog from "./delete-medical-record-dialog";
 
 export {
   Container,
@@ -18,4 +20,6 @@ export {
   NavigationMenu,
   DeleteAnimalDialog,
   DeleteUserDialog,
+  DeleteVetDialog,
+  DeleteMedicalRecordDialog,
 };

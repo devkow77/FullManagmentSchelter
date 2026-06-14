@@ -1,15 +1,4 @@
 import { Container, Input, Label } from "@/components/ui";
-import {
-  Combobox,
-  ComboboxContent,
-  ComboboxEmpty,
-  ComboboxItem,
-  ComboboxList,
-  ComboboxValue,
-  ComboboxChips,
-  ComboboxChipsInput,
-  ComboboxChip,
-} from "@/components/ui/combobox";
 import DashboardNavbar from "@/components/layout/admin/DashboardNavbar";
 import { Button } from "@/components/ui";
 import { useEffect, useState, useMemo } from "react";
@@ -36,63 +25,12 @@ import { Link } from "react-router";
 import { useAuth } from "@/context/AuthContext";
 import { toast } from "sonner";
 import { DeleteUserDialog } from "@/components/ui";
-
-type UserType = {
-  label: string;
-  value: string;
-};
-
-type User = {
-  id: number;
-  fullName: string;
-  gender: string;
-  email: string;
-  role: string;
-  city?: string | null;
-  isBanned: boolean;
-  isFormFilled: boolean;
-  twoFactorEnabled: boolean;
-  imageUrl?: string;
-  createdAt: string;
-};
-
-type SelectorProps = {
-  items: UserType[];
-  placeholder: string;
-  value: string[];
-  onValueChange: (v: string[]) => void;
-};
-
-const GenericSelector = ({
-  items,
-  placeholder,
-  value,
-  onValueChange,
-}: SelectorProps) => (
-  <Combobox items={items} multiple value={value} onValueChange={onValueChange}>
-    <ComboboxChips>
-      <ComboboxValue>
-        {value
-          .map((val) => items.find((i) => i.value === val)?.label)
-          .filter(Boolean)
-          .map((label) => (
-            <ComboboxChip key={label}>{label}</ComboboxChip>
-          ))}
-      </ComboboxValue>
-      <ComboboxChipsInput placeholder={placeholder} />
-    </ComboboxChips>
-    <ComboboxContent>
-      <ComboboxEmpty>Brak dostępnych opcji</ComboboxEmpty>
-      <ComboboxList>
-        {(item) => (
-          <ComboboxItem key={item.value} value={item.value}>
-            {item.label}
-          </ComboboxItem>
-        )}
-      </ComboboxList>
-    </ComboboxContent>
-  </Combobox>
-);
+import type { User } from "@/types/user";
+import { MultiValueSelector } from "@/components/shared";
+import {
+  genderOptions,
+  booleanFilterOptions,
+} from "@/constants/user.constants";
 
 const WorkerUsersPage = () => {
   const [users, setUsers] = useState<User[]>([]);
@@ -107,21 +45,6 @@ const WorkerUsersPage = () => {
 
   const { user: loggedUser } = useAuth();
   const isAdmin = loggedUser?.role === "ADMINISTRATOR";
-
-  const userGenders: UserType[] = [
-    { label: "Mężczyzna", value: "MEZCZYZNA" },
-    { label: "Kobieta", value: "KOBIETA" },
-  ];
-
-  const userIsBanned: UserType[] = [
-    { label: "Tak", value: "true" },
-    { label: "Nie", value: "false" },
-  ];
-
-  const userIsFormFilled: UserType[] = [
-    { label: "Tak", value: "true" },
-    { label: "Nie", value: "false" },
-  ];
 
   const userCities = useMemo(() => {
     const cities = [
@@ -227,29 +150,29 @@ const WorkerUsersPage = () => {
               />
             </div>
 
-            <GenericSelector
-              items={userGenders}
+            <MultiValueSelector
+              items={genderOptions}
               placeholder="Płeć"
               value={selectedGender}
               onValueChange={setSelectedGender}
             />
 
-            <GenericSelector
+            <MultiValueSelector
               items={userCities}
               placeholder="Miasto"
               value={selectedCity}
               onValueChange={setSelectedCity}
             />
 
-            <GenericSelector
-              items={userIsBanned}
+            <MultiValueSelector
+              items={booleanFilterOptions}
               placeholder="Konto zablokowane"
               value={selectedIsBanned}
               onValueChange={setSelectedIsBanned}
             />
 
-            <GenericSelector
-              items={userIsFormFilled}
+            <MultiValueSelector
+              items={booleanFilterOptions}
               placeholder="Wypełniony formularz"
               value={selectedIsFormFilled}
               onValueChange={setSelectedIsFormFilled}

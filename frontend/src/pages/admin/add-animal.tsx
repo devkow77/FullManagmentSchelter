@@ -3,146 +3,26 @@
 import { toast } from "sonner";
 import { useNavigate, useParams } from "react-router";
 import { useEffect, useRef, useState } from "react";
-import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm, Controller } from "react-hook-form";
 import { Button, Container, Input, Label } from "@/components/ui";
 import { Textarea } from "@/components/ui/textarea";
-import {
-  Combobox,
-  ComboboxContent,
-  ComboboxEmpty,
-  ComboboxItem,
-  ComboboxList,
-  ComboboxChips,
-  ComboboxChipsInput,
-} from "@/components/ui/combobox";
 import axios from "axios";
 import { Plus, Star, Trash } from "lucide-react";
 import { supabase } from "@/lib/supabase";
-
-const TypeEnum = z.enum(["PIES", "KOT", "KROLIK", "CHOMIK", "ZOLW", "INNE"], {
-  message: "Typ zwierzęcia jest wymagany.",
-});
-const GenderEnum = z.enum(["SAMIEC", "SAMICA"], {
-  message: "Płeć zwierzęcia jest wymagana.",
-});
-const SizeEnum = z.enum(["MALY", "SREDNI", "DUZY"], {
-  message: "Rozmiar zwierzęcia jest wymagany.",
-});
-const StatusEnum = z.enum(
-  ["SZUKA_DOMU", "ZNALEZIONY", "W_TRAKCIE_ADOPCJI", "ADOPTOWANY"],
-  {
-    message: "Status zwierzęcia jest wymagany.",
-  },
-);
-const HealthStatusEnum = z.enum(["ZDROWY", "CHORY", "ZARAŻONY", "POTRZEBUJE_OPERACJI"], {
-  message: "Stan zdrowia jest wymagany.",
-});
-
-const animalSchema = z.object({
-  name: z
-    .string()
-    .min(3, "Imię musi posiadać minimum 3 znaki.")
-    .max(20, "Imię może maksymalnie posiadać 20 znaków."),
-  type: TypeEnum,
-  gender: GenderEnum,
-  size: SizeEnum,
-  traits: z.string().min(3, "Cechy muszą posiadać minimum 3 znaki."),
-  dateOfBirth: z.preprocess(
-    (val) => {
-      if (val === "" || val == null) return undefined;
-      return val;
-    },
-    z.coerce.date({
-      message: "Data urodzenia jest wymagana.",
-    }),
-  ),
-  description: z
-    .string()
-    .min(20, "Opis musi mieć co najmniej 20 znaków.")
-    .max(200, "Opis może mieć maksymalnie 200 znaków."),
-  status: StatusEnum,
-  healthStatus: HealthStatusEnum,
-  nextVisitDate: z.preprocess(
-    (val) => {
-      if (val === "" || val == null) return undefined;
-      return val;
-    },
-    z.coerce.date({
-      message: "Data następnej wizyty jest wymagana.",
-    }),
-  ),
-  foundAt: z.preprocess(
-    (val) => {
-      if (val === "" || val == null) return undefined;
-      return val;
-    },
-    z.coerce.date({
-      message: "Data znalezienia jest wymagana.",
-    }),
-  ),
-  foundLocation: z
-    .string()
-    .min(3, "Miejsowość musi posiadać minimum 3 znaki.")
-    .max(40, "Miejscowość może maksymalnie posiadać 40 znaków."),
-  imageUrl: z.array(z.string()).max(5, "Możesz dodać maksymalnie 5 zdjęć."),
-});
-
-type AnimalFormData = z.infer<typeof animalSchema>;
-
-type SelectorProps = {
-  items: string[];
-  placeholder: string;
-  value: string | null;
-  onValueChange: (v: string | null) => void;
-};
-
-const GenericSelector = ({
-  items,
-  placeholder,
-  value,
-  onValueChange,
-}: SelectorProps) => (
-  <Combobox
-    items={items}
-    value={value}
-    onValueChange={(val) => onValueChange(val)}
-  >
-    <ComboboxChips>
-      <ComboboxChipsInput
-        placeholder={placeholder}
-        className="placeholder:text-muted-foreground py-1 text-sm lg:text-base"
-      />
-    </ComboboxChips>
-    <ComboboxContent>
-      <ComboboxEmpty>Brak dostępnych opcji</ComboboxEmpty>
-      <ComboboxList>
-        {items.map((item) => (
-          <ComboboxItem key={item} value={item}>
-            {item}
-          </ComboboxItem>
-        ))}
-      </ComboboxList>
-    </ComboboxContent>
-  </Combobox>
-);
+import { SingleValueSelector } from "@/components/shared";
+import { animalSchema, type AnimalFormData } from "@/schemas/animal.schema";
+import {
+  animalTypeValues,
+  animalGenderValues,
+  animalSizeValues,
+  animalStatusValues,
+  animalHealthStatusValues,
+} from "@/constants/animal.constants";
 
 const AddAnimalPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-
-  const animalTypes = ["PIES", "KOT", "KROLIK", "CHOMIK", "ZOLW", "INNE"];
-  const animalGenders = ["SAMIEC", "SAMICA"];
-  const animalSizes = ["MALY", "SREDNI", "DUZY"];
-  const animalStatusList = [
-    "SZUKA_DOMU",
-    "ZNALEZIONY",
-    "W_TRAKCIE_ADOPCJI",
-    "ADOPTOWANY",
-  ];
-  const animalHealthStatusList = ["ZDROWY", "CHORY", "ZARAŻONY", "POTRZEBUJE_OPERACJI"];
-
 
   const {
     register,
@@ -396,8 +276,8 @@ const AddAnimalPage = () => {
                   name="type"
                   control={control}
                   render={({ field }) => (
-                    <GenericSelector
-                      items={animalTypes}
+                    <SingleValueSelector
+                      items={[...animalTypeValues]}
                       placeholder="Wybierz gatunek"
                       value={field.value}
                       onValueChange={field.onChange}
@@ -435,8 +315,8 @@ const AddAnimalPage = () => {
                   name="gender"
                   control={control}
                   render={({ field }) => (
-                    <GenericSelector
-                      items={animalGenders}
+                    <SingleValueSelector
+                      items={[...animalGenderValues]}
                       placeholder="Wybierz płeć"
                       value={field.value}
                       onValueChange={field.onChange}
@@ -457,8 +337,8 @@ const AddAnimalPage = () => {
                   name="status"
                   control={control}
                   render={({ field }) => (
-                    <GenericSelector
-                      items={animalStatusList}
+                    <SingleValueSelector
+                      items={[...animalStatusValues]}
                       placeholder="Wybierz status"
                       value={field.value}
                       onValueChange={field.onChange}
@@ -479,8 +359,8 @@ const AddAnimalPage = () => {
                   name="size"
                   control={control}
                   render={({ field }) => (
-                    <GenericSelector
-                      items={animalSizes}
+                    <SingleValueSelector
+                      items={[...animalSizeValues]}
                       placeholder="Wybierz rozmiar"
                       value={field.value}
                       onValueChange={field.onChange}
@@ -496,9 +376,7 @@ const AddAnimalPage = () => {
 
               {/* CECHY */}
               <div className="space-y-2">
-                <Label htmlFor="traits">
-                  Cechy po przecinku
-                </Label>
+                <Label htmlFor="traits">Cechy po przecinku</Label>
                 <Input
                   id="traits"
                   {...register("traits")}
@@ -512,15 +390,15 @@ const AddAnimalPage = () => {
                 )}
               </div>
 
-               {/* GATUNEK */}
-               <div className="space-y-2">
+              {/* GATUNEK */}
+              <div className="space-y-2">
                 <Label>Stan zdrowia</Label>
                 <Controller
                   name="healthStatus"
                   control={control}
                   render={({ field }) => (
-                    <GenericSelector
-                      items={animalHealthStatusList}
+                    <SingleValueSelector
+                      items={[...animalHealthStatusValues]}
                       placeholder="Wybierz stan zdrowia"
                       value={field.value}
                       onValueChange={field.onChange}

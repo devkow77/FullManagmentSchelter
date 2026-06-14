@@ -1,15 +1,4 @@
 import { Container, Input, Label } from "@/components/ui";
-import {
-  Combobox,
-  ComboboxContent,
-  ComboboxEmpty,
-  ComboboxItem,
-  ComboboxList,
-  ComboboxValue,
-  ComboboxChips,
-  ComboboxChipsInput,
-  ComboboxChip,
-} from "@/components/ui/combobox";
 import DashboardNavbar from "@/components/layout/admin/DashboardNavbar";
 import { Button } from "@/components/ui";
 import { useEffect, useState, useMemo } from "react";
@@ -33,70 +22,20 @@ import {
 import { MoreHorizontalIcon } from "lucide-react";
 import axios from "axios";
 import { Link } from "react-router";
-import { styleUserRole } from "@/lib/utils";
+import { formatUserRole, styleUserRole } from "@/lib/utils";
 import { toast } from "sonner";
 import { DeleteUserDialog } from "@/components/ui";
+import { MultiValueSelector } from "@/components/shared";
+import {
+  workerRoleOptions,
+  genderOptions,
+  booleanFilterOptions,
+} from "@/constants/user.constants";
 
-type WorkerType = {
-  label: string;
-  value: string;
-};
-
-type Worker = {
-  id: number;
-  fullName: string;
-  gender: string;
-  email: string;
-  role: string;
-  city: string;
-  hasChildren: boolean;
-  isFormFilled: boolean;
-  twoFactorEnabled: boolean;
-  imageUrl?: string;
-  createdAt: string;
-};
-
-type SelectorProps = {
-  items: WorkerType[];
-  placeholder: string;
-  value: string[];
-  onValueChange: (v: string[]) => void;
-};
-
-const GenericSelector = ({
-  items,
-  placeholder,
-  value,
-  onValueChange,
-}: SelectorProps) => (
-  <Combobox items={items} multiple value={value} onValueChange={onValueChange}>
-    <ComboboxChips>
-      <ComboboxValue>
-        {value
-          .map((val) => items.find((i) => i.value === val)?.label)
-          .filter(Boolean)
-          .map((label) => (
-            <ComboboxChip key={label}>{label}</ComboboxChip>
-          ))}
-      </ComboboxValue>
-      <ComboboxChipsInput placeholder={placeholder} />
-    </ComboboxChips>
-    <ComboboxContent>
-      <ComboboxEmpty>Brak dostępnych opcji</ComboboxEmpty>
-      <ComboboxList>
-        {(item) => (
-          <ComboboxItem key={item.value} value={item.value}>
-            {item.label}
-          </ComboboxItem>
-        )}
-      </ComboboxList>
-    </ComboboxContent>
-  </Combobox>
-);
+import type { Worker } from "@/types/user";
 
 const AdminWorkersPage = () => {
   const [workers, setWorkers] = useState<Worker[]>([]);
-
   const [searchQuery, setSearchQuery] = useState<string>(""); // stan do przechowywania wartości wyszukiwania
   const [selectedRoles, setSelectedRoles] = useState<string[]>([]); // stan do przechowywania wybranych typów pracowników
   const [selectedGender, setSelectedGender] = useState<string[]>([]); // stan do przechowywania wybranych płci
@@ -105,26 +44,6 @@ const AdminWorkersPage = () => {
   const [selectedIsFormFilled, setSelectedIsFormFilled] = useState<string[]>(
     [],
   );
-
-  const workerRoles: WorkerType[] = [
-    { label: "Administrator", value: "ADMINISTRATOR" },
-    { label: "Pracownik", value: "PRACOWNIK" },
-  ];
-
-  const workerGenders: WorkerType[] = [
-    { label: "Mężczyzna", value: "MEZCZYZNA" },
-    { label: "Kobieta", value: "KOBIETA" },
-  ];
-
-  const workerHasChildren: WorkerType[] = [
-    { label: "Tak", value: "true" },
-    { label: "Nie", value: "false" },
-  ];
-
-  const workerIsFormFilled: WorkerType[] = [
-    { label: "Tak", value: "true" },
-    { label: "Nie", value: "false" },
-  ];
 
   const workerCities = useMemo(() => {
     const cities = [
@@ -169,9 +88,24 @@ const AdminWorkersPage = () => {
         selectedIsFormFilled.length === 0 ||
         selectedIsFormFilled.includes(String(worker.isFormFilled));
 
-      return matchesSearch && matchesRoles && matchesGender && matchesCity && matchesHasChildren && matchesIsFormFilled;
+      return (
+        matchesSearch &&
+        matchesRoles &&
+        matchesGender &&
+        matchesCity &&
+        matchesHasChildren &&
+        matchesIsFormFilled
+      );
     });
-  }, [workers, searchQuery, selectedRoles, selectedGender, selectedCity, selectedHasChildren, selectedIsFormFilled]);
+  }, [
+    workers,
+    searchQuery,
+    selectedRoles,
+    selectedGender,
+    selectedCity,
+    selectedHasChildren,
+    selectedIsFormFilled,
+  ]);
 
   // Funkcja do resetowania wszystkich filtrów
   const resetFilters = () => {
@@ -219,38 +153,37 @@ const AdminWorkersPage = () => {
               />
             </div>
 
-            <GenericSelector
-              items={workerRoles}
+            <MultiValueSelector
+              items={workerRoleOptions}
               placeholder="Rola pracownika"
               value={selectedRoles}
               onValueChange={setSelectedRoles}
             />
 
-            <GenericSelector
-              items={workerGenders}
+            <MultiValueSelector
+              items={genderOptions}
               placeholder="Płeć"
               value={selectedGender}
               onValueChange={setSelectedGender}
             />
 
-            <GenericSelector
+            <MultiValueSelector
               items={workerCities}
               placeholder="Miasto"
               value={selectedCity}
               onValueChange={setSelectedCity}
             />
 
-            <GenericSelector
-              items={workerHasChildren}
+            <MultiValueSelector
+              items={booleanFilterOptions}
               placeholder="Czy ma dzieci"
               value={selectedHasChildren}
               onValueChange={setSelectedHasChildren}
             />
 
-            <GenericSelector
-              items={workerIsFormFilled}
+            <MultiValueSelector
+              items={booleanFilterOptions}
               placeholder="Wypełniony formularz"
-              
               value={selectedIsFormFilled}
               onValueChange={setSelectedIsFormFilled}
             />
@@ -297,9 +230,9 @@ const AdminWorkersPage = () => {
                     <span
                       className={`${styleUserRole(
                         worker.role,
-                      )} rounded-2xl p-2 text-xs`}
+                      )} rounded-2xl px-4 py-2 text-xs`}
                     >
-                      {worker.role}
+                      {formatUserRole[worker.role]}
                     </span>
                   </TableCell>
                   <TableCell>{worker.gender}</TableCell>

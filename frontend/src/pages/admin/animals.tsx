@@ -1,4 +1,4 @@
-import { Container, DeleteAnimalDialog, Input } from "@/components/ui";
+import { Container, DeleteAnimalDialog, Input, Label } from "@/components/ui";
 import { toast } from "sonner";
 import { useEffect, useState, useMemo } from "react";
 import {
@@ -23,146 +23,37 @@ import { MoreHorizontalIcon } from "lucide-react";
 import DashboardNavbar from "@/components/layout/admin/DashboardNavbar";
 import axios from "axios";
 import {
-  Combobox,
-  ComboboxContent,
-  ComboboxEmpty,
-  ComboboxItem,
-  ComboboxList,
-  ComboboxValue,
-  ComboboxChips,
-  ComboboxChipsInput,
-  ComboboxChip,
-} from "@/components/ui/combobox";
-import { Slider } from "@/components/ui/slider";
-import { styleAnimalHealthStatus, styleAnimalStatus } from "@/lib/utils";
-import { Label } from "@/components/ui";
-
-type AnimalType = {
-  label: string;
-  value: string;
-};
-
-type Animal = {
-  id: number;
-  name: string;
-  type: string;
-  gender: string;
-  size: string;
-  traits: string[];
-  dateOfBirth: Date;
-  status: string;
-  healthStatus: string;
-  imageUrl: string[];
-};
-
-type SelectorProps = {
-  items: AnimalType[];
-  placeholder: string;
-  value: string[];
-  onValueChange: (v: string[]) => void;
-};
-
-const GenericSelector = ({
-  items,
-  placeholder,
-  value,
-  onValueChange,
-}: SelectorProps) => (
-  <Combobox items={items} multiple value={value} onValueChange={onValueChange}>
-    <ComboboxChips>
-      <ComboboxValue>
-        {value
-          .map((val) => items.find((i) => i.value === val)?.label)
-          .filter(Boolean)
-          .map((label) => (
-            <ComboboxChip key={label}>{label}</ComboboxChip>
-          ))}
-      </ComboboxValue>
-      <ComboboxChipsInput placeholder={placeholder} />
-    </ComboboxChips>
-    <ComboboxContent>
-      <ComboboxEmpty>Brak dostępnych opcji</ComboboxEmpty>
-      <ComboboxList>
-        {(item) => (
-          <ComboboxItem key={item.value} value={item.value}>
-            {item.label}
-          </ComboboxItem>
-        )}
-      </ComboboxList>
-    </ComboboxContent>
-  </Combobox>
-);
-
-const AgeSlider = ({
-  value,
-  onChange,
-}: {
-  value: [number, number];
-  onChange: (v: [number, number]) => void;
-}) => (
-  <div className="w-64">
-    <label className="mb-2 block text-sm">
-      Wiek (lata): {value[0]} - {value[1]}
-    </label>
-    <Slider value={value} min={0} max={20} step={1} onValueChange={onChange} />
-  </div>
-);
+  formatAnimalStatus,
+  formatAnimalHealthStatus,
+  styleAnimalHealthStatus,
+  styleAnimalStatus,
+  formatAnimalGender,
+  formatAnimalType,
+} from "@/lib/utils";
+import { MultiValueSelector, AgeSlider } from "@/components/shared";
+import type { AnimalListItem } from "@/types/animal";
+import {
+  animalTypeOptions,
+  animalGenderOptions,
+  animalStatusOptions,
+  animalSizeOptions,
+  animalTraitOptions,
+  animalHealthStatusOptions,
+} from "@/constants/animal.constants";
 
 const AdminAnimalsPage = () => {
-  const [animals, setAnimals] = useState<Animal[]>([]);
+  const [animals, setAnimals] = useState<AnimalListItem[]>([]);
 
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [selectedAnimals, setSelectedAnimals] = useState<string[]>([]);
   const [selectedGender, setSelectedGender] = useState<string[]>([]);
   const [selectedStatutes, setSelectedStatutes] = useState<string[]>([]);
-  const [selectedHealthStatus, setSelectedHealthStatus] = useState<string[]>([]);
+  const [selectedHealthStatus, setSelectedHealthStatus] = useState<string[]>(
+    [],
+  );
   const [selectedSize, setSelectedSize] = useState<string[]>([]);
   const [selectedTraits, setSelectedTraits] = useState<string[]>([]);
   const [ageRange, setAgeRange] = useState<[number, number]>([0, 25]);
-
-  const animalTypes: AnimalType[] = [
-    { label: "Pies", value: "PIES" },
-    { label: "Kot", value: "KOT" },
-    { label: "Królik", value: "KROLIK" },
-    { label: "Chomik", value: "CHOMIK" },
-    { label: "Zółw", value: "ZOLW" },
-    { label: "Inne", value: "INNE" },
-  ];
-
-  const animalGenders: AnimalType[] = [
-    { label: "Samiec", value: "SAMIEC" },
-    { label: "Samica", value: "SAMICA" },
-  ];
-
-  const animalStatuses: AnimalType[] = [
-    { label: "Szuka domu", value: "SZUKA_DOMU" },
-    { label: "Adoptowany", value: "ADOPTOWANY" },
-    { label: "Znaleziony", value: "ZNALEZIONY" },
-    { label: "W trakcie adopcji", value: "W_TRAKCIE_ADOPCJI" },
-  ];
-
-  const animalSizes: AnimalType[] = [
-    { label: "Mały", value: "MALY" },
-    { label: "Średni", value: "SREDNI" },
-    { label: "Duży", value: "DUZY" },
-  ];
-
-  const animalTraits: AnimalType[] = [
-    { label: "Energetyczny", value: "energiczny" },
-    { label: "Spokojny", value: "spokojny" },
-    { label: "Przyjazny", value: "przyjazny" },
-    { label: "Nieśmiały", value: "nieśmiały" },
-    { label: "Pieszczoch", value: "pieszczoch" },
-    { label: "Skory do zabawy", value: "skory do zabawy" },
-    { label: "Łagodny", value: "łagodny" },
-  ];
-
-  const animalHealthStatuses: AnimalType[] = [
-    { label: "Zdrowy", value: "ZDROWY" },
-    { label: "Chory", value: "CHORY" },
-    { label: "Zarażony", value: "ZARAŻONY" },
-    { label: "Potrzebuje operacji", value: "POTRZEBUJE_OPERACJI" },
-  ];
 
   useEffect(() => {
     const fetchAnimals = async () => {
@@ -180,7 +71,7 @@ const AdminAnimalsPage = () => {
   const calculateAge = (dateOfBirth: string | Date) => {
     const birthDate = new Date(dateOfBirth);
     const today = new Date();
- 
+
     return today.getFullYear() - birthDate.getFullYear();
   };
 
@@ -285,43 +176,43 @@ const AdminAnimalsPage = () => {
               />
             </div>
 
-            <GenericSelector
-              items={animalTypes}
+            <MultiValueSelector
+              items={animalTypeOptions}
               placeholder="Gatunek"
               value={selectedAnimals}
               onValueChange={setSelectedAnimals}
             />
 
-            <GenericSelector
-              items={animalGenders}
+            <MultiValueSelector
+              items={animalGenderOptions}
               placeholder="Płeć"
               value={selectedGender}
               onValueChange={setSelectedGender}
             />
 
-            <GenericSelector
-              items={animalStatuses}
+            <MultiValueSelector
+              items={animalStatusOptions}
               placeholder="Status"
               value={selectedStatutes}
               onValueChange={setSelectedStatutes}
             />
 
-            <GenericSelector
-              items={animalHealthStatuses}
+            <MultiValueSelector
+              items={animalHealthStatusOptions}
               placeholder="Stan zdrowia"
               value={selectedHealthStatus}
               onValueChange={setSelectedHealthStatus}
             />
 
-            <GenericSelector
-              items={animalSizes}
+            <MultiValueSelector
+              items={animalSizeOptions}
               placeholder="Rozmiar"
               value={selectedSize}
               onValueChange={setSelectedSize}
             />
 
-            <GenericSelector
-              items={animalTraits}
+            <MultiValueSelector
+              items={animalTraitOptions}
               placeholder="Cechy"
               value={selectedTraits}
               onValueChange={setSelectedTraits}
@@ -368,15 +259,15 @@ const AdminAnimalsPage = () => {
                     )}
                     {animal.name}
                   </TableCell>
-                  <TableCell>{animal.type}</TableCell>
-                  <TableCell>{animal.gender}</TableCell>
+                  <TableCell>{formatAnimalType[animal.type]}</TableCell>
+                  <TableCell>{formatAnimalGender(animal.gender)}</TableCell>
                   <TableCell>
                     <span
                       className={`${styleAnimalStatus(
                         animal.status,
                       )} rounded-2xl px-4 py-2 text-xs`}
                     >
-                      {animal.status}
+                      {formatAnimalStatus[animal.status]}
                     </span>
                   </TableCell>
                   <TableCell>
@@ -385,11 +276,13 @@ const AdminAnimalsPage = () => {
                         animal.healthStatus,
                       )} rounded-2xl px-4 py-2 text-xs`}
                     >
-                      {animal.healthStatus}
+                      {formatAnimalHealthStatus[animal.healthStatus]}
                     </span>
                   </TableCell>
                   <TableCell>
-                    {calculateAge(animal.dateOfBirth) == 0 ? "Mniej niż rok" : calculateAge(animal.dateOfBirth)}
+                    {calculateAge(animal.dateOfBirth) == 0
+                      ? "Mniej niż rok"
+                      : calculateAge(animal.dateOfBirth)}
                   </TableCell>
                   <TableCell>{animal.imageUrl.length} z 5</TableCell>
                   <TableCell className="text-right">

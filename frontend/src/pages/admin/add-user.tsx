@@ -3,98 +3,21 @@
 import { toast } from "sonner";
 import { useNavigate } from "react-router";
 import { useEffect, useRef, useState } from "react";
-import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm, Controller } from "react-hook-form";
 import { Button, Container, Input, Label } from "@/components/ui";
-import {
-  Combobox,
-  ComboboxContent,
-  ComboboxEmpty,
-  ComboboxItem,
-  ComboboxList,
-  ComboboxChips,
-  ComboboxChipsInput,
-} from "@/components/ui/combobox";
 import axios from "axios";
 import { Plus, Trash } from "lucide-react";
 import { supabase } from "@/lib/supabase";
-
-export const GenderEnum = z.enum(["MEZCZYZNA", "KOBIETA"]);
-
-export const RoleEnum = z.enum(["UZYTKOWNIK", "ADMINISTRATOR", "PRACOWNIK"]);
-
-export const userSchema = z.object({
-  fullName: z
-    .string()
-    .min(3, "Imię i nazwisko musi mieć minimum 3 znaki.")
-    .max(50, "Imię i nazwisko nie może mieć więcej niż 50 znaków."),
-
-  email: z.string().email("Niepoprawny adres email."),
-
-  password: z
-    .string()
-    .min(8, "Hasło musi mieć min. 8 znaków")
-    .regex(
-      /^(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).+$/,
-      "Hasło musi zawierać min. 1 wielką literę, 1 cyfrę i 1 znak specjalny.",
-    ),
-
-  gender: GenderEnum,
-
-  role: RoleEnum,
-
-  imageUrl: z.string().nullable(),
-});
-
-type UserFormData = z.infer<typeof userSchema>;
-
-type SelectorProps = {
-  items: string[];
-  placeholder: string;
-  value: string;
-  onValueChange: (v: string) => void;
-};
-
-const GenericSelector = ({
-  items,
-  placeholder,
-  value,
-  onValueChange,
-}: SelectorProps) => (
-  <Combobox
-    items={items}
-    value={value}
-    onValueChange={(val) => {
-      if (val) onValueChange(val);
-    }}
-  >
-    <ComboboxChips>
-      <ComboboxChipsInput
-        placeholder={placeholder}
-        className="placeholder:text-muted-foreground py-1 text-sm lg:text-base"
-      />
-    </ComboboxChips>
-
-    <ComboboxContent>
-      <ComboboxEmpty>Brak dostępnych opcji</ComboboxEmpty>
-
-      <ComboboxList>
-        {items.map((item) => (
-          <ComboboxItem key={item} value={item}>
-            {item}
-          </ComboboxItem>
-        ))}
-      </ComboboxList>
-    </ComboboxContent>
-  </Combobox>
-);
+import { SingleValueSelector } from "@/components/shared";
+import { addUserSchema, type AddUserFormData } from "@/schemas/user.schema";
+import {
+  addUserRoleValues,
+  addUserGenderValues,
+} from "@/constants/user.constants";
 
 const AddUserPage = () => {
   const navigate = useNavigate();
-
-  const userRoles = ["ADMINISTRATOR", "PRACOWNIK"];
-  const userGenders = ["KOBIETA", "MEZCZYZNA"];
 
   const {
     register,
@@ -103,8 +26,8 @@ const AddUserPage = () => {
     watch,
     setValue,
     formState: { errors, isSubmitting },
-  } = useForm<UserFormData>({
-    resolver: zodResolver(userSchema),
+  } = useForm<AddUserFormData>({
+    resolver: zodResolver(addUserSchema),
     defaultValues: {
       fullName: "",
       email: "",
@@ -135,7 +58,7 @@ const AddUserPage = () => {
     };
   }, [pendingFile]);
 
-  const onSubmit = async (data: UserFormData) => {
+  const onSubmit = async (data: AddUserFormData) => {
     try {
       let uploadedUrl: string | null = data.imageUrl;
 
@@ -314,8 +237,8 @@ const AddUserPage = () => {
                 name="gender"
                 control={control}
                 render={({ field }) => (
-                  <GenericSelector
-                    items={userGenders}
+                  <SingleValueSelector
+                    items={[...addUserGenderValues]}
                     placeholder="Wybierz płeć"
                     value={field.value}
                     onValueChange={field.onChange}
@@ -337,8 +260,8 @@ const AddUserPage = () => {
                 name="role"
                 control={control}
                 render={({ field }) => (
-                  <GenericSelector
-                    items={userRoles}
+                  <SingleValueSelector
+                    items={[...addUserRoleValues]}
                     placeholder="Wybierz rolę"
                     value={field.value}
                     onValueChange={field.onChange}

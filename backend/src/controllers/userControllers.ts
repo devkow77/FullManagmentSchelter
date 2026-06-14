@@ -8,6 +8,12 @@ import {
 } from '../validators/user.validator';
 import bcrypt from 'bcrypt';
 import { Role } from '../generated/prisma/enums';
+import {
+  userDetailSelect,
+  userListSelect,
+  userPasswordSelect,
+  userRoleSelect,
+} from '../selects/user.select';
 
 // 1. Aktualizacja hasła
 export const updatePassword = async (req: Request, res: Response) => {
@@ -30,6 +36,7 @@ export const updatePassword = async (req: Request, res: Response) => {
   try {
     const existingUser = await prisma.user.findUnique({
       where: { id: userId },
+      select: userPasswordSelect,
     });
 
     if (!existingUser) {
@@ -89,6 +96,7 @@ export const getWorkers = async (_req: Request, res: Response) => {
           not: Role.UZYTKOWNIK,
         },
       },
+      select: userListSelect,
     });
 
     return res.status(StatusCodes.OK).json(users);
@@ -106,6 +114,7 @@ export const getUsers = async (_req: Request, res: Response) => {
       where: {
         role: Role.UZYTKOWNIK,
       },
+      select: userListSelect,
     });
 
     return res.status(StatusCodes.OK).json(users);
@@ -131,6 +140,7 @@ export const getUniqueUser = async (req: Request, res: Response) => {
   try {
     const user = await prisma.user.findUnique({
       where: { id: numericId },
+      select: userDetailSelect,
     });
 
     if (!user) {
@@ -169,7 +179,9 @@ export const updateUniqueUser = async (req: Request, res: Response) => {
 
   try {
     const today = new Date();
-    const dateOfBirth = parsedBody.data.dateOfBirth ? new Date(parsedBody.data.dateOfBirth) : null;
+    const dateOfBirth = parsedBody.data.dateOfBirth
+      ? new Date(parsedBody.data.dateOfBirth)
+      : null;
 
     if (dateOfBirth && dateOfBirth.getTime() > today.getTime()) {
       return res.status(StatusCodes.CONFLICT).json({
@@ -180,6 +192,7 @@ export const updateUniqueUser = async (req: Request, res: Response) => {
     const updatedUser = await prisma.user.update({
       where: { id: numericId },
       data: parsedBody.data,
+      select: userDetailSelect,
     });
 
     return res.status(StatusCodes.OK).json(updatedUser);
@@ -205,6 +218,7 @@ export const deleteUniqueUser = async (req: Request, res: Response) => {
   try {
     const existingUser = await prisma.user.findUnique({
       where: { id: numericId },
+      select: userRoleSelect,
     });
 
     if (!existingUser) {
@@ -247,12 +261,19 @@ export const createUser = async (req: Request, res: Response) => {
   }
 
   try {
-    const newAnimal = await prisma.user.create({
-      data: parsedBody.data,
+    const { password, ...userData } = parsedBody.data;
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    const newUser = await prisma.user.create({
+      data: {
+        ...userData,
+        password: hashedPassword,
+      },
+      select: userDetailSelect,
     });
 
-    return res.status(StatusCodes.CREATED).json(newAnimal);
-  } catch (err) {
+    return res.status(StatusCodes.CREATED).json(newUser);
+  } catch {
     return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
       msg: 'Wewnętrzny błąd serwera podczas tworzenia!',
     });

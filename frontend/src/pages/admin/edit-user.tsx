@@ -3,96 +3,16 @@
 import { toast } from "sonner";
 import { useLocation, useNavigate, useParams } from "react-router";
 import { useEffect, useRef, useState } from "react";
-import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm, Controller } from "react-hook-form";
 import { Button, Container, Input, Label } from "@/components/ui";
 import { Textarea } from "@/components/ui/textarea";
-import {
-  Combobox,
-  ComboboxContent,
-  ComboboxEmpty,
-  ComboboxItem,
-  ComboboxList,
-  ComboboxChips,
-  ComboboxChipsInput,
-} from "@/components/ui/combobox";
 import axios from "axios";
 import { Plus, Trash } from "lucide-react";
 import { supabase } from "@/lib/supabase";
-
-const RoleEnum = z.enum(["UZYTKOWNIK", "ADMINISTRATOR", "PRACOWNIK"]);
-const GenderEnum = z.enum(["MEZCZYZNA", "KOBIETA"]);
-
-const userSchema = z.object({
-  fullName: z
-    .string()
-    .min(3, "Imię i nazwisko musi mieć minimum 3 znaki.")
-    .max(50, "Imię i nazwisko nie może mieć więcej niż 50 znaków."),
-  email: z
-    .string()
-    .regex(/^[^\s@]+@[^\s@]+\.[^\s@]+$/, "Niepoprawny adres email."),
-  gender: GenderEnum,
-  role: RoleEnum,
-  phoneNumber: z.preprocess(
-    (val) => (val === "" || val == null ? null : val),
-    z
-      .string()
-      .trim()
-      .regex(/^\d{9}$/, "Numer telefonu musi składać się z 9 cyfr.")
-      .nullable()
-  ),
-  city: z.preprocess(
-    (val) => (val === "" || val == null ? null : val),
-    z
-      .string()
-      .trim()
-      .min(3, "Miasto musi mieć minimum 3 znaki.")
-      .max(50, "Miasto może mieć maksymalnie 50 znaków.")
-      .nullable()
-      .optional(),
-  ),
-  postalCode: z.preprocess(
-    (val) => (val === "" || val == null ? null : val),
-    z
-      .string()
-      .trim()
-      .regex(/^\d{2}-\d{3}$/, "Kod pocztowy musi mieć format XX-XXX.")
-      .nullable()
-      .optional(),
-  ),
-  street: z.preprocess(
-    (val) => (val === "" || val == null ? null : val),
-    z
-      .string()
-      .trim()
-      .min(3, "Adres musi mieć minimum 3 znaki.")
-      .max(100, "Adres może mieć maksymalnie 100 znaków.")
-      .nullable()
-      .optional(),
-  ),
-  dateOfBirth: z.preprocess(
-    (val) => {
-      if (val === "" || val == null) return null;
-      return val;
-    },
-    z.coerce
-      .date({ message: "Niepoprawna data urodzenia." })
-      .nullable()
-      .optional(),
-  ),
-  hasChildren: z.boolean(),
-  hasOtherAnimals: z.boolean(),
-  isBanned: z.boolean(),
-  adminNote: z
-    .string()
-    .max(500, "Notatka może mieć maksymalnie 500 znaków.")
-    .nullable()
-    .optional(),
-  imageUrl: z.string().nullable().optional(),
-});
-
-type UserFormData = z.infer<typeof userSchema>;
+import { SingleValueSelector } from "@/components/shared";
+import { editUserSchema, type EditUserFormData } from "@/schemas/user.schema";
+import { userRoleValues, userGenderValues } from "@/constants/user.constants";
 
 type AppUser = {
   id: number;
@@ -114,47 +34,6 @@ type AppUser = {
   createdAt: string;
 };
 
-type SelectorProps = {
-  items: string[];
-  placeholder: string;
-  value: string;
-  onValueChange: (v: string) => void;
-};
-
-const GenericSelector = ({
-  items,
-  placeholder,
-  value,
-  onValueChange,
-}: SelectorProps) => (
-  <Combobox
-    items={items}
-    value={value}
-    onValueChange={(val) => {
-      if (val) onValueChange(val);
-    }}
-  >
-    <ComboboxChips>
-      <ComboboxChipsInput
-        placeholder={placeholder}
-        className="placeholder:text-muted-foreground py-1 text-sm lg:text-base"
-      />
-    </ComboboxChips>
-
-    <ComboboxContent>
-      <ComboboxEmpty>Brak opcji</ComboboxEmpty>
-
-      <ComboboxList>
-        {items.map((item) => (
-          <ComboboxItem key={item} value={item}>
-            {item}
-          </ComboboxItem>
-        ))}
-      </ComboboxList>
-    </ComboboxContent>
-  </Combobox>
-);
-
 const formatDateInput = (value: string | Date | null | undefined) => {
   if (!value) return "";
   return new Date(value).toISOString().split("T")[0];
@@ -174,9 +53,6 @@ const EditUserPage = () => {
         path === (location.state as { returnTo?: string } | null)?.returnTo,
     ) ?? "/pracownik/uzytkownicy";
 
-  const userRoles = ["ADMINISTRATOR", "PRACOWNIK", "UZYTKOWNIK"];
-  const userGenders = ["MEZCZYZNA", "KOBIETA"];
-
   const {
     register,
     handleSubmit,
@@ -186,7 +62,7 @@ const EditUserPage = () => {
     setValue,
     formState: { isSubmitting, errors },
   } = useForm({
-    resolver: zodResolver(userSchema),
+    resolver: zodResolver(editUserSchema),
     defaultValues: {
       fullName: "",
       email: "",
@@ -231,8 +107,8 @@ const EditUserPage = () => {
         reset({
           fullName: res.data.fullName,
           email: res.data.email,
-          gender: res.data.gender as UserFormData["gender"],
-          role: res.data.role as UserFormData["role"],
+          gender: res.data.gender as EditUserFormData["gender"],
+          role: res.data.role as EditUserFormData["role"],
           phoneNumber: res.data.phoneNumber ?? "",
           city: res.data.city ?? "",
           postalCode: res.data.postalCode ?? "",
@@ -266,7 +142,7 @@ const EditUserPage = () => {
     return () => URL.revokeObjectURL(url);
   }, [pendingFile]);
 
-  const onSubmit = async (data: UserFormData) => {
+  const onSubmit = async (data: EditUserFormData) => {
     try {
       let uploadedUrl: string | null = data.imageUrl || null;
 
@@ -474,8 +350,8 @@ const EditUserPage = () => {
                 name="role"
                 control={control}
                 render={({ field }) => (
-                  <GenericSelector
-                    items={userRoles}
+                  <SingleValueSelector
+                    items={[...userRoleValues]}
                     placeholder="Wybierz rolę"
                     value={field.value}
                     onValueChange={field.onChange}
@@ -496,8 +372,8 @@ const EditUserPage = () => {
                 name="gender"
                 control={control}
                 render={({ field }) => (
-                  <GenericSelector
-                    items={userGenders}
+                  <SingleValueSelector
+                    items={[...userGenderValues]}
                     placeholder="Wybierz płeć"
                     value={field.value}
                     onValueChange={field.onChange}

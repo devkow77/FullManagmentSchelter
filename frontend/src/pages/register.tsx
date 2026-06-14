@@ -2,11 +2,11 @@ import { Button, Container, Input, Label } from "@/components/ui";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import axios from "axios";
+import axios, { AxiosError } from "axios";
 import { toast } from "sonner";
 import { useNavigate } from "react-router";
 
-export const registerSchema = z
+const registerSchema = z
   .object({
     fullName: z
       .string()
@@ -47,8 +47,11 @@ const RegisterPage = () => {
       const res = await axios.post("/api/auth/register", data);
       toast.info(res.data.msg);
       navigate("/login");
-    } catch (err: any) {
-      toast.info(err.response.data.msg);
+    } catch (err: unknown) {
+      if (err instanceof AxiosError) {
+        toast.info(err.response?.data.msg);
+      }
+      toast.info("Wystąpił nieoczekiwany błąd");
     }
   };
 

@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router";
-import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { Button, Container, Label } from "@/components/ui";
@@ -24,16 +23,10 @@ import {
   getRejectionTemplate,
   getCancellationTemplate,
 } from "@/lib/adoptionMessageTemplates";
-
-const adoptionSchema = z.object({
-  message: z.string().optional(),
-  employeeNote: z
-    .string()
-    .max(500, "Notatka może mieć maksymalnie 500 znaków.")
-    .optional(),
-});
-
-type AdoptionFormData = z.infer<typeof adoptionSchema>;
+import {
+  editAdoptionSchema,
+  type EditAdoptionFormData,
+} from "@/schemas/adoption.schema";
 
 type AdoptionUser = {
   id: number;
@@ -88,8 +81,8 @@ const EditAdoptionPage = () => {
     setValue,
     watch,
     formState: { errors, isSubmitting },
-  } = useForm<AdoptionFormData>({
-    resolver: zodResolver(adoptionSchema),
+  } = useForm<EditAdoptionFormData>({
+    resolver: zodResolver(editAdoptionSchema),
     defaultValues: {
       message: "",
       employeeNote: "",
@@ -139,7 +132,7 @@ const EditAdoptionPage = () => {
     if (id) fetchAdoption();
   }, [id, reset, navigate]);
 
-  const onSubmit = async (data: AdoptionFormData, status: string) => {
+  const onSubmit = async (data: EditAdoptionFormData, status: string) => {
     const confirmed = window.confirm(
       "Czy jesteś pewny, że chcesz zmienić status adopcji?",
     );

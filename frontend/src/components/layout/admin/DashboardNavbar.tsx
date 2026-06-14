@@ -6,6 +6,7 @@ import {
   File,
   ChartColumn,
   ClipboardPlus,
+  Hospital,
 } from "lucide-react";
 import { useLocation } from "react-router";
 
@@ -32,6 +33,11 @@ const adminOptions: AdminOptions[] = [
     name: "Zarządzaj użytkownikami",
   },
   {
+    icon: Hospital,
+    href: "/admin/weterynarze",
+    name: "Zarządzaj weterynarzami",
+  },
+  {
     icon: Pencil,
     href: `${import.meta.env.VITE_STRIPE_CMS_ADMIN_URL}/admin`,
     name: "Zarządzaj blogiem",
@@ -43,7 +49,7 @@ const adminOptions: AdminOptions[] = [
   },
   {
     icon: ClipboardPlus,
-    href: "/admin/raporty-medyczne",
+    href: "/pracownik/raporty-medyczne",
     name: "Raporty medyczne",
   },
   {

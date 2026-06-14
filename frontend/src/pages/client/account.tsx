@@ -10,6 +10,7 @@ import { useNavigate } from "react-router";
 import { useEffect } from "react";
 import { useTotp } from "@/hooks/useTotp";
 import { DisableTotpForm, VerifyTotpForm } from "@/components/shared";
+import { styleUserRole } from "@/lib/utils";
 
 const updatePasswordSchema = z
   .object({
@@ -90,7 +91,7 @@ const AccountPage = () => {
           </div>
           <div className="space-y-2">
             <h1 className="text-3xl font-bold text-green-900 md:text-5xl">
-              Witaj {user?.fullName}!
+              {user?.fullName}
             </h1>
             <p className="text-sm leading-6 font-medium md:text-base md:leading-7">
               Poniżej znajdują się twoje podstawowe dane z konta.
@@ -98,7 +99,13 @@ const AccountPage = () => {
             <ul className="space-y-2 text-sm leading-6 md:text-base md:leading-7">
               <li>Imię i nazwisko: {user?.fullName}</li>
               <li>Email: {user?.email}</li>
-              <li>Typ konta: {user?.role}</li>
+              <li className="mt-4">
+                <span
+                  className={`${styleUserRole(user?.role as string)} rounded-sm px-4 py-2 font-medium`}
+                >
+                  {user?.role}
+                </span>
+              </li>
             </ul>
           </div>
         </section>
@@ -115,7 +122,7 @@ const AccountPage = () => {
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 lg:gap-6">
             <a href="/" className="space-y-2">
               <div className="relative grid aspect-video place-items-center overflow-hidden rounded-xl bg-black/10">
-                <span className="absolute top-3 right-3 rounded-2xl bg-yellow-200 px-2 py-2 text-xs font-semibold text-yellow-600">
+                <span className="absolute top-3 right-3 rounded-2xl bg-yellow-200 px-4 py-2 text-xs font-semibold text-yellow-600">
                   OCZEKUJE NA AKCEPTACJE
                 </span>
               </div>
@@ -210,7 +217,7 @@ const AccountPage = () => {
                 : "Kliknij przycisk poniżej aby włączyć weryfikację dwuetapową 2FA"}
             </p>
           </div>
-          {!user?.twoFactorEnabled &&  (
+          {!user?.twoFactorEnabled && (
             <div className="space-y-2">
               <p className="text-sm leading-6 md:text-base md:leading-7">
                 Zeskanuj poniższy kod QR w aplikacji Authenticator (np. Google

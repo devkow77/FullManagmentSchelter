@@ -139,8 +139,8 @@ model Adoption {
 model Vet {
   id Int @id @default(autoincrement())
   name String
-  phone String?
-  clinic String?
+  phone String
+  clinic String
   records MedicalRecord[]
 }
 
@@ -151,6 +151,12 @@ enum MedicalRecordType {
   SZCZEPIENIE // Szczepienie 
   URAZ // Uraz w wyniku wypadku
   INNE // Inne rekordy medyczne
+}
+
+enum MedicalRecordStatus {
+  DO_REALIZACJI // Do realizacji
+  W_TRAKCIE // W trakcie
+  ZREALIZOWANA // Zrealizowana
 }
 
 model MedicalRecord {
@@ -165,6 +171,8 @@ model MedicalRecord {
   cost Float @default(0.00)// Koszt rekordu medycznego
 
   animal Animal @relation(fields: [animalId], references: [id], onDelete: Cascade)
+
+  status MedicalRecordStatus // Status rekordu medycznego
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt // Data aktualizacji

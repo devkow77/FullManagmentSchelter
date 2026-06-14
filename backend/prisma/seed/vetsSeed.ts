@@ -9,17 +9,17 @@ const vetsSeed = async () => {
     data: [
       {
         name: 'dr Anna Kowalczyk',
-        phone: '17 123 45 67',
+        phone: '123456789',
         clinic: 'Przychodnia Weterynaryjna „Azyl” Rzeszów',
       },
       {
         name: 'dr Piotr Nowak',
-        phone: '12 987 65 43',
+        phone: '627183910',
         clinic: 'Centrum Medycyny Weterynaryjnej Kraków',
       },
       {
         name: 'dr Maria Wiśniewska',
-        phone: null,
+        phone: '482710129',
         clinic: 'Mobilna opieka weterynaryjna',
       },
     ],

@@ -1,22 +1,16 @@
 import { Container } from "@/components/ui";
 import { useEffect, useState } from "react";
-import {
-  Combobox,
-  ComboboxContent,
-  ComboboxEmpty,
-  ComboboxItem,
-  ComboboxList,
-  ComboboxValue,
-  ComboboxChips,
-  ComboboxChipsInput,
-  ComboboxChip,
-} from "@/components/ui/combobox";
-import { Slider } from "@/components/ui/slider";
 import { Button } from "@/components/ui/button";
 import axios from "axios";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Heart } from "lucide-react";
-
+import {
+  animalTypeOptions,
+  animalGenderOptions,
+  animalSizeOptions,
+  animalTraitOptions,
+} from "@/constants/animal.constants";
+import { MultiValueSelector, AgeSlider } from "@/components/shared";
 interface Animal {
   slug: string;
   name: string;
@@ -29,64 +23,6 @@ interface Animal {
   description: string;
 }
 
-type AnimalType = {
-  label: string;
-  value: string;
-};
-
-type SelectorProps = {
-  items: AnimalType[];
-  placeholder: string;
-  value: string[];
-  onValueChange: (v: string[]) => void;
-};
-
-const GenericSelector = ({
-  items,
-  placeholder,
-  value,
-  onValueChange,
-}: SelectorProps) => (
-  <Combobox items={items} multiple value={value} onValueChange={onValueChange}>
-    <ComboboxChips>
-      <ComboboxValue>
-        {value
-          .map((val) => items.find((i) => i.value === val)?.label)
-          .filter(Boolean)
-          .map((label) => (
-            <ComboboxChip key={label}>{label}</ComboboxChip>
-          ))}
-      </ComboboxValue>
-      <ComboboxChipsInput placeholder={placeholder} />
-    </ComboboxChips>
-    <ComboboxContent>
-      <ComboboxEmpty>Brak dostępnych opcji</ComboboxEmpty>
-      <ComboboxList>
-        {(item) => (
-          <ComboboxItem key={item.value} value={item.value}>
-            {item.label}
-          </ComboboxItem>
-        )}
-      </ComboboxList>
-    </ComboboxContent>
-  </Combobox>
-);
-
-const AgeSlider = ({
-  value,
-  onChange,
-}: {
-  value: [number, number];
-  onChange: (v: [number, number]) => void;
-}) => (
-  <div className="w-64">
-    <label className="mb-2 block text-sm">
-      Wiek (lata): {value[0]} - {value[1]}
-    </label>
-    <Slider value={value} min={0} max={20} step={1} onValueChange={onChange} />
-  </div>
-);
-
 const AnimalsPage = () => {
   const [animals, setAnimals] = useState<Animal[]>([]);
   const [filteredAnimals, setFilteredAnimals] = useState<Animal[]>([]);
@@ -97,31 +33,6 @@ const AnimalsPage = () => {
   const [selectedSize, setSelectedSize] = useState<string[]>([]);
   const [selectedTraits, setSelectedTraits] = useState<string[]>([]);
   const [ageRange, setAgeRange] = useState<[number, number]>([0, 25]);
-
-  const animalTypes: AnimalType[] = [
-    { label: "Pies", value: "dog" },
-    { label: "Kot", value: "cat" },
-    { label: "Króliki", value: "rabbit" },
-  ];
-
-  const animalGenders: AnimalType[] = [
-    { label: "Samiec", value: "male" },
-    { label: "Samica", value: "female" },
-  ];
-
-  const animalSizes: AnimalType[] = [
-    { label: "Mały", value: "small" },
-    { label: "Średni", value: "medium" },
-    { label: "Duży", value: "large" },
-  ];
-
-  const animalTraits: AnimalType[] = [
-    { label: "Energetyczny", value: "energetic" },
-    { label: "Spokojny", value: "calm" },
-    { label: "Przyjazny", value: "friendly" },
-    { label: "Nieśmiały", value: "shy" },
-    { label: "Czuły", value: "affectionate" },
-  ];
 
   useEffect(() => {
     const handleGetAnimals = async () => {
@@ -183,26 +94,26 @@ const AnimalsPage = () => {
             </p>
           </div>
           <div className="top-0 z-2 -mt-4 flex flex-wrap items-center gap-4 bg-white py-4 sm:sticky lg:-mt-8">
-            <GenericSelector
-              items={animalTypes}
+            <MultiValueSelector
+              items={animalTypeOptions}
               placeholder="Wybierz zwierzę"
               value={selectedAnimals}
               onValueChange={setSelectedAnimals}
             />
-            <GenericSelector
-              items={animalGenders}
+            <MultiValueSelector
+              items={animalGenderOptions}
               placeholder="Wybierz płeć"
               value={selectedGender}
               onValueChange={setSelectedGender}
             />
-            <GenericSelector
-              items={animalSizes}
+            <MultiValueSelector
+              items={animalSizeOptions}
               placeholder="Wybierz rozmiar"
               value={selectedSize}
               onValueChange={setSelectedSize}
             />
-            <GenericSelector
-              items={animalTraits}
+            <MultiValueSelector
+              items={animalTraitOptions}
               placeholder="Wybierz cechy"
               value={selectedTraits}
               onValueChange={setSelectedTraits}
