@@ -5,8 +5,7 @@ import { useNavigate, useParams } from "react-router";
 import { useEffect, useRef, useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm, Controller } from "react-hook-form";
-import { Button, Container, Input, Label } from "@/components/ui";
-import { Textarea } from "@/components/ui/textarea";
+import { Button, Container, Input, Label, Textarea } from "@/components/ui";
 import axios from "axios";
 import { Plus, Star, Trash } from "lucide-react";
 import { supabase } from "@/lib/supabase";
@@ -46,6 +45,17 @@ const AddAnimalPage = () => {
       nextVisitDate: new Date().toISOString().split("T")[0],
       foundAt: new Date().toISOString().split("T")[0],
       foundLocation: "",
+      cageNumber: "",
+      isSterilized: false,
+      isVaccinated: false,
+      isChildFriendly: false,
+      isTrained: false,
+      lovesPlay: false,
+      lovesWalks: false,
+      acceptsDogs: false,
+      acceptsCats: false,
+      lovesAffection: false,
+      poorlyToleratesShelter: false,
       imageUrl: [],
     },
   });
@@ -55,6 +65,7 @@ const AddAnimalPage = () => {
 
   const [pendingFiles, setPendingFiles] = useState<File[]>([]);
   const [deletedImages, setDeletedImages] = useState<string[]>([]);
+  const [primaryImageIndex, setPrimaryImageIndex] = useState(0);
 
   const existingImages = watch("imageUrl") || [];
 
@@ -110,17 +121,31 @@ const AddAnimalPage = () => {
         if (error) throw error;
       }
 
+      const combinedImages = [...(data.imageUrl || []), ...uploadedUrls];
+      const primaryIndex = Math.min(
+        primaryImageIndex,
+        Math.max(combinedImages.length - 1, 0),
+      );
+      const imageUrl =
+        combinedImages.length === 0
+          ? []
+          : [
+              combinedImages[primaryIndex],
+              ...combinedImages.filter((_, i) => i !== primaryIndex),
+            ];
+
       await axios.post(
         `/api/animals/`,
         {
           ...data,
-          imageUrl: [...(data.imageUrl || []), ...uploadedUrls],
+          imageUrl,
         },
         { withCredentials: true },
       );
 
       setPendingFiles([]);
       setDeletedImages([]);
+      setPrimaryImageIndex(0);
 
       toast.success("Nowe zwierzę zostało utworzone!");
 
@@ -176,6 +201,17 @@ const AddAnimalPage = () => {
       const pendingIndex = index - existingImages.length;
       setPendingFiles((prev) => prev.filter((_, i) => i !== pendingIndex));
     }
+
+    setPrimaryImageIndex((prev) => {
+      if (index === prev) return 0;
+      if (index < prev) return prev - 1;
+      return prev;
+    });
+  };
+
+  const handleSetPrimaryImage = (index: number) => {
+    if (index >= previewImages.length) return;
+    setPrimaryImageIndex(index);
   };
 
   return (
@@ -196,10 +232,12 @@ const AddAnimalPage = () => {
             <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
               {Array.from({ length: MAX_IMAGES }).map((_, index) => {
                 const img = previewImages[index];
+                const isPrimary = index === primaryImageIndex && !!img;
+
                 return (
                   <div
                     key={index}
-                    className="relative aspect-square overflow-hidden rounded-xl bg-gray-200"
+                    className={`${isPrimary ? "border-3 border-yellow-400" : ""} relative aspect-square overflow-hidden rounded-xl bg-gray-200`}
                   >
                     {img ? (
                       <>
@@ -211,10 +249,12 @@ const AddAnimalPage = () => {
                         </span>
 
                         <span
-                          onClick={() => {}}
+                          onClick={() => handleSetPrimaryImage(index)}
                           className="absolute top-3 right-3 z-10 cursor-pointer rounded-full bg-white/10 p-1 sm:p-2"
                         >
-                          <Star className="scale-80 text-yellow-600 sm:scale-100" />
+                          <Star
+                            className={`scale-80 text-yellow-600 sm:scale-100 ${isPrimary ? "fill-yellow-600" : ""}`}
+                          />
                         </span>
 
                         <div className="absolute z-2 size-full bg-linear-to-l from-black/40 to-transparent" />
@@ -410,6 +450,106 @@ const AddAnimalPage = () => {
                     {errors.healthStatus.message}
                   </p>
                 )}
+              </div>
+
+              {/* NUMER KLATKI */}
+              <div className="space-y-2">
+                <Label htmlFor="cageNumber">Numer klatki</Label>
+                <Input
+                  id="cageNumber"
+                  {...register("cageNumber")}
+                  placeholder="np. A-12"
+                  className={errors.cageNumber && "bg-red-600/20"}
+                />
+                {errors.cageNumber && (
+                  <p className="text-xs font-medium text-red-600 lg:text-sm">
+                    {errors.cageNumber.message}
+                  </p>
+                )}
+              </div>
+
+              {/* CECHY BOOLEAN */}
+              <div className="flex flex-col gap-3 sm:col-span-2 lg:col-span-3">
+                <Label className="flex cursor-pointer items-center gap-2 text-sm font-medium md:text-base">
+                  <Input
+                    type="checkbox"
+                    {...register("isSterilized")}
+                    className="size-4 accent-green-600"
+                  />
+                  Sterylizacja/Kastracja
+                </Label>
+                <Label className="flex cursor-pointer items-center gap-2 text-sm font-medium md:text-base">
+                  <Input
+                    type="checkbox"
+                    {...register("isVaccinated")}
+                    className="size-4 accent-green-600"
+                  />
+                  Szczepienia
+                </Label>
+                <Label className="flex cursor-pointer items-center gap-2 text-sm font-medium md:text-base">
+                  <Input
+                    type="checkbox"
+                    {...register("isChildFriendly")}
+                    className="size-4 accent-green-600"
+                  />
+                  Przyjazny dzieciom
+                </Label>
+                <Label className="flex cursor-pointer items-center gap-2 text-sm font-medium md:text-base">
+                  <Input
+                    type="checkbox"
+                    {...register("isTrained")}
+                    className="size-4 accent-green-600"
+                  />
+                  Szkolony
+                </Label>
+                <Label className="flex cursor-pointer items-center gap-2 text-sm font-medium md:text-base">
+                  <Input
+                    type="checkbox"
+                    {...register("lovesPlay")}
+                    className="size-4 accent-green-600"
+                  />
+                  Uwielbia zabawę
+                </Label>
+                <Label className="flex cursor-pointer items-center gap-2 text-sm font-medium md:text-base">
+                  <Input
+                    type="checkbox"
+                    {...register("lovesWalks")}
+                    className="size-4 accent-green-600"
+                  />
+                  Uwielbia spacery
+                </Label>
+                <Label className="flex cursor-pointer items-center gap-2 text-sm font-medium md:text-base">
+                  <Input
+                    type="checkbox"
+                    {...register("acceptsDogs")}
+                    className="size-4 accent-green-600"
+                  />
+                  Akceptuje psy
+                </Label>
+                <Label className="flex cursor-pointer items-center gap-2 text-sm font-medium md:text-base">
+                  <Input
+                    type="checkbox"
+                    {...register("acceptsCats")}
+                    className="size-4 accent-green-600"
+                  />
+                  Akceptuje koty
+                </Label>
+                <Label className="flex cursor-pointer items-center gap-2 text-sm font-medium md:text-base">
+                  <Input
+                    type="checkbox"
+                    {...register("lovesAffection")}
+                    className="size-4 accent-green-600"
+                  />
+                  Uwielbia pieszczoty
+                </Label>
+                <Label className="flex cursor-pointer items-center gap-2 text-sm font-medium md:text-base">
+                  <Input
+                    type="checkbox"
+                    {...register("poorlyToleratesShelter")}
+                    className="size-4 accent-green-600"
+                  />
+                  Źle nosi pobyt w schronisku
+                </Label>
               </div>
 
               {/* ZNALEZIONY (MIEJSCE) */}

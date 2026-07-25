@@ -37,7 +37,7 @@ const usersSeed = async () => {
     ],
   });
 
-  console.log('Seed użytkowników zakończony');
+  console.log('✓ Seed użytkowników zakończony');
 };
 
 export default usersSeed;

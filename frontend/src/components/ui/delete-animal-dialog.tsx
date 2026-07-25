@@ -8,7 +8,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
   AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
+} from './alert-dialog';
 
 type Props = {
   animalId: number;
@@ -18,7 +18,7 @@ type Props = {
 function DeleteAnimalDialog({ animalId, onConfirm }: Props) {
   return (
     <AlertDialog>
-      <AlertDialogTrigger className="cursor-pointer px-1.5 text-sm text-red-600">
+      <AlertDialogTrigger className="cursor-pointer px-1.5 text-sm text-red-800">
         Usuń zwierzę
       </AlertDialogTrigger>
       <AlertDialogContent>

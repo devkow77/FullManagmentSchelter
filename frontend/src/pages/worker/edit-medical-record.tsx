@@ -3,9 +3,12 @@
 import { useNavigate, useParams } from "react-router";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm, Controller } from "react-hook-form";
-import { Button, Container, Input, Label } from "@/components/ui";
-import { Textarea } from "@/components/ui/textarea";
 import {
+  Button,
+  Container,
+  Input,
+  Label,
+  Textarea,
   Combobox,
   ComboboxChips,
   ComboboxChipsInput,
@@ -13,7 +16,7 @@ import {
   ComboboxEmpty,
   ComboboxItem,
   ComboboxList,
-} from "@/components/ui/combobox";
+} from "@/components/ui";
 import { useEffect, useMemo, useState } from "react";
 import axios from "axios";
 import { toast } from "sonner";
@@ -120,7 +123,7 @@ const EditMedicalRecordPage = () => {
       type: "WIZYTA",
       description: "",
       date: new Date().toISOString().split("T")[0],
-      cost: 0,
+      cost: undefined as unknown as number,
       status: "DO_REALIZACJI",
     },
   });

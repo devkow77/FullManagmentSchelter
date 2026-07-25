@@ -1,5 +1,4 @@
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { Button, Input } from "@/components/ui";
 import axios, { AxiosError } from "axios";
 import z from "zod";
 import { useForm } from "react-hook-form";
@@ -9,7 +8,10 @@ import { useAuth } from "@/context/AuthContext";
 import { useNavigate } from "react-router";
 
 const verifyTotpSchema = z.object({
-  code: z.string().min(6, "Kod TOTP musi posiadać 6 znaków").max(6, "Kod TOTP musi posiadać 6 znaków"),
+  code: z
+    .string()
+    .min(6, "Kod TOTP musi posiadać 6 znaków")
+    .max(6, "Kod TOTP musi posiadać 6 znaków"),
 });
 
 type VerifyTotpFormData = z.infer<typeof verifyTotpSchema>;
@@ -44,17 +46,25 @@ const VerifyTotpForm = () => {
   };
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="flex w-64 flex-col gap-4">
+    <form
+      onSubmit={handleSubmit(onSubmit)}
+      className="flex w-64 flex-col gap-4"
+    >
       <Input
         {...register("code")}
         type="text"
         placeholder="Wpisz kod TOTP"
         autoFocus
+        className={errors.code && "bg-red-600/20"}
       />
       <Button variant={"success"} type="submit" disabled={isSubmitting}>
         {isSubmitting ? "Weryfikowanie..." : "Weryfikuj"}
       </Button>
-      {errors.code && <p className="-mt-2 mb-4 text-xs font-medium text-red-600 lg:text-sm">{errors.code.message}</p>}
+      {errors.code && (
+        <p className="-mt-2 mb-4 text-xs font-medium text-red-600 lg:text-sm">
+          {errors.code.message}
+        </p>
+      )}
     </form>
   );
 };

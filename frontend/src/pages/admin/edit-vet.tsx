@@ -1,16 +1,54 @@
 import { toast } from "sonner";
-import { useNavigate, useParams } from "react-router";
-import { useEffect } from "react";
+import { useNavigate, useParams, Link } from "react-router";
+import { useEffect, useMemo, useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import { Button, Container, Input, Label } from "@/components/ui";
+import {
+  Button,
+  Container,
+  DeleteMedicalRecordDialog,
+  Input,
+  Label,
+  Table,
+  TableBody,
+  TableCaption,
+  TableCell,
+  TableFooter,
+  TableHead,
+  TableHeader,
+  TableRow,
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+} from "@/components/ui";
+import { MoreHorizontalIcon } from "lucide-react";
 import axios from "axios";
 import { vetSchema, type VetFormData } from "@/schemas/vet.schema";
 import type { Vet } from "@/types/vet";
+import type { MedicalRecord } from "@/types/medical-record";
+import {
+  styleMedicalRecordStatus,
+  styleMedicalRecordType,
+  formatMedicalRecordStatus,
+  formatMedicalRecordType,
+  formatAnimalType,
+} from "@/lib/utils";
+import { MultiValueSelector } from "@/components/shared";
+import {
+  medicalRecordAnimalTypeOptions,
+  medicalRecordTypeOptions,
+  medicalRecordStatusOptions,
+} from "@/constants/medical-record.constants";
 
 const EditVetPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const [medicalRecords, setMedicalRecords] = useState<MedicalRecord[]>([]);
+  const [selectedAnimalType, setSelectedAnimalType] = useState<string[]>([]);
+  const [selectedTypes, setSelectedTypes] = useState<string[]>([]);
+  const [selectedStatus, setSelectedStatus] = useState<string[]>([]);
 
   const {
     register,
@@ -46,6 +84,61 @@ const EditVetPage = () => {
 
     if (id) fetchVet();
   }, [id, reset, navigate]);
+
+  useEffect(() => {
+    const fetchMedicalRecords = async () => {
+      try {
+        const res = await axios.get<MedicalRecord[]>(
+          `/api/medical-records?vetId=${id}`,
+        );
+        setMedicalRecords(res.data);
+      } catch {
+        toast.error("Nie udało się pobrać raportów medycznych weterynarza.");
+      }
+    };
+
+    if (id) fetchMedicalRecords();
+  }, [id]);
+
+  const filteredMedicalRecords = useMemo(() => {
+    return medicalRecords.filter((medicalRecord) => {
+      const matchesAnimalType =
+        selectedAnimalType.length === 0 ||
+        selectedAnimalType.includes(medicalRecord.animal.type);
+
+      const matchesType =
+        selectedTypes.length === 0 ||
+        selectedTypes.includes(medicalRecord.type);
+
+      const matchesStatus =
+        selectedStatus.length === 0 ||
+        selectedStatus.includes(medicalRecord.status);
+
+      return matchesAnimalType && matchesType && matchesStatus;
+    });
+  }, [medicalRecords, selectedAnimalType, selectedTypes, selectedStatus]);
+
+  const resetFilters = () => {
+    setSelectedAnimalType([]);
+    setSelectedTypes([]);
+    setSelectedStatus([]);
+  };
+
+  const handleDeleteMedicalRecord = async (recordId: number) => {
+    try {
+      await axios.delete(`/api/medical-records/${recordId}`);
+      setMedicalRecords((prev) =>
+        prev.filter((record) => record.id !== recordId),
+      );
+      toast.success("Pomyślnie usunięto raport medyczny!");
+    } catch (err) {
+      if (axios.isAxiosError(err)) {
+        toast.error(err.response?.data?.msg);
+      } else {
+        toast.error("Wystąpił błąd podczas usuwania raportu medycznego!");
+      }
+    }
+  };
 
   const onSubmit = async (data: VetFormData) => {
     try {
@@ -132,6 +225,151 @@ const EditVetPage = () => {
             {isSubmitting ? "Zapisywanie..." : "Zaktualizuj dane weterynarza"}
           </Button>
         </form>
+
+        <section id="medical-records" className="space-y-4">
+          <div className="space-y-2">
+            <h2 className="text-2xl font-bold text-green-900 md:text-3xl">
+              Raporty medyczne
+            </h2>
+            <p className="text-sm leading-6 font-medium md:text-base md:leading-7">
+              Lista raportów medycznych przypisanych do tego weterynarza.
+            </p>
+          </div>
+
+          <div className="top-0 z-2 flex flex-wrap items-center gap-4 bg-white py-4 sm:sticky">
+            <MultiValueSelector
+              items={medicalRecordAnimalTypeOptions}
+              placeholder="Gatunek"
+              value={selectedAnimalType}
+              onValueChange={setSelectedAnimalType}
+            />
+
+            <MultiValueSelector
+              items={medicalRecordTypeOptions}
+              placeholder="Typ raportu"
+              value={selectedTypes}
+              onValueChange={setSelectedTypes}
+            />
+
+            <MultiValueSelector
+              items={medicalRecordStatusOptions}
+              placeholder="Status"
+              value={selectedStatus}
+              onValueChange={setSelectedStatus}
+            />
+
+            <Button onClick={resetFilters} variant="destructive">
+              Resetuj filtry
+            </Button>
+          </div>
+
+          <Table>
+            <TableCaption>Raporty medyczne weterynarza</TableCaption>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Zwierzę</TableHead>
+                <TableHead>Gatunek</TableHead>
+                <TableHead>Typ raportu</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>Data wizyty</TableHead>
+                <TableHead>Koszt</TableHead>
+                <TableHead className="text-right">Opcje</TableHead>
+              </TableRow>
+            </TableHeader>
+
+            <TableBody>
+              {filteredMedicalRecords.length ? (
+                filteredMedicalRecords.map((medicalRecord) => (
+                  <TableRow
+                    key={medicalRecord.id}
+                    className="cursor-pointer"
+                    onClick={() =>
+                      navigate(
+                        `/pracownik/raporty-medyczne/${medicalRecord.id}/edycja`,
+                      )
+                    }
+                  >
+                    <TableCell>{medicalRecord.animal.name}</TableCell>
+                    <TableCell>
+                      {formatAnimalType[medicalRecord.animal.type]}
+                    </TableCell>
+                    <TableCell>
+                      <span
+                        className={`${styleMedicalRecordType(medicalRecord.type)} rounded-2xl px-4 py-2 text-xs`}
+                      >
+                        {formatMedicalRecordType[medicalRecord.type]}
+                      </span>
+                    </TableCell>
+                    <TableCell>
+                      <span
+                        className={`${styleMedicalRecordStatus(medicalRecord.status)} rounded-2xl px-4 py-2 text-xs`}
+                      >
+                        {formatMedicalRecordStatus[medicalRecord.status]}
+                      </span>
+                    </TableCell>
+                    <TableCell>
+                      {new Date(medicalRecord.date).toLocaleDateString(
+                        "pl-PL",
+                        {
+                          day: "2-digit",
+                          month: "2-digit",
+                          year: "numeric",
+                        },
+                      )}{" "}
+                      r.
+                    </TableCell>
+                    <TableCell>{medicalRecord.cost} zł</TableCell>
+                    <TableCell
+                      className="text-right"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="transparent" size="icon">
+                            <MoreHorizontalIcon />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem>
+                            <Link
+                              to={`/pracownik/raporty-medyczne/${medicalRecord.id}/edycja`}
+                            >
+                              Szczegóły
+                            </Link>
+                          </DropdownMenuItem>
+                          <DropdownMenuSeparator />
+                          <div className="hover:bg-accent rounded-sm">
+                            <DeleteMedicalRecordDialog
+                              medicalRecordId={medicalRecord.id}
+                              onConfirm={(recordId) =>
+                                handleDeleteMedicalRecord(recordId)
+                              }
+                            />
+                          </div>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </TableCell>
+                  </TableRow>
+                ))
+              ) : (
+                <TableRow>
+                  <TableCell colSpan={7} className="text-center">
+                    Brak raportów spełniających wybrane filtry.
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+
+            <TableFooter>
+              <TableRow>
+                <TableCell colSpan={6}>Suma raportów</TableCell>
+                <TableCell className="text-right">
+                  {filteredMedicalRecords.length}
+                </TableCell>
+              </TableRow>
+            </TableFooter>
+          </Table>
+        </section>
       </Container>
     </main>
   );

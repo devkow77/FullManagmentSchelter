@@ -12,12 +12,16 @@ import BlogPage from "./blog";
 import NotFoundPage from "./not-found";
 import BlogPostPage from "./blog-post";
 import NewsletterUnsubscribePage from "./newsletter-unsubscribe";
+import FavouritesAnimalsPage from "./favourites-animals";
+import TypeAnimalPage from "./type-animal";
+import AnimalPage from "./animal";
 
 export {
   HomePage,
   RegisterPage,
   LoginPage,
   AnimalsPage,
+  TypeAnimalPage,
   FoundAnimalsPage,
   HowToHelp,
   FaqPage,
@@ -28,4 +32,6 @@ export {
   NotFoundPage,
   BlogPostPage,
   NewsletterUnsubscribePage,
+  FavouritesAnimalsPage,
+  AnimalPage,
 };

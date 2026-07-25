@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useAuth } from "@/context/AuthContext";
-import { Button } from "@/components/ui/button";
+import { Button } from "@/components/ui";
 import axios from "axios";
 import { toast } from "sonner";
 import { useNavigate } from "react-router";

@@ -1,6 +1,6 @@
 "use client";
 
-import { Container, Button } from "@/components/ui";
+import { Container } from "@/components/ui";
 import DashboardNavbar from "@/components/layout/admin/DashboardNavbar";
 import {
   Bar,
@@ -19,33 +19,36 @@ import {
   ChartTooltip,
   ChartTooltipContent,
   type ChartConfig,
-} from "@/components/ui/chart";
+} from "@/components/ui";
 import {
-  Activity,
-  Ban,
-  BookOpen,
-  CalendarDays,
-  CheckCircle2,
-  ClipboardCheck,
-  ClipboardPlus,
-  Clock,
-  Eye,
-  FileText,
+  // Activity,
+  // Ban,
+  // BookOpen,
+  // CalendarDays,
+  // CheckCircle2,
+  // ClipboardCheck,
+  // ClipboardPlus,
+  // Clock,
+  // Eye,
+  // FileText,
   FileWarning,
-  HeartHandshake,
-  Home,
+  // HeartHandshake,
+  // Home,
   Lock,
-  Newspaper,
-  PawPrint,
-  PenLine,
+  // Newspaper,
+  // PawPrint,
+  // PenLine,
   Shield,
-  Stethoscope,
+  // Stethoscope,
   UserCog,
-  UserPlus,
+  // UserPlus,
   Users,
-  Wallet,
-  XCircle,
+  // Wallet,
+  // XCircle,
 } from "lucide-react";
+import axios from "axios";
+import { useState, useEffect, useMemo } from "react";
+import type { User } from "@/types/user";
 
 const workerStats = {
   total: 12,
@@ -143,7 +146,7 @@ const roleChartConfig = {
   },
   administratorzy: {
     label: "Administratorzy",
-    color: "#0d542b",
+    color: "#F44336",
   },
 } satisfies ChartConfig;
 
@@ -165,566 +168,593 @@ const adoptionActivityChartConfig = {
   },
 } satisfies ChartConfig;
 
-const userStats = {
-  total: 35,
-  newThisWeek: 5,
-  newThisMonth: 12,
-  newLast6Months: 17,
-  newThisYear: 17,
-  formFilled: 28,
-  formIncomplete: 7,
-  banned: 2,
-  hasOtherAnimals: 19,
-  men: 18,
-  women: 17,
-};
+// const userStats = {
+//   total: 35,
+//   newThisWeek: 5,
+//   newThisMonth: 12,
+//   newLast6Months: 17,
+//   newThisYear: 17,
+//   formFilled: 28,
+//   formIncomplete: 7,
+//   banned: 2,
+//   hasOtherAnimals: 19,
+//   men: 18,
+//   women: 17,
+// };
 
-const userKpiCards = [
-  {
-    label: "Łącznie",
-    value: userStats.total,
-    icon: Users,
-    description: "zarejestrowanych użytkowników",
-  },
-  {
-    label: "Nowi w tym tygodniu",
-    value: userStats.newThisWeek,
-    icon: CalendarDays,
-    description: "rejestracje w ostatnich 7 dniach",
-  },
-  {
-    label: "Nowi w tym miesiącu",
-    value: userStats.newThisMonth,
-    icon: UserPlus,
-    description: "rejestracje w bieżącym miesiącu",
-  },
-  {
-    label: "Wypełniony formularz",
-    value: userStats.formFilled,
-    icon: ClipboardCheck,
-    description: "mogą składać wnioski adopcyjne",
-  },
-  {
-    label: "Zbanowani",
-    value: userStats.banned,
-    icon: Ban,
-    description: "konta z ograniczonym dostępem",
-  },
-];
+// const userKpiCards = [
+//   {
+//     label: "Łącznie",
+//     value: userStats.total,
+//     icon: Users,
+//     description: "zarejestrowanych użytkowników",
+//   },
+//   {
+//     label: "Nowi w tym tygodniu",
+//     value: userStats.newThisWeek,
+//     icon: CalendarDays,
+//     description: "rejestracje w ostatnich 7 dniach",
+//   },
+//   {
+//     label: "Nowi w tym miesiącu",
+//     value: userStats.newThisMonth,
+//     icon: UserPlus,
+//     description: "rejestracje w bieżącym miesiącu",
+//   },
+//   {
+//     label: "Wypełniony formularz",
+//     value: userStats.formFilled,
+//     icon: ClipboardCheck,
+//     description: "mogą składać wnioski adopcyjne",
+//   },
+//   {
+//     label: "Zbanowani",
+//     value: userStats.banned,
+//     icon: Ban,
+//     description: "konta z ograniczonym dostępem",
+//   },
+// ];
 
-const newUsersByMonth = [
-  { month: "Styczeń", count: 2 },
-  { month: "Luty", count: 1 },
-  { month: "Marzec", count: 3 },
-  { month: "Kwiecień", count: 4 },
-  { month: "Maj", count: 4 },
-  { month: "Czerwiec", count: 3 },
-];
+// const newUsersByMonth = [
+//   { month: "Styczeń", count: 2 },
+//   { month: "Luty", count: 1 },
+//   { month: "Marzec", count: 3 },
+//   { month: "Kwiecień", count: 4 },
+//   { month: "Maj", count: 4 },
+//   { month: "Czerwiec", count: 3 },
+// ];
 
-const userGenderDistribution = [
-  {
-    gender: "mezczyzni",
-    value: userStats.men,
-    fill: "var(--color-mezczyzni)",
-  },
-  { gender: "kobiety", value: userStats.women, fill: "var(--color-kobiety)" },
-];
+// const userGenderDistribution = [
+//   {
+//     gender: "mezczyzni",
+//     value: userStats.men,
+//     fill: "var(--color-mezczyzni)",
+//   },
+//   { gender: "kobiety", value: userStats.women, fill: "var(--color-kobiety)" },
+// ];
 
-const formStatusDistribution = [
-  {
-    status: "wypelniony",
-    value: userStats.formFilled,
-    fill: "var(--color-wypelniony)",
-  },
-  {
-    status: "niewypelniony",
-    value: userStats.formIncomplete,
-    fill: "var(--color-niewypelniony)",
-  },
-];
+// const formStatusDistribution = [
+//   {
+//     status: "wypelniony",
+//     value: userStats.formFilled,
+//     fill: "var(--color-wypelniony)",
+//   },
+//   {
+//     status: "niewypelniony",
+//     value: userStats.formIncomplete,
+//     fill: "var(--color-niewypelniony)",
+//   },
+// ];
 
-const topUserCities = [
-  { city: "Warszawa", users: 9 },
-  { city: "Kraków", users: 7 },
-  { city: "Gdańsk", users: 5 },
-  { city: "Wrocław", users: 4 },
-  { city: "Poznań", users: 3 },
-];
+// const topUserCities = [
+//   { city: "Warszawa", users: 9 },
+//   { city: "Kraków", users: 7 },
+//   { city: "Gdańsk", users: 5 },
+//   { city: "Wrocław", users: 4 },
+//   { city: "Poznań", users: 3 },
+// ];
 
-const newUsersChartConfig = {
-  count: {
-    label: "Nowi użytkownicy",
-    color: "#00a63e",
-  },
-} satisfies ChartConfig;
+// const newUsersChartConfig = {
+//   count: {
+//     label: "Nowi użytkownicy",
+//     color: "#00a63e",
+//   },
+// } satisfies ChartConfig;
 
-const formStatusChartConfig = {
-  wypelniony: {
-    label: "Wypełniony",
-    color: "#00a63e",
-  },
-  niewypelniony: {
-    label: "Niewypełniony",
-    color: "#f97316",
-  },
-} satisfies ChartConfig;
+// const formStatusChartConfig = {
+//   wypelniony: {
+//     label: "Wypełniony",
+//     color: "#00a63e",
+//   },
+//   niewypelniony: {
+//     label: "Niewypełniony",
+//     color: "#f97316",
+//   },
+// } satisfies ChartConfig;
 
-const topCitiesChartConfig = {
-  users: {
-    label: "Użytkownicy",
-    color: "#00a63e",
-  },
-} satisfies ChartConfig;
+// const topCitiesChartConfig = {
+//   users: {
+//     label: "Użytkownicy",
+//     color: "#00a63e",
+//   },
+// } satisfies ChartConfig;
 
-const animalStats = {
-  total: 105,
-  seekingHome: 42,
-  adopted: 23,
-  inAdoption: 12,
-  found: 28,
-  needsCare: 27,
-  dogs: 50,
-  cats: 30,
-  foundThisMonth: 8,
-  upcomingVisits: 6,
-};
+// const animalStats = {
+//   total: 105,
+//   seekingHome: 42,
+//   adopted: 23,
+//   inAdoption: 12,
+//   found: 28,
+//   needsCare: 27,
+//   dogs: 50,
+//   cats: 30,
+//   foundThisMonth: 8,
+//   upcomingVisits: 6,
+// };
 
-const animalKpiCards = [
-  {
-    label: "Łącznie",
-    value: animalStats.total,
-    icon: PawPrint,
-    description: "wszystkie zwierzęta w schronisku",
-  },
-  {
-    label: "Szuka domu",
-    value: animalStats.seekingHome,
-    icon: Home,
-    description: "gotowe do adopcji",
-  },
-  {
-    label: "Adoptowane",
-    value: animalStats.adopted,
-    icon: HeartHandshake,
-    description: "znalazły nowy dom",
-  },
-  {
-    label: "W trakcie adopcji",
-    value: animalStats.inAdoption,
-    icon: CalendarDays,
-    description: "oczekują na finalizację",
-  },
-  {
-    label: "Wymagające leczenia",
-    value: animalStats.needsCare,
-    icon: Stethoscope,
-    description: "chore, zarażone lub po operacji",
-  },
-];
+// const animalKpiCards = [
+//   {
+//     label: "Łącznie",
+//     value: animalStats.total,
+//     icon: PawPrint,
+//     description: "wszystkie zwierzęta w schronisku",
+//   },
+//   {
+//     label: "Szuka domu",
+//     value: animalStats.seekingHome,
+//     icon: Home,
+//     description: "gotowe do adopcji",
+//   },
+//   {
+//     label: "Adoptowane",
+//     value: animalStats.adopted,
+//     icon: HeartHandshake,
+//     description: "znalazły nowy dom",
+//   },
+//   {
+//     label: "W trakcie adopcji",
+//     value: animalStats.inAdoption,
+//     icon: CalendarDays,
+//     description: "oczekują na finalizację",
+//   },
+//   {
+//     label: "Wymagające leczenia",
+//     value: animalStats.needsCare,
+//     icon: Stethoscope,
+//     description: "chore, zarażone lub po operacji",
+//   },
+// ];
 
-const animalsByType = [
-  { type: "psy", count: 50, fill: "var(--color-psy)" },
-  { type: "koty", count: 30, fill: "var(--color-koty)" },
-  { type: "kroliki", count: 10, fill: "var(--color-kroliki)" },
-  { type: "chomiki", count: 5, fill: "var(--color-chomiki)" },
-  { type: "zolwie", count: 5, fill: "var(--color-zolwie)" },
-  { type: "inne", count: 5, fill: "var(--color-inne)" },
-];
+// const animalsByType = [
+//   { type: "psy", count: 50, fill: "var(--color-psy)" },
+//   { type: "koty", count: 30, fill: "var(--color-koty)" },
+//   { type: "kroliki", count: 10, fill: "var(--color-kroliki)" },
+//   { type: "chomiki", count: 5, fill: "var(--color-chomiki)" },
+//   { type: "zolwie", count: 5, fill: "var(--color-zolwie)" },
+//   { type: "inne", count: 5, fill: "var(--color-inne)" },
+// ];
 
-const animalsByStatus = [
-  {
-    status: "szukaDomu",
-    value: animalStats.seekingHome,
-    fill: "var(--color-szukaDomu)",
-  },
-  {
-    status: "znaleziony",
-    value: animalStats.found,
-    fill: "var(--color-znaleziony)",
-  },
-  {
-    status: "wTrakcieAdopcji",
-    value: animalStats.inAdoption,
-    fill: "var(--color-wTrakcieAdopcji)",
-  },
-  {
-    status: "adoptowany",
-    value: animalStats.adopted,
-    fill: "var(--color-adoptowany)",
-  },
-];
+// const animalsByStatus = [
+//   {
+//     status: "szukaDomu",
+//     value: animalStats.seekingHome,
+//     fill: "var(--color-szukaDomu)",
+//   },
+//   {
+//     status: "znaleziony",
+//     value: animalStats.found,
+//     fill: "var(--color-znaleziony)",
+//   },
+//   {
+//     status: "wTrakcieAdopcji",
+//     value: animalStats.inAdoption,
+//     fill: "var(--color-wTrakcieAdopcji)",
+//   },
+//   {
+//     status: "adoptowany",
+//     value: animalStats.adopted,
+//     fill: "var(--color-adoptowany)",
+//   },
+// ];
 
-const animalsByHealth = [
-  { health: "zdrowy", value: 78, fill: "var(--color-zdrowy)" },
-  { health: "chory", value: 12, fill: "var(--color-chory)" },
-  { health: "zarazony", value: 8, fill: "var(--color-zarazony)" },
-  {
-    health: "potrzebujeOperacji",
-    value: 7,
-    fill: "var(--color-potrzebujeOperacji)",
-  },
-];
+// const animalsByHealth = [
+//   { health: "zdrowy", value: 78, fill: "var(--color-zdrowy)" },
+//   { health: "chory", value: 12, fill: "var(--color-chory)" },
+//   { health: "zarazony", value: 8, fill: "var(--color-zarazony)" },
+//   {
+//     health: "potrzebujeOperacji",
+//     value: 7,
+//     fill: "var(--color-potrzebujeOperacji)",
+//   },
+// ];
 
-const animalsFoundByMonth = [
-  { month: "Styczeń", count: 12 },
-  { month: "Luty", count: 9 },
-  { month: "Marzec", count: 15 },
-  { month: "Kwiecień", count: 11 },
-  { month: "Maj", count: 14 },
-  { month: "Czerwiec", count: 8 },
-];
+// const animalsFoundByMonth = [
+//   { month: "Styczeń", count: 12 },
+//   { month: "Luty", count: 9 },
+//   { month: "Marzec", count: 15 },
+//   { month: "Kwiecień", count: 11 },
+//   { month: "Maj", count: 14 },
+//   { month: "Czerwiec", count: 8 },
+// ];
 
-const animalTypeChartConfig = {
-  psy: { label: "Psy", color: "#00a63e" },
-  koty: { label: "Koty", color: "#0d542b" },
-  kroliki: { label: "Króliki", color: "#84cc16" },
-  chomiki: { label: "Chomiki", color: "#eab308" },
-  zolwie: { label: "Żółwie", color: "#14b8a6" },
-  inne: { label: "Inne", color: "#64748b" },
-} satisfies ChartConfig;
+// const animalTypeChartConfig = {
+//   psy: { label: "Psy", color: "#00a63e" },
+//   koty: { label: "Koty", color: "#0d542b" },
+//   kroliki: { label: "Króliki", color: "#84cc16" },
+//   chomiki: { label: "Chomiki", color: "#eab308" },
+//   zolwie: { label: "Żółwie", color: "#14b8a6" },
+//   inne: { label: "Inne", color: "#64748b" },
+// } satisfies ChartConfig;
 
-const animalStatusChartConfig = {
-  szukaDomu: { label: "Szuka domu", color: "#00a63e" },
-  znaleziony: { label: "Znaleziony", color: "#3b82f6" },
-  wTrakcieAdopcji: { label: "W trakcie adopcji", color: "#eab308" },
-  adoptowany: { label: "Adoptowany", color: "#0d542b" },
-} satisfies ChartConfig;
+// const animalStatusChartConfig = {
+//   szukaDomu: { label: "Szuka domu", color: "#00a63e" },
+//   znaleziony: { label: "Znaleziony", color: "#3b82f6" },
+//   wTrakcieAdopcji: { label: "W trakcie adopcji", color: "#eab308" },
+//   adoptowany: { label: "Adoptowany", color: "#0d542b" },
+// } satisfies ChartConfig;
 
-const animalHealthChartConfig = {
-  zdrowy: { label: "Zdrowy", color: "#00a63e" },
-  chory: { label: "Chory", color: "#f97316" },
-  zarazony: { label: "Zarażony", color: "#ef4444" },
-  potrzebujeOperacji: { label: "Potrzebuje operacji", color: "#a855f7" },
-} satisfies ChartConfig;
+// const animalHealthChartConfig = {
+//   zdrowy: { label: "Zdrowy", color: "#00a63e" },
+//   chory: { label: "Chory", color: "#f97316" },
+//   zarazony: { label: "Zarażony", color: "#ef4444" },
+//   potrzebujeOperacji: { label: "Potrzebuje operacji", color: "#a855f7" },
+// } satisfies ChartConfig;
 
-const animalsFoundChartConfig = {
-  count: {
-    label: "Nowe zwierzęta",
-    color: "#00a63e",
-  },
-} satisfies ChartConfig;
+// const animalsFoundChartConfig = {
+//   count: {
+//     label: "Nowe zwierzęta",
+//     color: "#00a63e",
+//   },
+// } satisfies ChartConfig;
 
-const animalsByTypeChartConfig = {
-  count: {
-    label: "Liczba zwierząt",
-    color: "#00a63e",
-  },
-} satisfies ChartConfig;
+// const animalsByTypeChartConfig = {
+//   count: {
+//     label: "Liczba zwierząt",
+//     color: "#00a63e",
+//   },
+// } satisfies ChartConfig;
 
-const adoptionStats = {
-  total: 100,
-  pending: 18,
-  accepted: 14,
-  completed: 52,
-  rejected: 12,
-  cancelled: 4,
-  thisWeek: 5,
-  thisMonth: 12,
-  last6Months: 17,
-  thisYear: 17,
-  successRate: 52,
-  avgProcessingDays: 9,
-};
+// const adoptionStats = {
+//   total: 100,
+//   pending: 18,
+//   accepted: 14,
+//   completed: 52,
+//   rejected: 12,
+//   cancelled: 4,
+//   thisWeek: 5,
+//   thisMonth: 12,
+//   last6Months: 17,
+//   thisYear: 17,
+//   successRate: 52,
+//   avgProcessingDays: 9,
+// };
 
-const adoptionKpiCards = [
-  {
-    label: "Łącznie",
-    value: adoptionStats.total,
-    icon: FileText,
-    description: "wszystkie wnioski adopcyjne",
-  },
-  {
-    label: "Oczekujące",
-    value: adoptionStats.pending,
-    icon: Clock,
-    description: "do rozpatrzenia przez pracownika",
-  },
-  {
-    label: "Zaakceptowane",
-    value: adoptionStats.accepted,
-    icon: CheckCircle2,
-    description: "oczekują na odbiór zwierzęcia",
-  },
-  {
-    label: "Zakończone",
-    value: adoptionStats.completed,
-    icon: HeartHandshake,
-    description: "zwierzę odebrane przez adoptującego",
-  },
-  {
-    label: "Odrzucone",
-    value: adoptionStats.rejected,
-    icon: XCircle,
-    description: "wnioski odrzucone przez schronisko",
-  },
-];
+// const adoptionKpiCards = [
+//   {
+//     label: "Łącznie",
+//     value: adoptionStats.total,
+//     icon: FileText,
+//     description: "wszystkie wnioski adopcyjne",
+//   },
+//   {
+//     label: "Oczekujące",
+//     value: adoptionStats.pending,
+//     icon: Clock,
+//     description: "do rozpatrzenia przez pracownika",
+//   },
+//   {
+//     label: "Zaakceptowane",
+//     value: adoptionStats.accepted,
+//     icon: CheckCircle2,
+//     description: "oczekują na odbiór zwierzęcia",
+//   },
+//   {
+//     label: "Zakończone",
+//     value: adoptionStats.completed,
+//     icon: HeartHandshake,
+//     description: "zwierzę odebrane przez adoptującego",
+//   },
+//   {
+//     label: "Odrzucone",
+//     value: adoptionStats.rejected,
+//     icon: XCircle,
+//     description: "wnioski odrzucone przez schronisko",
+//   },
+// ];
 
-const adoptionsByStatus = [
-  {
-    status: "oczekujaca",
-    value: adoptionStats.pending,
-    fill: "var(--color-oczekujaca)",
-  },
-  {
-    status: "zaakceptowana",
-    value: adoptionStats.accepted,
-    fill: "var(--color-zaakceptowana)",
-  },
-  {
-    status: "zakonczona",
-    value: adoptionStats.completed,
-    fill: "var(--color-zakonczona)",
-  },
-  {
-    status: "odrzucona",
-    value: adoptionStats.rejected,
-    fill: "var(--color-odrzucona)",
-  },
-  {
-    status: "anulowana",
-    value: adoptionStats.cancelled,
-    fill: "var(--color-anulowana)",
-  },
-];
+// const adoptionsByStatus = [
+//   {
+//     status: "oczekujaca",
+//     value: adoptionStats.pending,
+//     fill: "var(--color-oczekujaca)",
+//   },
+//   {
+//     status: "zaakceptowana",
+//     value: adoptionStats.accepted,
+//     fill: "var(--color-zaakceptowana)",
+//   },
+//   {
+//     status: "zakonczona",
+//     value: adoptionStats.completed,
+//     fill: "var(--color-zakonczona)",
+//   },
+//   {
+//     status: "odrzucona",
+//     value: adoptionStats.rejected,
+//     fill: "var(--color-odrzucona)",
+//   },
+//   {
+//     status: "anulowana",
+//     value: adoptionStats.cancelled,
+//     fill: "var(--color-anulowana)",
+//   },
+// ];
 
-const adoptionsByMonth = [
-  { month: "Styczeń", count: 2 },
-  { month: "Luty", count: 1 },
-  { month: "Marzec", count: 3 },
-  { month: "Kwiecień", count: 4 },
-  { month: "Maj", count: 4 },
-  { month: "Czerwiec", count: 3 },
-];
+// const adoptionsByMonth = [
+//   { month: "Styczeń", count: 2 },
+//   { month: "Luty", count: 1 },
+//   { month: "Marzec", count: 3 },
+//   { month: "Kwiecień", count: 4 },
+//   { month: "Maj", count: 4 },
+//   { month: "Czerwiec", count: 3 },
+// ];
 
-const completedAdoptionsByAnimalType = [
-  { type: "psy", count: 28, fill: "var(--color-psy)" },
-  { type: "koty", count: 18, fill: "var(--color-koty)" },
-  { type: "kroliki", count: 4, fill: "var(--color-kroliki)" },
-  { type: "inne", count: 2, fill: "var(--color-inne)" },
-];
+// const completedAdoptionsByAnimalType = [
+//   { type: "psy", count: 28, fill: "var(--color-psy)" },
+//   { type: "koty", count: 18, fill: "var(--color-koty)" },
+//   { type: "kroliki", count: 4, fill: "var(--color-kroliki)" },
+//   { type: "inne", count: 2, fill: "var(--color-inne)" },
+// ];
 
-const adoptionStatusChartConfig = {
-  oczekujaca: { label: "Oczekująca", color: "#eab308" },
-  zaakceptowana: { label: "Zaakceptowana", color: "#3b82f6" },
-  zakonczona: { label: "Zakończona", color: "#00a63e" },
-  odrzucona: { label: "Odrzucona", color: "#ef4444" },
-  anulowana: { label: "Anulowana", color: "#64748b" },
-} satisfies ChartConfig;
+// const adoptionStatusChartConfig = {
+//   oczekujaca: { label: "Oczekująca", color: "#eab308" },
+//   zaakceptowana: { label: "Zaakceptowana", color: "#3b82f6" },
+//   zakonczona: { label: "Zakończona", color: "#00a63e" },
+//   odrzucona: { label: "Odrzucona", color: "#ef4444" },
+//   anulowana: { label: "Anulowana", color: "#64748b" },
+// } satisfies ChartConfig;
 
-const adoptionsByMonthChartConfig = {
-  count: {
-    label: "Nowe wnioski",
-    color: "#00a63e",
-  },
-} satisfies ChartConfig;
+// const adoptionsByMonthChartConfig = {
+//   count: {
+//     label: "Nowe wnioski",
+//     color: "#00a63e",
+//   },
+// } satisfies ChartConfig;
 
-const adoptionsByAnimalTypeChartConfig = {
-  psy: { label: "Psy", color: "#00a63e" },
-  koty: { label: "Koty", color: "#0d542b" },
-  kroliki: { label: "Króliki", color: "#84cc16" },
-  inne: { label: "Inne", color: "#64748b" },
-  count: { label: "Zakończone adopcje", color: "#00a63e" },
-} satisfies ChartConfig;
+// const adoptionsByAnimalTypeChartConfig = {
+//   psy: { label: "Psy", color: "#00a63e" },
+//   koty: { label: "Koty", color: "#0d542b" },
+//   kroliki: { label: "Króliki", color: "#84cc16" },
+//   inne: { label: "Inne", color: "#64748b" },
+//   count: { label: "Zakończone adopcje", color: "#00a63e" },
+// } satisfies ChartConfig;
 
-const medicalRecordStats = {
-  total: 100,
-  pending: 22,
-  inProgress: 15,
-  completed: 63,
-  totalCost: 24_850,
-  avgCost: 249,
-  thisWeek: 5,
-  thisMonth: 12,
-  last6Months: 17,
-  thisYear: 17,
-};
+// const medicalRecordStats = {
+//   total: 100,
+//   pending: 22,
+//   inProgress: 15,
+//   completed: 63,
+//   totalCost: 24_850,
+//   avgCost: 249,
+//   thisWeek: 5,
+//   thisMonth: 12,
+//   last6Months: 17,
+//   thisYear: 17,
+// };
 
-const medicalRecordKpiCards = [
-  {
-    label: "Łącznie",
-    value: medicalRecordStats.total,
-    icon: ClipboardPlus,
-    description: "wszystkie raporty medyczne",
-  },
-  {
-    label: "Do realizacji",
-    value: medicalRecordStats.pending,
-    icon: Clock,
-    description: "zaplanowane zabiegi i wizyty",
-  },
-  {
-    label: "W trakcie",
-    value: medicalRecordStats.inProgress,
-    icon: Activity,
-    description: "aktualnie realizowane",
-  },
-  {
-    label: "Zrealizowane",
-    value: medicalRecordStats.completed,
-    icon: CheckCircle2,
-    description: "zakończone procedury",
-  },
-  {
-    label: "Łączny koszt",
-    value: `${medicalRecordStats.totalCost.toLocaleString("pl-PL")} zł`,
-    icon: Wallet,
-    description: "suma wydatków na leczenie",
-  },
-];
+// const medicalRecordKpiCards = [
+//   {
+//     label: "Łącznie",
+//     value: medicalRecordStats.total,
+//     icon: ClipboardPlus,
+//     description: "wszystkie raporty medyczne",
+//   },
+//   {
+//     label: "Do realizacji",
+//     value: medicalRecordStats.pending,
+//     icon: Clock,
+//     description: "zaplanowane zabiegi i wizyty",
+//   },
+//   {
+//     label: "W trakcie",
+//     value: medicalRecordStats.inProgress,
+//     icon: Activity,
+//     description: "aktualnie realizowane",
+//   },
+//   {
+//     label: "Zrealizowane",
+//     value: medicalRecordStats.completed,
+//     icon: CheckCircle2,
+//     description: "zakończone procedury",
+//   },
+//   {
+//     label: "Łączny koszt",
+//     value: `${medicalRecordStats.totalCost.toLocaleString("pl-PL")} zł`,
+//     icon: Wallet,
+//     description: "suma wydatków na leczenie",
+//   },
+// ];
 
-const medicalRecordsByMonth = [
-  { month: "Styczeń", count: 3, cost: 3200 },
-  { month: "Luty", count: 2, cost: 2800 },
-  { month: "Marzec", count: 4, cost: 4100 },
-  { month: "Kwiecień", count: 3, cost: 3900 },
-  { month: "Maj", count: 3, cost: 4500 },
-  { month: "Czerwiec", count: 2, cost: 6350 },
-];
+// const medicalRecordsByMonth = [
+//   { month: "Styczeń", count: 3, cost: 3200 },
+//   { month: "Luty", count: 2, cost: 2800 },
+//   { month: "Marzec", count: 4, cost: 4100 },
+//   { month: "Kwiecień", count: 3, cost: 3900 },
+//   { month: "Maj", count: 3, cost: 4500 },
+//   { month: "Czerwiec", count: 2, cost: 6350 },
+// ];
 
-const medicalRecordsByType = [
-  { type: "wizyta", value: 35, fill: "var(--color-wizyta)" },
-  { type: "badanie", value: 20, fill: "var(--color-badanie)" },
-  { type: "operacja", value: 12, fill: "var(--color-operacja)" },
-  { type: "szczepienie", value: 18, fill: "var(--color-szczepienie)" },
-  { type: "uraz", value: 8, fill: "var(--color-uraz)" },
-  { type: "inne", value: 7, fill: "var(--color-inne)" },
-];
+// const medicalRecordsByType = [
+//   { type: "wizyta", value: 35, fill: "var(--color-wizyta)" },
+//   { type: "badanie", value: 20, fill: "var(--color-badanie)" },
+//   { type: "operacja", value: 12, fill: "var(--color-operacja)" },
+//   { type: "szczepienie", value: 18, fill: "var(--color-szczepienie)" },
+//   { type: "uraz", value: 8, fill: "var(--color-uraz)" },
+//   { type: "inne", value: 7, fill: "var(--color-inne)" },
+// ];
 
-const medicalRecordsByStatus = [
-  {
-    status: "doRealizacji",
-    value: medicalRecordStats.pending,
-    fill: "var(--color-doRealizacji)",
-  },
-  {
-    status: "wTrakcie",
-    value: medicalRecordStats.inProgress,
-    fill: "var(--color-wTrakcie)",
-  },
-  {
-    status: "zrealizowana",
-    value: medicalRecordStats.completed,
-    fill: "var(--color-zrealizowana)",
-  },
-];
+// const medicalRecordsByStatus = [
+//   {
+//     status: "doRealizacji",
+//     value: medicalRecordStats.pending,
+//     fill: "var(--color-doRealizacji)",
+//   },
+//   {
+//     status: "wTrakcie",
+//     value: medicalRecordStats.inProgress,
+//     fill: "var(--color-wTrakcie)",
+//   },
+//   {
+//     status: "zrealizowana",
+//     value: medicalRecordStats.completed,
+//     fill: "var(--color-zrealizowana)",
+//   },
+// ];
 
-const topVetClinics = [
-  { clinic: "VetCare Centrum", records: 28 },
-  { clinic: "Klinika Przyjaźń", records: 22 },
-  { clinic: "AnimalMed", records: 18 },
-  { clinic: "Zdrowy Łapek", records: 15 },
-  { clinic: "SpecVet", records: 10 },
-];
+// const topVetClinics = [
+//   { clinic: "VetCare Centrum", records: 28 },
+//   { clinic: "Klinika Przyjaźń", records: 22 },
+//   { clinic: "AnimalMed", records: 18 },
+//   { clinic: "Zdrowy Łapek", records: 15 },
+//   { clinic: "SpecVet", records: 10 },
+// ];
 
-const medicalRecordsByMonthChartConfig = {
-  count: { label: "Raporty", color: "#00a63e" },
-  cost: { label: "Koszt (zł)", color: "#0d542b" },
-} satisfies ChartConfig;
+// const medicalRecordsByMonthChartConfig = {
+//   count: { label: "Raporty", color: "#00a63e" },
+//   cost: { label: "Koszt (zł)", color: "#0d542b" },
+// } satisfies ChartConfig;
 
-const medicalRecordTypeChartConfig = {
-  wizyta: { label: "Wizyta", color: "#00a63e" },
-  badanie: { label: "Badanie", color: "#3b82f6" },
-  operacja: { label: "Operacja", color: "#ef4444" },
-  szczepienie: { label: "Szczepienie", color: "#84cc16" },
-  uraz: { label: "Uraz", color: "#f97316" },
-  inne: { label: "Inne", color: "#64748b" },
-} satisfies ChartConfig;
+// const medicalRecordTypeChartConfig = {
+//   wizyta: { label: "Wizyta", color: "#00a63e" },
+//   badanie: { label: "Badanie", color: "#3b82f6" },
+//   operacja: { label: "Operacja", color: "#ef4444" },
+//   szczepienie: { label: "Szczepienie", color: "#84cc16" },
+//   uraz: { label: "Uraz", color: "#f97316" },
+//   inne: { label: "Inne", color: "#64748b" },
+// } satisfies ChartConfig;
 
-const medicalRecordStatusChartConfig = {
-  doRealizacji: { label: "Do realizacji", color: "#eab308" },
-  wTrakcie: { label: "W trakcie", color: "#3b82f6" },
-  zrealizowana: { label: "Zrealizowana", color: "#00a63e" },
-} satisfies ChartConfig;
+// const medicalRecordStatusChartConfig = {
+//   doRealizacji: { label: "Do realizacji", color: "#eab308" },
+//   wTrakcie: { label: "W trakcie", color: "#3b82f6" },
+//   zrealizowana: { label: "Zrealizowana", color: "#00a63e" },
+// } satisfies ChartConfig;
 
-const topClinicsChartConfig = {
-  records: { label: "Raporty", color: "#00a63e" },
-} satisfies ChartConfig;
+// const topClinicsChartConfig = {
+//   records: { label: "Raporty", color: "#00a63e" },
+// } satisfies ChartConfig;
 
-const blogStats = {
-  total: 24,
-  published: 22,
-  drafts: 2,
-  thisWeek: 1,
-  thisMonth: 3,
-  last6Months: 8,
-  thisYear: 8,
-  totalViews: 12_480,
-  avgViews: 567,
-};
+// const blogStats = {
+//   total: 24,
+//   published: 22,
+//   drafts: 2,
+//   thisWeek: 1,
+//   thisMonth: 3,
+//   last6Months: 8,
+//   thisYear: 8,
+//   totalViews: 12_480,
+//   avgViews: 567,
+// };
 
-const blogKpiCards = [
-  {
-    label: "Łącznie",
-    value: blogStats.total,
-    icon: Newspaper,
-    description: "wszystkie artykuły na blogu",
-  },
-  {
-    label: "Opublikowane",
-    value: blogStats.published,
-    icon: BookOpen,
-    description: "widoczne dla użytkowników",
-  },
-  {
-    label: "Szkice",
-    value: blogStats.drafts,
-    icon: PenLine,
-    description: "oczekują na publikację",
-  },
-  {
-    label: "Wyświetlenia",
-    value: blogStats.totalViews.toLocaleString("pl-PL"),
-    icon: Eye,
-    description: "łącznie na wszystkich artykułach",
-  },
-  {
-    label: "Śr. wyświetleń",
-    value: blogStats.avgViews,
-    icon: Activity,
-    description: "na jeden opublikowany artykuł",
-  },
-];
+// const blogKpiCards = [
+//   {
+//     label: "Łącznie",
+//     value: blogStats.total,
+//     icon: Newspaper,
+//     description: "wszystkie artykuły na blogu",
+//   },
+//   {
+//     label: "Opublikowane",
+//     value: blogStats.published,
+//     icon: BookOpen,
+//     description: "widoczne dla użytkowników",
+//   },
+//   {
+//     label: "Szkice",
+//     value: blogStats.drafts,
+//     icon: PenLine,
+//     description: "oczekują na publikację",
+//   },
+//   {
+//     label: "Wyświetlenia",
+//     value: blogStats.totalViews.toLocaleString("pl-PL"),
+//     icon: Eye,
+//     description: "łącznie na wszystkich artykułach",
+//   },
+//   {
+//     label: "Śr. wyświetleń",
+//     value: blogStats.avgViews,
+//     icon: Activity,
+//     description: "na jeden opublikowany artykuł",
+//   },
+// ];
 
-const blogPostsByMonth = [
-  { month: "Styczeń", count: 1 },
-  { month: "Luty", count: 0 },
-  { month: "Marzec", count: 2 },
-  { month: "Kwiecień", count: 1 },
-  { month: "Maj", count: 2 },
-  { month: "Czerwiec", count: 2 },
-];
+// const blogPostsByMonth = [
+//   { month: "Styczeń", count: 1 },
+//   { month: "Luty", count: 0 },
+//   { month: "Marzec", count: 2 },
+//   { month: "Kwiecień", count: 1 },
+//   { month: "Maj", count: 2 },
+//   { month: "Czerwiec", count: 2 },
+// ];
 
-const blogPostsByCategory = [
-  { category: "adopcje", value: 8, fill: "var(--color-adopcje)" },
-  { category: "porady", value: 7, fill: "var(--color-porady)" },
-  { category: "aktualnosci", value: 5, fill: "var(--color-aktualnosci)" },
-  { category: "historie", value: 4, fill: "var(--color-historie)" },
-];
+// const blogPostsByCategory = [
+//   { category: "adopcje", value: 8, fill: "var(--color-adopcje)" },
+//   { category: "porady", value: 7, fill: "var(--color-porady)" },
+//   { category: "aktualnosci", value: 5, fill: "var(--color-aktualnosci)" },
+//   { category: "historie", value: 4, fill: "var(--color-historie)" },
+// ];
 
-const topBlogPosts = [
-  { title: "Jak przygotować dom na adopcję", views: 1840 },
-  { title: "Pierwsze dni z psem ze schroniska", views: 1520 },
-  { title: "Kot po adopcji — co warto wiedzieć", views: 1280 },
-  { title: "Historie adopcyjne: Luna", views: 980 },
-  { title: "Jak wspierać schronisko", views: 870 },
-];
+// const topBlogPosts = [
+//   { title: "Jak przygotować dom na adopcję", views: 1840 },
+//   { title: "Pierwsze dni z psem ze schroniska", views: 1520 },
+//   { title: "Kot po adopcji — co warto wiedzieć", views: 1280 },
+//   { title: "Historie adopcyjne: Luna", views: 980 },
+//   { title: "Jak wspierać schronisko", views: 870 },
+// ];
 
-const blogPostsByMonthChartConfig = {
-  count: { label: "Nowe artykuły", color: "#00a63e" },
-} satisfies ChartConfig;
+// const blogPostsByMonthChartConfig = {
+//   count: { label: "Nowe artykuły", color: "#00a63e" },
+// } satisfies ChartConfig;
 
-const blogCategoryChartConfig = {
-  adopcje: { label: "Adopcje", color: "#00a63e" },
-  porady: { label: "Porady", color: "#3b82f6" },
-  aktualnosci: { label: "Aktualności", color: "#eab308" },
-  historie: { label: "Historie adopcyjne", color: "#ec4899" },
-} satisfies ChartConfig;
+// const blogCategoryChartConfig = {
+//   adopcje: { label: "Adopcje", color: "#00a63e" },
+//   porady: { label: "Porady", color: "#3b82f6" },
+//   aktualnosci: { label: "Aktualności", color: "#eab308" },
+//   historie: { label: "Historie adopcyjne", color: "#ec4899" },
+// } satisfies ChartConfig;
 
-const topBlogPostsChartConfig = {
-  views: { label: "Wyświetlenia", color: "#00a63e" },
-} satisfies ChartConfig;
+// const topBlogPostsChartConfig = {
+//   views: { label: "Wyświetlenia", color: "#00a63e" },
+// } satisfies ChartConfig;
 
 const AdminStatisticsPage = () => {
+  const [workers, setWorkers] = useState<User[]>([]);
+
+  useEffect(() => {
+    const fetchWorkers = async () => {
+      try {
+        const res = await axios.get("/api/users/workers");
+        setWorkers(res.data);
+      } catch (err) {
+        console.error(err);
+      }
+    };
+    fetchWorkers();
+  }, []);
+
+  const workerStats = useMemo(
+    () => ({
+      total: workers.length,
+      administrators: workers.filter((w) => w.role === "ADMINISTRATOR").length,
+      employees: workers.filter((w) => w.role === "PRACOWNIK").length,
+      incompleteForms: workers.filter((w) => !w.isFormFilled).length,
+      twoFactorEnabled: workers.filter((w) => w.twoFactorEnabled).length,
+      men: workers.filter((w) => w.gender === "MEZCZYZNA").length,
+      women: workers.filter((w) => w.gender === "KOBIETA").length,
+    }),
+    [workers],
+  );
+
   return (
     <main>
       <Container className="mb-6 space-y-12 md:mb-10 md:space-y-16">
@@ -753,9 +783,9 @@ const AdminStatisticsPage = () => {
             </div>
 
             <div className="grid grid-cols-2 gap-4 lg:grid-cols-5">
-              {workerKpiCards.map((card) => (
+              {workerKpiCards.map((card, index: number) => (
                 <div
-                  key={card.label}
+                  key={index}
                   className="space-y-3 rounded-2xl border border-gray-200 bg-white p-4 shadow-sm"
                 >
                   <div className="flex items-center justify-between">
@@ -765,7 +795,7 @@ const AdminStatisticsPage = () => {
                     <card.icon className="size-4 text-green-700 md:size-5" />
                   </div>
                   <p className="text-2xl font-bold text-green-900 md:text-3xl">
-                    {card.value}
+                    {workerStats[card.label as keyof typeof workerStats]}
                   </p>
                   <p className="text-xs leading-5 text-gray-500">
                     {card.description}
@@ -897,7 +927,7 @@ const AdminStatisticsPage = () => {
             </div>
           </section>
 
-          <section id="users" className="space-y-8">
+          {/* <section id="users" className="space-y-8">
             <div className="space-y-2">
               <h2 className="text-2xl font-bold text-green-900 md:text-4xl">
                 Użytkownicy
@@ -1898,7 +1928,7 @@ const AdminStatisticsPage = () => {
                 <Button variant="success">Pobierz</Button>
               </div>
             </div>
-          </section>
+          </section> */}
         </section>
       </Container>
     </main>

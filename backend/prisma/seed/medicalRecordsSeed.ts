@@ -78,7 +78,7 @@ const medicalRecordsSeed = async () => {
   await prisma.medicalRecord.createMany({ data: records });
 
   console.log(
-    `Seedowanie zakończone. Dodano ${records.length} rekordów medycznych.`,
+    `✓ Seedowanie zakończone. Dodano ${records.length} rekordów medycznych.`,
   );
 };
 

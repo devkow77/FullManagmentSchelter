@@ -1,97 +1,45 @@
-import { Container } from "@/components/ui";
-import { useEffect, useState } from "react";
+import { Container, Skeleton } from "@/components/ui";
+import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
-import { Skeleton } from "@/components/ui/skeleton";
+import { CircleAlert, Info } from "lucide-react";
+import { Link } from "react-router";
+import { BlogCard } from "@/components/shared";
 
 interface Post {
   slug: string;
   title: string;
-  content: any;
-  image: any;
+  content: { children: { text: string }[] }[];
+  image: { url: string }[];
   createdAt: string;
 }
 
 const BlogPage = () => {
-  const [posts, setPosts] = useState<Post[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const fetchPosts = async () => {
-      try {
-        const res = await axios.get(
-          `${import.meta.env.VITE_STRIPE_CMS_ADMIN_URL}/api/posts?populate=*`,
-        );
-        setPosts(res.data.data);
-      } catch (err) {
-        console.error("Błąd pobierania postów:", err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchPosts();
-  }, []);
-
-  if (loading) {
-    return (
-      <main>
-        <Container className="space-y-12 md:space-y-16">
-          <section id="categories" className="space-y-6 lg:space-y-8">
-            <div className="space-y-2">
-              <Skeleton className="h-15 max-w-100" />
-              <Skeleton className="h-10 w-60 md:w-170" />
-            </div>
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:gap-6">
-              <div className="space-y-4 sm:col-span-2">
-                <Skeleton className="relative aspect-video" />
-                <div className="space-y-2">
-                  <Skeleton className="h-10 w-60 md:w-80" />
-                  <Skeleton className="h-7.5 w-40 md:w-60" />
-                  <Skeleton className="h-10 w-70 md:w-140" />
-                </div>
-              </div>
-              {Array.from({ length: 3 }).map((_, index) => (
-                <div key={index} className="space-y-4">
-                  <Skeleton className="relative aspect-video" />
-                  <div className="space-y-2">
-                    <Skeleton className="h-10 w-60" />
-                    <Skeleton className="h-7.5 w-40" />
-                    <Skeleton className="h-10 w-70 md:w-full" />
-                  </div>
-                </div>
-              ))}
-            </div>
-          </section>
-        </Container>
-      </main>
+  const getPosts = async () => {
+    const res = await axios.get<{ data: Post[] }>(
+      `${import.meta.env.VITE_STRIPE_CMS_ADMIN_URL}/api/posts?populate=*`,
     );
-  }
+    return res.data.data ?? [];
+  };
 
-  if (posts.length === 0) {
-    return (
-      <main>
-        <Container>
-          <section className="text-center">
-            <h1 className="font-bold">Brak postów</h1>
-            <p>
-              Przepraszamy, ale nie ma jeszcze żadnych postów do wyświetlenia.
-            </p>
-          </section>
-        </Container>
-      </main>
-    );
-  }
+  const {
+    data: posts = [],
+    isLoading,
+    error,
+  } = useQuery({
+    queryKey: ["posts"],
+    queryFn: getPosts,
+  });
 
-  const getPlainText = (content: any[]) => {
+  const featuredPost = posts[0];
+  const otherPosts = posts.slice(1) ?? [];
+
+  const getPlainText = (content: { children: { text: string }[] }[]) => {
     return content
       ?.map((block) =>
-        block.children?.map((child: any) => child.text).join(" "),
+        block.children?.map((child: { text: string }) => child.text).join(" "),
       )
       .join(" ");
   };
-
-  const featuredPost = posts[0];
-  const otherPosts = posts.slice(1);
 
   return (
     <main>
@@ -107,56 +55,114 @@ const BlogPage = () => {
             </p>
           </div>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:gap-6">
-            <a
-              href={`/blog/${featuredPost.slug}`}
-              className="space-y-2 sm:col-span-2 lg:space-y-4"
-            >
-              <div className="relative aspect-video overflow-hidden rounded-xl border-4 border-green-900 bg-black/10">
-                <img
-                  src={`http://localhost:1337${featuredPost.image[0].url}`}
-                  alt={featuredPost.title}
-                  className="absolute size-full object-cover duration-200 hover:scale-120"
-                />
-              </div>
-              <div className="space-y-1 sm:space-y-2">
-                <h3 className="font-semibold sm:text-lg lg:text-2xl">
-                  {featuredPost.title}
-                </h3>
-                <p className="line-clamp-4 text-xs leading-5 font-medium sm:text-sm lg:leading-6">
-                  Opublikowano{" "}
-                  {new Date(featuredPost.createdAt).toLocaleDateString("pl-PL")}{" "}
-                  r.
-                </p>
-                <p className="line-clamp-3 text-xs leading-6 sm:text-sm">
-                  {getPlainText(featuredPost.content || [])}
-                </p>
-              </div>
-            </a>
-            {otherPosts.map((post, index) => (
-              <a href={`/blog/${post.slug}`} key={index} className="space-y-2">
-                <div className="relative aspect-video overflow-hidden rounded-xl bg-black/10">
-                  <img
-                    src={`http://localhost:1337${post.image[0].url}`}
-                    alt={post.title}
-                    className="absolute size-full object-cover duration-200 hover:scale-110"
-                  />
-                </div>
-                <div className="space-y-1">
-                  <h3 className="font-semibold lg:text-lg">{post.title}</h3>
-                  <p className="text-xs leading-5 font-medium lg:text-sm lg:leading-6">
-                    Opublikowano{" "}
-                    {new Date(post.createdAt).toLocaleDateString("pl-PL")} r.
-                  </p>
-                  <p className="line-clamp-2 text-xs leading-5 lg:text-sm lg:leading-6">
-                    {getPlainText(post.content || [])}
-                  </p>
-                </div>
-              </a>
-            ))}
+            {isLoading && <LoadingBlog />}
+            {error && <ErrorBlog />}
+            {!isLoading && !error && posts.length === 0 && <EmptyBlog />}
+            {!isLoading && !error && featuredPost && (
+              <>
+                <Link
+                  to={`/blog/${featuredPost.slug}`}
+                  className="space-y-2 transition-colors hover:text-green-900 sm:col-span-2 lg:space-y-4"
+                >
+                  <div className="relative aspect-video overflow-hidden rounded-2xl">
+                    <img
+                      src={`http://localhost:1337${featuredPost.image[0].url}`}
+                      alt={featuredPost.title}
+                      className="absolute size-full object-cover"
+                    />
+                  </div>
+                  <div className="space-y-1 sm:space-y-2">
+                    <h3 className="font-semibold sm:text-lg lg:text-2xl">
+                      {featuredPost.title}
+                    </h3>
+                    <p className="line-clamp-4 text-xs leading-5 font-medium sm:text-sm lg:leading-6">
+                      Opublikowano{" "}
+                      {new Date(featuredPost.createdAt).toLocaleDateString(
+                        "pl-PL",
+                      )}{" "}
+                      r.
+                    </p>
+                    <p className="line-clamp-3 text-xs leading-5 sm:text-sm sm:leading-6">
+                      {getPlainText(featuredPost.content)}
+                    </p>
+                  </div>
+                </Link>
+                {otherPosts.length > 0 &&
+                  otherPosts.map((post: Post, index: number) => (
+                    <BlogCard key={index} post={post} />
+                  ))}
+              </>
+            )}
           </div>
         </section>
       </Container>
     </main>
+  );
+};
+
+// UI podczas ładowania postów
+const LoadingBlog = () => {
+  return (
+    <>
+      <div className="space-y-4 sm:col-span-2">
+        <Skeleton className="relative aspect-video" />
+        <div className="space-y-2">
+          <Skeleton className="h-10 w-60 md:w-80" />
+          <Skeleton className="h-7.5 w-40 md:w-60" />
+          <Skeleton className="h-10 w-70 md:w-140" />
+        </div>
+      </div>
+      {Array.from({ length: 4 }).map((_, index: number) => (
+        <div key={index} className="space-y-4">
+          <Skeleton className="relative aspect-video" />
+          <div className="space-y-2">
+            <Skeleton className="h-10 w-60" />
+            <Skeleton className="h-7.5 w-40" />
+            <Skeleton className="h-10 w-70 md:w-full" />
+          </div>
+        </div>
+      ))}
+    </>
+  );
+};
+
+// UI podczas braku postów
+const EmptyBlog = () => {
+  return (
+    <section
+      id="empty"
+      className="col-span-full flex flex-col items-center justify-center gap-4 rounded-xl border border-blue-200 bg-blue-50 px-6 py-12 text-center"
+    >
+      <Info className="size-12 text-blue-600" />
+      <div className="space-y-2">
+        <h2 className="text-xl font-semibold text-blue-900">Brak postów</h2>
+        <p className="max-w-md text-sm text-blue-800 md:text-base">
+          Nie ma jeszcze żadnych postów do wyświetlenia. <br /> Wróć wkrótce,
+          aby poznać historie z życia naszego schroniska.
+        </p>
+      </div>
+    </section>
+  );
+};
+
+// UI podczas wystąpienia błędu podczas ładowania postów
+const ErrorBlog = () => {
+  return (
+    <section
+      id="error"
+      className="col-span-full flex flex-col items-center justify-center gap-4 rounded-2xl border border-red-200 bg-red-50 px-6 py-12 text-center"
+    >
+      <CircleAlert className="size-12 text-red-600" />
+      <div className="space-y-2">
+        <h2 className="text-lg font-semibold text-red-900 md:text-xl">
+          Wystapił błąd
+        </h2>
+        <p className="max-w-md text-sm text-red-800 md:text-base">
+          Wystąpił błąd podczas ładowania postów. <br /> Spróbuj później
+          ponownie.
+        </p>
+      </div>
+    </section>
   );
 };
 

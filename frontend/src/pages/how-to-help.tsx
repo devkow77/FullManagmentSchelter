@@ -147,8 +147,8 @@ const HowToHelp = () => {
           </div>
           <div className="relative mx-auto grid aspect-video max-h-100 w-full max-w-5xl place-items-center bg-black/20">
             <iframe
-              src=""
-              title="YouTube video player"
+              src="https://www.youtube.com/embed/cD83zreoW_g?si=pS-_y0bB2zQ6Xe6C"
+              title="Film użyty na potrzeby projektu, nie jest to nasze schronisko."
               frameBorder="0"
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
               allowFullScreen

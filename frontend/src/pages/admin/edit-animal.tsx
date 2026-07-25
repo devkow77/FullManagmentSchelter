@@ -5,8 +5,7 @@ import { useNavigate, useParams } from "react-router";
 import { useEffect, useRef, useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm, Controller } from "react-hook-form";
-import { Button, Container, Input, Label } from "@/components/ui";
-import { Textarea } from "@/components/ui/textarea";
+import { Button, Container, Input, Label, Textarea } from "@/components/ui";
 import axios from "axios";
 import { Plus, Star, Trash } from "lucide-react";
 import { supabase } from "@/lib/supabase";
@@ -48,6 +47,17 @@ const EditAnimalPage = () => {
       nextVisitDate: new Date().toISOString().split("T")[0],
       foundAt: new Date().toISOString().split("T")[0],
       foundLocation: "",
+      cageNumber: "",
+      isSterilized: false,
+      isVaccinated: false,
+      isChildFriendly: false,
+      isTrained: false,
+      lovesPlay: false,
+      lovesWalks: false,
+      acceptsDogs: false,
+      acceptsCats: false,
+      lovesAffection: false,
+      poorlyToleratesShelter: false,
       imageUrl: [],
     },
   });
@@ -57,6 +67,7 @@ const EditAnimalPage = () => {
 
   const [pendingFiles, setPendingFiles] = useState<File[]>([]);
   const [deletedImages, setDeletedImages] = useState<string[]>([]);
+  const [primaryImageIndex, setPrimaryImageIndex] = useState(0);
 
   const existingImages = watch("imageUrl") || [];
 
@@ -93,8 +104,20 @@ const EditAnimalPage = () => {
             ? new Date(data.foundAt).toISOString().split("T")[0]
             : "",
           foundLocation: data.foundLocation,
+          cageNumber: data.cageNumber,
+          isSterilized: data.isSterilized,
+          isVaccinated: data.isVaccinated,
+          isChildFriendly: data.isChildFriendly,
+          isTrained: data.isTrained,
+          lovesPlay: data.lovesPlay,
+          lovesWalks: data.lovesWalks,
+          acceptsDogs: data.acceptsDogs,
+          acceptsCats: data.acceptsCats,
+          lovesAffection: data.lovesAffection,
+          poorlyToleratesShelter: data.poorlyToleratesShelter,
           imageUrl: data.imageUrl || [],
         });
+        setPrimaryImageIndex(0);
       } catch (err) {
         console.error("Błąd podczas pobierania:", err);
         toast.error("Nie udało się pobrać danych zwierzęcia.");
@@ -150,17 +173,31 @@ const EditAnimalPage = () => {
         if (error) throw error;
       }
 
+      const combinedImages = [...(data.imageUrl || []), ...uploadedUrls];
+      const primaryIndex = Math.min(
+        primaryImageIndex,
+        Math.max(combinedImages.length - 1, 0),
+      );
+      const imageUrl =
+        combinedImages.length === 0
+          ? []
+          : [
+              combinedImages[primaryIndex],
+              ...combinedImages.filter((_, i) => i !== primaryIndex),
+            ];
+
       await axios.patch(
         `/api/animals/${id}`,
         {
           ...data,
-          imageUrl: [...(data.imageUrl || []), ...uploadedUrls],
+          imageUrl,
         },
         { withCredentials: true },
       );
 
       setPendingFiles([]);
       setDeletedImages([]);
+      setPrimaryImageIndex(0);
 
       toast.success("Dane zostały zaktualizowane!");
 
@@ -207,6 +244,11 @@ const EditAnimalPage = () => {
     setPendingFiles((prev) => [...prev, ...filesToAdd]);
   };
 
+  const handleSetPrimaryImage = (index: number) => {
+    if (index >= previewImages.length) return;
+    setPrimaryImageIndex(index);
+  };
+
   const handleRemoveImage = (index: number) => {
     if (index < existingImages.length) {
       const fileUrl = existingImages[index];
@@ -225,6 +267,12 @@ const EditAnimalPage = () => {
       const pendingIndex = index - existingImages.length;
       setPendingFiles((prev) => prev.filter((_, i) => i !== pendingIndex));
     }
+
+    setPrimaryImageIndex((prev) => {
+      if (index === prev) return 0;
+      if (index < prev) return prev - 1;
+      return prev;
+    });
   };
 
   return (
@@ -245,25 +293,29 @@ const EditAnimalPage = () => {
             <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
               {Array.from({ length: MAX_IMAGES }).map((_, index) => {
                 const img = previewImages[index];
+                const isPrimary = index === primaryImageIndex && !!img;
+
                 return (
                   <div
                     key={index}
-                    className="relative aspect-square overflow-hidden rounded-xl bg-gray-200"
+                    className={`${isPrimary ? "scale-105 border-4 border-yellow-400" : ""} relative aspect-square overflow-hidden rounded-2xl bg-gray-200`}
                   >
                     {img ? (
                       <>
                         <span
                           onClick={() => handleRemoveImage(index)}
-                          className="absolute top-15 right-3 z-10 cursor-pointer rounded-full bg-white p-1 sm:p-2"
+                          className="absolute top-12 right-3 z-10 cursor-pointer rounded-full bg-white/50 p-1 sm:top-14 sm:p-2"
                         >
                           <Trash className="scale-80 text-red-600 sm:scale-100" />
                         </span>
 
                         <span
-                          onClick={() => {}}
-                          className="absolute top-3 right-3 z-10 cursor-pointer rounded-full bg-white/10 p-1 sm:p-2"
+                          onClick={() => handleSetPrimaryImage(index)}
+                          className="absolute top-3 right-3 z-10 cursor-pointer rounded-full bg-white/50 p-1 sm:p-2"
                         >
-                          <Star className="scale-80 text-yellow-600 sm:scale-100" />
+                          <Star
+                            className={`scale-80 text-yellow-600 sm:scale-100 ${isPrimary ? "fill-yellow-600" : ""}`}
+                          />
                         </span>
 
                         <div className="absolute z-2 size-full bg-linear-to-l from-black/40 to-transparent" />
@@ -301,7 +353,7 @@ const EditAnimalPage = () => {
             </div>
           </div>
           <div className="flex flex-col gap-4 lg:flex-row lg:gap-8">
-            <div className="grid flex-1 grid-cols-1 gap-4 sm:grid-cols-2">
+            <div className="flex-1 space-y-4">
               {/* IMIĘ */}
               <div className="space-y-2">
                 <Label htmlFor="name">Imię</Label>
@@ -461,6 +513,106 @@ const EditAnimalPage = () => {
                 )}
               </div>
 
+              {/* NUMER KLATKI */}
+              <div className="space-y-2">
+                <Label htmlFor="cageNumber">Numer klatki</Label>
+                <Input
+                  id="cageNumber"
+                  {...register("cageNumber")}
+                  placeholder="np. A-12"
+                  className={errors.cageNumber && "bg-red-600/20"}
+                />
+                {errors.cageNumber && (
+                  <p className="text-xs font-medium text-red-600 lg:text-sm">
+                    {errors.cageNumber.message}
+                  </p>
+                )}
+              </div>
+
+              {/* CECHY BOOLEAN */}
+              <div className="grid grid-cols-1 gap-3 sm:col-span-2 sm:grid-cols-2">
+                <Label className="flex cursor-pointer items-center gap-2 text-sm font-medium md:text-base">
+                  <Input
+                    type="checkbox"
+                    {...register("isSterilized")}
+                    className="size-4 accent-green-600"
+                  />
+                  Sterylizacja/Kastracja
+                </Label>
+                <Label className="flex cursor-pointer items-center gap-2 text-sm font-medium md:text-base">
+                  <Input
+                    type="checkbox"
+                    {...register("isVaccinated")}
+                    className="size-4 accent-green-600"
+                  />
+                  Szczepienia
+                </Label>
+                <Label className="flex cursor-pointer items-center gap-2 text-sm font-medium md:text-base">
+                  <Input
+                    type="checkbox"
+                    {...register("isChildFriendly")}
+                    className="size-4 accent-green-600"
+                  />
+                  Przyjazny dzieciom
+                </Label>
+                <Label className="flex cursor-pointer items-center gap-2 text-sm font-medium md:text-base">
+                  <Input
+                    type="checkbox"
+                    {...register("isTrained")}
+                    className="size-4 accent-green-600"
+                  />
+                  Szkolony
+                </Label>
+                <Label className="flex cursor-pointer items-center gap-2 text-sm font-medium md:text-base">
+                  <Input
+                    type="checkbox"
+                    {...register("lovesPlay")}
+                    className="size-4 accent-green-600"
+                  />
+                  Uwielbia zabawę
+                </Label>
+                <Label className="flex cursor-pointer items-center gap-2 text-sm font-medium md:text-base">
+                  <Input
+                    type="checkbox"
+                    {...register("lovesWalks")}
+                    className="size-4 accent-green-600"
+                  />
+                  Uwielbia spacery
+                </Label>
+                <Label className="flex cursor-pointer items-center gap-2 text-sm font-medium md:text-base">
+                  <Input
+                    type="checkbox"
+                    {...register("acceptsDogs")}
+                    className="size-4 accent-green-600"
+                  />
+                  Akceptuje psy
+                </Label>
+                <Label className="flex cursor-pointer items-center gap-2 text-sm font-medium md:text-base">
+                  <Input
+                    type="checkbox"
+                    {...register("acceptsCats")}
+                    className="size-4 accent-green-600"
+                  />
+                  Akceptuje koty
+                </Label>
+                <Label className="flex cursor-pointer items-center gap-2 text-sm font-medium md:text-base">
+                  <Input
+                    type="checkbox"
+                    {...register("lovesAffection")}
+                    className="size-4 accent-green-600"
+                  />
+                  Uwielbia pieszczoty
+                </Label>
+                <Label className="flex cursor-pointer items-center gap-2 text-sm font-medium md:text-base">
+                  <Input
+                    type="checkbox"
+                    {...register("poorlyToleratesShelter")}
+                    className="size-4 accent-green-600"
+                  />
+                  Źle nosi pobyt w schronisku
+                </Label>
+              </div>
+
               {/* ZNALEZIONY (MIEJSCE) */}
               <div className="space-y-2">
                 <Label htmlFor="foundLocation">Znaleziony w miejscowości</Label>
@@ -500,6 +652,7 @@ const EditAnimalPage = () => {
                 <Input
                   id="nextVisitDate"
                   type="date"
+                  className={errors.nextVisitDate && "bg-red-600/20"}
                   {...register("nextVisitDate")}
                 />
                 {errors.nextVisitDate && (

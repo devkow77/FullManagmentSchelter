@@ -6,6 +6,7 @@ import {
   RegisterPage,
   LoginPage,
   AnimalsPage,
+  TypeAnimalPage,
   FoundAnimalsPage,
   HowToHelp,
   FaqPage,
@@ -16,9 +17,11 @@ import {
   NotFoundPage,
   BlogPostPage,
   NewsletterUnsubscribePage,
+  FavouritesAnimalsPage,
+  AnimalPage,
 } from "@/pages";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { Toaster } from "@/components/ui/sonner";
+import { Toaster } from "@/components/ui";
 import { AuthProvider } from "./context/AuthContext";
 import { AccountPage } from "./pages/client";
 import {
@@ -42,6 +45,7 @@ import {
   MedicalRecordsPage,
   AddMedicalRecordPage,
   EditMedicalRecordPage,
+  DailyAnimalNeedsPage,
 } from "./pages/worker";
 
 const queryClient = new QueryClient();
@@ -68,6 +72,26 @@ const router = createBrowserRouter([
       {
         path: "/zwierzeta",
         element: <AnimalsPage />,
+      },
+      {
+        path: "/zwierzeta/:id",
+        element: <AnimalPage />,
+      },
+      {
+        path: "/zwierzeta/psy",
+        element: <TypeAnimalPage />,
+      },
+      {
+        path: "/zwierzeta/koty",
+        element: <TypeAnimalPage />,
+      },
+      {
+        path: "/zwierzeta/kroliki",
+        element: <TypeAnimalPage />,
+      },
+      {
+        path: "/zwierzeta/króliki",
+        element: <TypeAnimalPage />,
       },
       {
         path: "/znalezione-zwierzeta",
@@ -104,6 +128,10 @@ const router = createBrowserRouter([
       {
         path: "/newsletter/wypisz/:token",
         element: <NewsletterUnsubscribePage />,
+      },
+      {
+        path: "/ulubione-zwierzeta",
+        element: <FavouritesAnimalsPage />,
       },
     ],
   },
@@ -220,6 +248,10 @@ const router = createBrowserRouter([
       {
         path: "/pracownik/raporty-medyczne/:id/edycja",
         element: <EditMedicalRecordPage />,
+      },
+      {
+        path: "/pracownik/codzienne-obowiazki",
+        element: <DailyAnimalNeedsPage />,
       },
     ],
   },

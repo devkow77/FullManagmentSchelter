@@ -1,6 +1,6 @@
-import { Container, DeleteMedicalRecordDialog } from "@/components/ui";
-import { useEffect, useState, useMemo } from "react";
 import {
+  Container,
+  DeleteMedicalRecordDialog,
   Table,
   TableBody,
   TableCaption,
@@ -9,19 +9,27 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table";
-import {
   DropdownMenu,
   DropdownMenuTrigger,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
-} from "@/components/ui/dropdown-menu";
-import { Button, Input } from "@/components/ui";
-import { MoreHorizontalIcon } from "lucide-react";
+  Button,
+  Input,
+  Label,
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationPrevious,
+  PaginationEllipsis,
+  PaginationLink,
+  PaginationNext,
+  Skeleton,
+} from "@/components/ui";
+import { useState, useMemo } from "react";
+import { CircleAlert, MoreHorizontalIcon } from "lucide-react";
 import DashboardNavbar from "@/components/layout/admin/DashboardNavbar";
 import axios from "axios";
-import { Label } from "@/components/ui";
 import {
   styleMedicalRecordStatus,
   styleMedicalRecordType,
@@ -38,80 +46,157 @@ import {
 } from "@/constants/medical-record.constants";
 import { toast } from "sonner";
 import { useAuth } from "@/context/AuthContext";
+import { useNavigate, Link } from "react-router";
+import {
+  keepPreviousData,
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from "@tanstack/react-query";
+
+const PAGE_SIZE = 10;
+const medicalRecordsQueryKey = ["medical-records"] as const;
+
+type MedicalRecordsPageResponse = {
+  data: MedicalRecord[];
+  total: number;
+  page: number;
+  pageSize: number;
+  hasMore: boolean;
+};
+
+type MedicalRecordsFilters = {
+  search: string;
+  animalTypes: string[];
+  types: string[];
+  statuses: string[];
+};
+
+const getMedicalRecordsPage = async ({
+  page,
+  filters,
+}: {
+  page: number;
+  filters: MedicalRecordsFilters;
+}) => {
+  const params = new URLSearchParams({
+    page: String(page),
+    limit: String(PAGE_SIZE),
+  });
+
+  if (filters.search.trim()) {
+    params.set("search", filters.search.trim());
+  }
+  if (filters.animalTypes.length > 0) {
+    params.set("animalType", filters.animalTypes.join(","));
+  }
+  if (filters.types.length > 0) {
+    params.set("type", filters.types.join(","));
+  }
+  if (filters.statuses.length > 0) {
+    params.set("status", filters.statuses.join(","));
+  }
+
+  const res = await axios.get<MedicalRecordsPageResponse>(
+    `/api/medical-records?${params.toString()}`,
+  );
+  return res.data;
+};
+
+const getPageItems = (current: number, total: number) => {
+  if (total <= 7) {
+    return Array.from({ length: total }, (_, i) => i + 1);
+  }
+
+  const pages: (number | "ellipsis")[] = [1];
+
+  if (current > 3) pages.push("ellipsis");
+
+  const start = Math.max(2, current - 1);
+  const end = Math.min(total - 1, current + 1);
+
+  for (let page = start; page <= end; page++) {
+    pages.push(page);
+  }
+
+  if (current < total - 2) pages.push("ellipsis");
+
+  pages.push(total);
+  return pages;
+};
 
 const MedicalRecordsPage = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
 
-  const [medicalRecords, setMedicalRecords] = useState<MedicalRecord[]>([]);
+  const [page, setPage] = useState(1);
   const [searchClinicName, setSearchClinicName] = useState<string>("");
   const [selectedAnimalType, setSelectedAnimalType] = useState<string[]>([]);
   const [selectedTypes, setSelectedTypes] = useState<string[]>([]);
   const [selectedStatus, setSelectedStatus] = useState<string[]>([]);
 
-  useEffect(() => {
-    const fetchMedicalRecords = async () => {
-      try {
-        const res = await axios.get("/api/medical-records");
-        setMedicalRecords(res.data);
-      } catch (err) {
-        console.error(err);
-      }
-    };
+  const filters: MedicalRecordsFilters = {
+    search: searchClinicName,
+    animalTypes: selectedAnimalType,
+    types: selectedTypes,
+    statuses: selectedStatus,
+  };
 
-    fetchMedicalRecords();
-  }, []);
+  const {
+    data,
+    isLoading = true,
+    error,
+    isFetching,
+  } = useQuery({
+    queryKey: [...medicalRecordsQueryKey, page, filters],
+    queryFn: () => getMedicalRecordsPage({ page, filters }),
+    placeholderData: keepPreviousData,
+  });
 
-  const filteredMedicalRecords = useMemo(() => {
-    return medicalRecords.filter((medicalRecord) => {
-      const matchesSearch =
-        searchClinicName.trim() === "" ||
-        medicalRecord.vet.clinic
-          .toLowerCase()
-          .includes(searchClinicName.toLowerCase());
+  const medicalRecords = useMemo(() => data?.data ?? [], [data?.data]);
+  const total = data?.total ?? 0;
+  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
 
-      const matchesAnimalType =
-        selectedAnimalType.length === 0 ||
-        selectedAnimalType.includes(medicalRecord.animal.type);
+  if (page > totalPages) {
+    setPage(totalPages);
+  }
 
-      const matchesType =
-        selectedTypes.length === 0 ||
-        selectedTypes.includes(medicalRecord.type);
-
-      const matchesStatus =
-        selectedStatus.length === 0 ||
-        selectedStatus.includes(medicalRecord.status);
-
-      return matchesSearch && matchesAnimalType && matchesType && matchesStatus;
-    });
-  }, [
-    medicalRecords,
-    searchClinicName,
-    selectedAnimalType,
-    selectedTypes,
-    selectedStatus,
-  ]);
-
-  const handleDeleteMedicalRecord = async (id: number) => {
-    try {
-      await axios.delete(`/api/medical-records/${id}`);
-      setMedicalRecords(
-        medicalRecords.filter((medicalRecord) => medicalRecord.id !== id),
-      );
+  const deleteMedicalRecordMutation = useMutation({
+    mutationFn: (id: number) => axios.delete(`/api/medical-records/${id}`),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: medicalRecordsQueryKey });
       toast.success("Pomyślnie usunięto raport medyczny!");
-    } catch (err) {
+    },
+    onError: (err) => {
       if (axios.isAxiosError(err)) {
         toast.error(err.response?.data.msg);
       } else {
         toast.error("Wystąpił błąd podczas usuwania raportu medycznego!");
       }
-    }
-  };
+    },
+  });
 
   const resetFilters = () => {
     setSearchClinicName("");
     setSelectedAnimalType([]);
     setSelectedTypes([]);
     setSelectedStatus([]);
+    setPage(1);
+  };
+
+  const handleFilterChange = <T,>(setter: (value: T) => void, value: T) => {
+    setter(value);
+    setPage(1);
+  };
+
+  const handleDeleteMedicalRecord = (id: number) => {
+    deleteMedicalRecordMutation.mutate(id);
+  };
+
+  const goToPage = (nextPage: number) => {
+    if (nextPage < 1 || nextPage > totalPages || nextPage === page) return;
+    setPage(nextPage);
   };
 
   return (
@@ -130,143 +215,304 @@ const MedicalRecordsPage = () => {
           <DashboardNavbar />
         </section>
 
-        <section id="table">
-          <div className="top-0 z-2 flex flex-wrap items-center gap-4 bg-white py-4 sm:sticky">
-            <div className="flex flex-row gap-x-2">
-              <Label>Wyszukaj</Label>
-              <Input
-                value={searchClinicName}
-                onChange={(e) => setSearchClinicName(e.target.value)}
-                placeholder="Podaj nazwę kliniki..."
-                className="h-7.5 placeholder:text-sm"
+        {isLoading && <LoadingMedicalRecords />}
+        {error && <ErrorMedicalRecords />}
+        {!isLoading && !error && (
+          <section id="table">
+            <div className="top-0 z-2 flex flex-wrap items-center gap-4 bg-white py-4 sm:sticky">
+              <div className="flex flex-row gap-x-2">
+                <Label>Wyszukaj</Label>
+                <Input
+                  value={searchClinicName}
+                  onChange={(e) =>
+                    handleFilterChange(setSearchClinicName, e.target.value)
+                  }
+                  placeholder="Podaj nazwę kliniki..."
+                  className="h-7.5 placeholder:text-sm"
+                />
+              </div>
+
+              <MultiValueSelector
+                items={medicalRecordAnimalTypeOptions}
+                placeholder="Gatunek zwierzęcia"
+                value={selectedAnimalType}
+                onValueChange={(value) =>
+                  handleFilterChange(setSelectedAnimalType, value)
+                }
               />
+
+              <MultiValueSelector
+                items={medicalRecordTypeOptions}
+                placeholder="Typ raportu"
+                value={selectedTypes}
+                onValueChange={(value) =>
+                  handleFilterChange(setSelectedTypes, value)
+                }
+              />
+
+              <MultiValueSelector
+                items={medicalRecordStatusOptions}
+                placeholder="Status realizacji"
+                value={selectedStatus}
+                onValueChange={(value) =>
+                  handleFilterChange(setSelectedStatus, value)
+                }
+              />
+
+              <Button onClick={resetFilters} variant="destructive">
+                Resetuj filtry
+              </Button>
+
+              <Button variant="success" asChild>
+                <Link to="/pracownik/raporty-medyczne/dodaj">Dodaj raport</Link>
+              </Button>
             </div>
 
-            <MultiValueSelector
-              items={medicalRecordAnimalTypeOptions}
-              placeholder="Gatunek zwierzęcia"
-              value={selectedAnimalType}
-              onValueChange={setSelectedAnimalType}
-            />
+            <Table className={isFetching ? "opacity-60" : undefined}>
+              <TableCaption>
+                Lista raportów medycznych w schronisku
+              </TableCaption>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Weterynarz</TableHead>
+                  <TableHead>Zwierzę</TableHead>
+                  <TableHead>Gatunek</TableHead>
+                  <TableHead>Typ raportu</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Data wizyty</TableHead>
+                  <TableHead>Koszt</TableHead>
+                  <TableHead className="text-right">Opcje</TableHead>
+                </TableRow>
+              </TableHeader>
 
-            <MultiValueSelector
-              items={medicalRecordTypeOptions}
-              placeholder="Typ raportu"
-              value={selectedTypes}
-              onValueChange={setSelectedTypes}
-            />
-
-            <MultiValueSelector
-              items={medicalRecordStatusOptions}
-              placeholder="Status realizacji"
-              value={selectedStatus}
-              onValueChange={setSelectedStatus}
-            />
-
-            <Button onClick={resetFilters} variant="destructive">
-              Resetuj filtry
-            </Button>
-
-            <Button variant="success">
-              <a href="/pracownik/raporty-medyczne/dodaj">Dodaj raport</a>
-            </Button>
-          </div>
-
-          <Table>
-            <TableCaption>Lista raportów medycznych w schronisku</TableCaption>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Weterynarz</TableHead>
-                <TableHead>Zwierzę</TableHead>
-                <TableHead>Gatunek</TableHead>
-                <TableHead>Typ raportu</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Data wizyty</TableHead>
-                <TableHead>Koszt</TableHead>
-                <TableHead className="text-right">Opcje</TableHead>
-              </TableRow>
-            </TableHeader>
-
-            <TableBody>
-              {filteredMedicalRecords.map((medicalRecord) => (
-                <TableRow key={medicalRecord.id}>
-                  <TableCell>
-                    <span className="font-medium">
-                      {medicalRecord.vet.name}
-                    </span>{" "}
-                    <br />
-                    {medicalRecord.vet.clinic}
-                  </TableCell>
-                  <TableCell>{medicalRecord.animal.name}</TableCell>
-                  <TableCell>
-                    {formatAnimalType[medicalRecord.animal.type]}
-                  </TableCell>
-                  <TableCell>
-                    <span
-                      className={`${styleMedicalRecordType(medicalRecord.type)} rounded-2xl px-4 py-2 text-xs`}
+              <TableBody>
+                {medicalRecords.length ? (
+                  medicalRecords.map((medicalRecord) => (
+                    <TableRow
+                      key={medicalRecord.id}
+                      className="cursor-pointer"
+                      onClick={() =>
+                        navigate(
+                          `/pracownik/raporty-medyczne/${medicalRecord.id}/edycja`,
+                        )
+                      }
                     >
-                      {formatMedicalRecordType[medicalRecord.type]}
-                    </span>
-                  </TableCell>
-                  <TableCell>
-                    <span
-                      className={`${styleMedicalRecordStatus(medicalRecord.status)} rounded-2xl px-4 py-2 text-xs`}
+                      <TableCell>
+                        <span className="font-medium">
+                          {medicalRecord.vet.name}
+                        </span>{" "}
+                        <br />
+                        {medicalRecord.vet.clinic}
+                      </TableCell>
+                      <TableCell>{medicalRecord.animal.name}</TableCell>
+                      <TableCell>
+                        {formatAnimalType[medicalRecord.animal.type]}
+                      </TableCell>
+                      <TableCell>
+                        <span
+                          className={`${styleMedicalRecordType(medicalRecord.type)} rounded-2xl px-4 py-2 text-xs`}
+                        >
+                          {formatMedicalRecordType[medicalRecord.type]}
+                        </span>
+                      </TableCell>
+                      <TableCell>
+                        <span
+                          className={`${styleMedicalRecordStatus(medicalRecord.status)} rounded-2xl px-4 py-2 text-xs`}
+                        >
+                          {formatMedicalRecordStatus[medicalRecord.status]}
+                        </span>
+                      </TableCell>
+                      <TableCell>
+                        {new Date(medicalRecord.date).toLocaleDateString(
+                          "pl-PL",
+                          {
+                            day: "2-digit",
+                            month: "2-digit",
+                            year: "numeric",
+                          },
+                        )}{" "}
+                        r.
+                      </TableCell>
+                      <TableCell>{medicalRecord.cost} zł</TableCell>
+                      <TableCell
+                        className="text-right"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="transparent" size="icon">
+                              <MoreHorizontalIcon />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem asChild>
+                              <Link
+                                to={`/pracownik/raporty-medyczne/${medicalRecord.id}/edycja`}
+                              >
+                                Szczegóły
+                              </Link>
+                            </DropdownMenuItem>
+                            {user?.role === "ADMINISTRATOR" && (
+                              <>
+                                <DropdownMenuSeparator />
+                                <div className="hover:bg-accent rounded-sm">
+                                  <DeleteMedicalRecordDialog
+                                    medicalRecordId={medicalRecord.id}
+                                    onConfirm={handleDeleteMedicalRecord}
+                                  />
+                                </div>
+                              </>
+                            )}
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                ) : (
+                  <TableRow>
+                    <TableCell
+                      colSpan={8}
+                      className="py-5 text-center font-medium"
                     >
-                      {formatMedicalRecordStatus[medicalRecord.status]}
-                    </span>
-                  </TableCell>
-                  <TableCell>
-                    {new Date(medicalRecord.date).toLocaleDateString("pl-PL", {
-                      day: "2-digit",
-                      month: "2-digit",
-                      year: "numeric",
-                    })}{" "}
-                    r.
-                  </TableCell>
-                  <TableCell>{medicalRecord.cost} zł</TableCell>
-                  <TableCell className="text-right">
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="transparent" size="icon">
-                          <MoreHorizontalIcon />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem>
-                          <a
-                            href={`/pracownik/raporty-medyczne/${medicalRecord.id}/edycja`}
-                          >
-                            Szczegóły
-                          </a>
-                        </DropdownMenuItem>
-                        {user?.role === "ADMINISTRATOR" && (
-                          <>
-                            <DropdownMenuSeparator />
-                            <DeleteMedicalRecordDialog
-                              medicalRecordId={medicalRecord.id}
-                              onConfirm={(id) => handleDeleteMedicalRecord(id)}
-                            />
-                          </>
+                      Brak raportów medycznych o podanych filtrach.
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+
+              <TableFooter>
+                <TableRow>
+                  <TableCell colSpan={8}>
+                    <Pagination>
+                      <PaginationContent>
+                        <PaginationItem>
+                          <PaginationPrevious
+                            href="#"
+                            aria-disabled={page <= 1}
+                            className={
+                              page <= 1
+                                ? "pointer-events-none opacity-50"
+                                : undefined
+                            }
+                            onClick={(e) => {
+                              e.preventDefault();
+                              goToPage(page - 1);
+                            }}
+                          />
+                        </PaginationItem>
+
+                        {getPageItems(page, totalPages).map((item, index) =>
+                          item === "ellipsis" ? (
+                            <PaginationItem key={`ellipsis-${index}`}>
+                              <PaginationEllipsis />
+                            </PaginationItem>
+                          ) : (
+                            <PaginationItem key={item}>
+                              <PaginationLink
+                                href="#"
+                                isActive={item === page}
+                                onClick={(e) => {
+                                  e.preventDefault();
+                                  goToPage(item);
+                                }}
+                              >
+                                {item}
+                              </PaginationLink>
+                            </PaginationItem>
+                          ),
                         )}
-                      </DropdownMenuContent>
-                    </DropdownMenu>
+
+                        <PaginationItem>
+                          <PaginationNext
+                            href="#"
+                            aria-disabled={page >= totalPages}
+                            className={
+                              page >= totalPages
+                                ? "pointer-events-none opacity-50"
+                                : undefined
+                            }
+                            onClick={(e) => {
+                              e.preventDefault();
+                              goToPage(page + 1);
+                            }}
+                          />
+                        </PaginationItem>
+                      </PaginationContent>
+                    </Pagination>
                   </TableCell>
                 </TableRow>
-              ))}
-            </TableBody>
-
-            <TableFooter>
-              <TableRow>
-                <TableCell colSpan={7}>Suma raportów</TableCell>
-                <TableCell className="text-right">
-                  {filteredMedicalRecords.length}
-                </TableCell>
-              </TableRow>
-            </TableFooter>
-          </Table>
-        </section>
+                <TableRow>
+                  <TableCell colSpan={7}>Suma raportów</TableCell>
+                  <TableCell className="text-right">
+                    {medicalRecords.length}
+                  </TableCell>
+                </TableRow>
+              </TableFooter>
+            </Table>
+          </section>
+        )}
       </Container>
     </main>
+  );
+};
+
+const ErrorMedicalRecords = () => {
+  return (
+    <section
+      id="error"
+      className="flex flex-col items-center justify-center gap-4 rounded-xl border border-red-200 bg-red-50 px-6 py-12 text-center"
+    >
+      <CircleAlert className="size-12 text-red-600" />
+      <div className="space-y-2">
+        <h2 className="text-xl font-semibold text-red-900">
+          Nie udało się załadować raportów medycznych
+        </h2>
+        <p className="max-w-md text-sm text-red-800 md:text-base">
+          Wystąpił problem podczas pobierania listy raportów. Sprawdź połączenie
+          z internetem i spróbuj ponownie.
+        </p>
+      </div>
+    </section>
+  );
+};
+
+const LoadingMedicalRecords = () => {
+  return (
+    <section id="table" className="space-y-4">
+      <div className="flex flex-wrap items-center gap-4 py-4">
+        <Skeleton className="h-9 w-48" />
+        {Array.from({ length: 4 }).map((_, index) => (
+          <Skeleton key={index} className="h-9 w-28" />
+        ))}
+        <Skeleton className="h-9 w-36" />
+      </div>
+
+      <Table>
+        <TableHeader>
+          <TableRow>
+            {Array.from({ length: 8 }).map((_, index) => (
+              <TableHead key={index}>
+                <Skeleton className="h-4 w-20" />
+              </TableHead>
+            ))}
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {Array.from({ length: 8 }).map((_, rowIndex) => (
+            <TableRow key={rowIndex}>
+              {Array.from({ length: 7 }).map((_, cellIndex) => (
+                <TableCell key={cellIndex}>
+                  <Skeleton className="h-4 w-20" />
+                </TableCell>
+              ))}
+              <TableCell className="text-right">
+                <Skeleton className="ml-auto size-8 rounded-md" />
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+    </section>
   );
 };
 

@@ -7,10 +7,13 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+  Avatar,
+  AvatarFallback,
+  AvatarImage,
+} from "@/components/ui";
 import { useAuth } from "@/context/AuthContext";
 import axios from "axios";
+import { Link } from "react-router";
 
 const Profile = () => {
   const { user, loading, setUser } = useAuth();
@@ -59,9 +62,9 @@ const Profile = () => {
           <DropdownMenuLabel>Moje konto</DropdownMenuLabel>
           <DropdownMenuSeparator />
           <DropdownMenuItem asChild className="cursor-pointer">
-            <a href="/konto" className="w-full">
+            <Link to="/konto" className="w-full">
               Konto
-            </a>
+            </Link>
           </DropdownMenuItem>
           <DropdownMenuSeparator />
           <DropdownMenuItem
@@ -80,9 +83,9 @@ const Profile = () => {
             className="cursor-pointer font-medium"
             onClick={() => {}}
           >
-            <a href="/login" className="w-full">
+            <Link to="/login" className="w-full">
               Zaloguj się
-            </a>
+            </Link>
           </DropdownMenuItem>
           <DropdownMenuSeparator />
           <DropdownMenuLabel className="text-xs opacity-80">
@@ -90,9 +93,9 @@ const Profile = () => {
           </DropdownMenuLabel>
           <DropdownMenuSeparator />
           <DropdownMenuItem className="cursor-pointer font-medium">
-            <a href="/rejestracja" className="w-full">
+            <Link to="/rejestracja" className="w-full">
               Zarejestruj nowe konto
-            </a>
+            </Link>
           </DropdownMenuItem>
         </DropdownMenuContent>
       )}

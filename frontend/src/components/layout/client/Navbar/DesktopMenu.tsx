@@ -7,7 +7,10 @@ import {
   NavigationMenuLink,
   NavigationMenuList,
   NavigationMenuTrigger,
-} from "@/components/ui/navigation-menu";
+} from "@/components/ui";
+import { Link, useLocation } from "react-router";
+import { styleActiveLink } from "@/lib/utils";
+import { Heart } from "lucide-react";
 
 interface Animal {
   title: string;
@@ -43,14 +46,16 @@ const animals: Animal[] = [
 ];
 
 const DesktopMenu = () => {
+  const pathname = useLocation().pathname;
+
   return (
-    <NavigationMenu viewport={false} className="z-10 hidden xl:block">
+    <NavigationMenu viewport={false} className="z-50 hidden xl:block">
       <NavigationMenuList className="space-x-2">
         <NavigationMenuItem>
           <NavigationMenuLink asChild>
-            <a href="/" className="font-semibold text-green-900">
+            <Link to="/" className={styleActiveLink(pathname, "/")}>
               Strona główna
-            </a>
+            </Link>
           </NavigationMenuLink>
         </NavigationMenuItem>
         <NavigationMenuItem>
@@ -60,15 +65,15 @@ const DesktopMenu = () => {
               {animals.length
                 ? animals.map(({ title, href, description }, index) => (
                     <NavigationMenuLink asChild key={index}>
-                      <a
-                        href={href}
-                        className="flex flex-col items-start bg-transparent"
+                      <Link
+                        to={href}
+                        className={`flex flex-col items-start bg-transparent ${styleActiveLink(pathname, href)}`}
                       >
                         <div>{title}</div>
                         <div className="text-muted-foreground">
                           {description}
                         </div>
-                      </a>
+                      </Link>
                     </NavigationMenuLink>
                   ))
                 : null}
@@ -77,27 +82,53 @@ const DesktopMenu = () => {
         </NavigationMenuItem>
         <NavigationMenuItem>
           <NavigationMenuLink asChild>
-            <a href="/znalezione-zwierzeta">Znalezione</a>
+            <Link
+              to="/znalezione-zwierzeta"
+              className={styleActiveLink(pathname, "/znalezione-zwierzeta")}
+            >
+              Znalezione
+            </Link>
           </NavigationMenuLink>
         </NavigationMenuItem>
         <NavigationMenuItem>
           <NavigationMenuLink asChild>
-            <a href="/jak-pomoc">Jak pomóc?</a>
+            <Link
+              to="/jak-pomoc"
+              className={styleActiveLink(pathname, "/jak-pomoc")}
+            >
+              Jak pomóc?
+            </Link>
           </NavigationMenuLink>
         </NavigationMenuItem>
         <NavigationMenuItem>
           <NavigationMenuLink asChild>
-            <a href="/blog">Blog</a>
+            <Link to="/blog" className={styleActiveLink(pathname, "/blog")}>
+              Blog
+            </Link>
           </NavigationMenuLink>
         </NavigationMenuItem>
         <NavigationMenuItem>
           <NavigationMenuLink asChild>
-            <a href="/faq">Faq</a>
+            <Link to="/faq" className={styleActiveLink(pathname, "/faq")}>
+              Faq
+            </Link>
           </NavigationMenuLink>
         </NavigationMenuItem>
         <NavigationMenuItem>
           <NavigationMenuLink asChild>
-            <a href="/kontakt">Kontakt</a>
+            <Link
+              to="/kontakt"
+              className={styleActiveLink(pathname, "/kontakt")}
+            >
+              Kontakt
+            </Link>
+          </NavigationMenuLink>
+        </NavigationMenuItem>
+        <NavigationMenuItem>
+          <NavigationMenuLink asChild>
+            <Link to="/ulubione-zwierzeta" className="font-medium text-red-600">
+              <Heart className="size-4 fill-red-600 text-red-600" /> Ulubione
+            </Link>
           </NavigationMenuLink>
         </NavigationMenuItem>
       </NavigationMenuList>

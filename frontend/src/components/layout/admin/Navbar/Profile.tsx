@@ -7,10 +7,13 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+  Avatar,
+  AvatarFallback,
+  AvatarImage,
+} from "@/components/ui";
 import axios from "axios";
 import { useAuth } from "@/context/AuthContext";
+import { Link } from "react-router";
 
 const Profile = () => {
   const { user, loading, setUser } = useAuth();
@@ -58,7 +61,7 @@ const Profile = () => {
         <DropdownMenuLabel>Moje konto</DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuItem asChild className="cursor-pointer">
-          <a href="/admin/konto">Panel admina</a>
+          <Link to="/admin/konto">Panel admina</Link>
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem

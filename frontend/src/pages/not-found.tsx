@@ -1,4 +1,5 @@
 import { Button } from "@/components/ui";
+import { Link } from "react-router";
 
 const NotFoundPage = () => {
   return (
@@ -11,8 +12,8 @@ const NotFoundPage = () => {
             przejść do strony głównej, a następnie skorzystaj z menu
             nawigacyjnego.
           </p>
-          <Button variant={"success"}>
-            <a href="/">Przejdź do strony głównej</a>
+          <Button variant={"success"} asChild>
+            <Link to="/">Przejdź do strony głównej</Link>
           </Button>
         </div>
       </section>

@@ -1,4 +1,4 @@
-import { Container } from "@/components/ui/index";
+import { Container } from "@/components/ui";
 import {
   DesktopMenu as ClientDesktopMenu,
   Profile as ClientProfile,

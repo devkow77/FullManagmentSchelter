@@ -2,6 +2,7 @@ import { StatusCodes } from 'http-status-codes';
 import prisma from '../prisma';
 import { type Request, type Response } from 'express';
 import {
+  AnimalType,
   MedicalRecordStatus,
   MedicalRecordType,
   Role,
@@ -12,23 +13,118 @@ import {
 } from '../selects/medical-record.select';
 import { animalIdSelect } from '../selects/animal.select';
 import { vetIdSelect } from '../selects/vet.select';
+import type { Prisma } from '../generated/prisma/client';
 import jwt from 'jsonwebtoken';
 
 const medicalRecordTypes = Object.values(MedicalRecordType);
 const medicalRecordStatuses = Object.values(MedicalRecordStatus);
+const DEFAULT_RECORDS_PAGE_SIZE = 10;
 
-// 1. Pobierz wszystkie raporty medyczne
-export const getRecords = async (_req: Request, res: Response) => {
+const parseCsvParam = (value: unknown) => {
+  if (typeof value !== 'string' || value.length === 0) return [];
+  return value
+    .split(',')
+    .map((item) => item.trim())
+    .filter(Boolean);
+};
+
+// 1. Pobierz wszystkie raporty medyczne (z opcjonalną paginacją i filtrami)
+export const getRecords = async (req: Request, res: Response) => {
   try {
+    const { page, limit, search, animalType, type, status, vetId } = req.query;
+
+    const where: Prisma.MedicalRecordWhereInput = {};
+
+    if (vetId !== undefined) {
+      const numericVetId = Number(vetId);
+      if (isNaN(numericVetId)) {
+        return res.status(StatusCodes.BAD_REQUEST).json({
+          msg: 'Nieprawidłowe ID weterynarza!',
+        });
+      }
+      where.vetId = numericVetId;
+    }
+
+    if (typeof search === 'string' && search.trim().length > 0) {
+      where.vet = {
+        clinic: { contains: search.trim(), mode: 'insensitive' },
+      };
+    }
+
+    const animalTypeVals = parseCsvParam(animalType).filter((t) =>
+      Object.values(AnimalType).includes(t as AnimalType),
+    ) as AnimalType[];
+    if (animalTypeVals.length > 0) {
+      where.animal = { type: { in: animalTypeVals } };
+    }
+
+    const typeVals = parseCsvParam(type).filter((t) =>
+      medicalRecordTypes.includes(t as MedicalRecordType),
+    ) as MedicalRecordType[];
+    if (typeVals.length > 0) {
+      where.type = { in: typeVals };
+    }
+
+    const statusVals = parseCsvParam(status).filter((s) =>
+      medicalRecordStatuses.includes(s as MedicalRecordStatus),
+    ) as MedicalRecordStatus[];
+    if (statusVals.length > 0) {
+      where.status = { in: statusVals };
+    }
+
+    let pageNumber: number | undefined;
+    let pageSize = DEFAULT_RECORDS_PAGE_SIZE;
+
+    if (typeof page === 'string' && page.length > 0) {
+      pageNumber = Number(page);
+      if (!Number.isInteger(pageNumber) || pageNumber < 1) {
+        return res.status(StatusCodes.BAD_REQUEST).json({
+          msg: 'Nieprawidłowy parametr page!',
+        });
+      }
+    }
+
+    if (typeof limit === 'string' && limit.length > 0) {
+      const parsedLimit = Number(limit);
+      if (!Number.isInteger(parsedLimit) || parsedLimit < 1) {
+        return res.status(StatusCodes.BAD_REQUEST).json({
+          msg: 'Nieprawidłowy parametr limit!',
+        });
+      }
+      pageSize = Math.min(parsedLimit, 50);
+    }
+
+    if (pageNumber !== undefined) {
+      const skip = (pageNumber - 1) * pageSize;
+
+      const [medicalRecords, total] = await Promise.all([
+        prisma.medicalRecord.findMany({
+          where,
+          orderBy: { createdAt: 'desc' },
+          include: medicalRecordListInclude,
+          take: pageSize,
+          skip,
+        }),
+        prisma.medicalRecord.count({ where }),
+      ]);
+
+      return res.status(StatusCodes.OK).json({
+        data: medicalRecords,
+        total,
+        page: pageNumber,
+        pageSize,
+        hasMore: pageNumber * pageSize < total,
+      });
+    }
+
     const medicalRecords = await prisma.medicalRecord.findMany({
-      orderBy: {
-        createdAt: 'desc',
-      },
+      where,
+      orderBy: { createdAt: 'desc' },
       include: medicalRecordListInclude,
     });
 
     return res.status(StatusCodes.OK).json(medicalRecords);
-  } catch (err) {
+  } catch {
     return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
       msg: 'Wewnętrzny błąd serwera!',
     });
@@ -62,7 +158,7 @@ export const getRecordById = async (req: Request, res: Response) => {
     }
 
     return res.status(StatusCodes.OK).json(medicalRecord);
-  } catch (err) {
+  } catch {
     return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
       msg: 'Wewnętrzny błąd serwera!',
     });
@@ -83,7 +179,10 @@ export const createRecord = async (req: Request, res: Response) => {
     !type ||
     !description ||
     !date ||
-    !status
+    !status ||
+    cost === undefined ||
+    cost === null ||
+    cost === ''
   ) {
     return res.status(StatusCodes.BAD_REQUEST).json({
       msg: 'Wszystkie wymagane pola muszą być wypełnione!',
@@ -175,7 +274,10 @@ export const updateRecord = async (req: Request, res: Response) => {
     !type ||
     !description ||
     !date ||
-    !status
+    !status ||
+    cost === undefined ||
+    cost === null ||
+    cost === ''
   ) {
     return res.status(StatusCodes.BAD_REQUEST).json({
       msg: 'Wszystkie wymagane pola muszą być wypełnione!',
@@ -301,7 +403,7 @@ export const deleteUniqueMedicalRecord = async (
     return res.status(StatusCodes.OK).json({
       msg: 'Pomyślnie usunięto raport medyczny!',
     });
-  } catch (err) {
+  } catch {
     return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
       msg: 'Wewnętrzny błąd serwera!',
     });

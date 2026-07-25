@@ -4,7 +4,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import axios, { AxiosError } from "axios";
 import { toast } from "sonner";
-import { useNavigate } from "react-router";
+import { useNavigate, Link } from "react-router";
 
 const registerSchema = z
   .object({
@@ -123,9 +123,9 @@ const RegisterPage = () => {
               </Button>
               <p className="text-sm lg:text-base">
                 Masz już konto?{" "}
-                <a href="/login" className="font-semibold">
+                <Link to="/login" className="font-semibold">
                   Zaloguj się
-                </a>
+                </Link>
               </p>
             </div>
           </form>

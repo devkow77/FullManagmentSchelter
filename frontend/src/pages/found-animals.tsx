@@ -1,11 +1,89 @@
-import { Container } from "@/components/ui";
+import { Container, Skeleton } from "@/components/ui";
 import { styleAnimalStatus } from "@/lib/utils";
+import { CircleAlert, ImageOff, Info, Loader2 } from "lucide-react";
+import { Link } from "react-router";
+import axios from "axios";
+import { useEffect, useMemo, useRef } from "react";
+import { useInfiniteQuery } from "@tanstack/react-query";
+
+const PAGE_SIZE = 6;
+
+interface FoundAnimal {
+  id: number;
+  name: string;
+  imageUrl: string[];
+  description: string;
+  foundAt: string;
+  foundLocation: string;
+}
+
+type PageResponse = {
+  data: FoundAnimal[];
+  total: number;
+  page: number;
+  pageSize: number;
+  hasMore: boolean;
+};
+
+const getFoundAnimalsPage = async (pageParam: number) => {
+  const params = new URLSearchParams({
+    page: String(pageParam),
+    limit: String(PAGE_SIZE),
+    sort: "foundAt:asc",
+    status: "ZNALEZIONY",
+  });
+
+  const res = await axios.get<PageResponse>(
+    `/api/animals?${params.toString()}`,
+  );
+
+  return res.data;
+};
 
 const FoundAnimalsPage = () => {
+  const {
+    data,
+    isPending,
+    isFetchingNextPage,
+    hasNextPage,
+    fetchNextPage,
+    isError,
+  } = useInfiniteQuery({
+    queryKey: ["found-animals"],
+    queryFn: ({ pageParam }) => getFoundAnimalsPage(pageParam),
+    initialPageParam: 1,
+    getNextPageParam: (lastPage) =>
+      lastPage.hasMore ? lastPage.page + 1 : undefined,
+  });
+
+  const loadMoreRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    const target = loadMoreRef.current;
+    if (!target) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0]?.isIntersecting && hasNextPage && !isFetchingNextPage) {
+          void fetchNextPage();
+        }
+      },
+      { rootMargin: "200px" },
+    );
+
+    observer.observe(target);
+    return () => observer.disconnect();
+  }, [fetchNextPage, hasNextPage, isFetchingNextPage]);
+
+  const foundAnimals = useMemo(
+    () => data?.pages.flatMap((page) => page.data) ?? [],
+    [data],
+  );
+
   return (
     <main>
       <Container className="space-y-12 md:space-y-16">
-        <section id="categories" className="space-y-6 lg:space-y-8">
+        <section id="found-animals" className="space-y-6 lg:space-y-8">
           <div className="space-y-2">
             <h1 className="text-3xl font-bold text-green-900 md:text-5xl">
               Znalezione zwierzęta
@@ -16,32 +94,108 @@ const FoundAnimalsPage = () => {
             </p>
           </div>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 lg:gap-6">
-            {Array.from({ length: 12 }).map((_, index) => (
-              <a href={"/"} key={index} className="space-y-2">
-                <div className="relative grid aspect-video place-items-center overflow-hidden rounded-xl bg-black/10">
-                  <span
-                    className={`${styleAnimalStatus("ZNALEZIONY")} absolute top-3 right-3 rounded-2xl px-4 py-2 text-xs font-semibold`}
-                  >
-                    ZNALEZIONY
-                  </span>
-                </div>
-                <div className="space-y-1">
-                  <h3 className="font-semibold lg:text-lg">
-                    Znaleziono: 02.03.2026 r. w miejscowości Rzeszów, ul.
-                    Krakowska 4
-                  </h3>
-                  <p className="line-clamp-4 text-xs leading-5 lg:text-sm lg:leading-6">
-                    Lorem ipsum dolor sit, amet consectetur adipisicing elit.
-                    Ipsam, aliquam. Numquam, ex officiis amet facere commodi
-                    voluptatum debitis nam deleniti!
-                  </p>
-                </div>
-              </a>
-            ))}
+            {isPending && <LoadingFoundAnimals />}
+            {isError && <ErrorFoundAnimals />}
+            {!isPending && !isError && foundAnimals.length === 0 && (
+              <EmptyFoundAnimals />
+            )}
+            {!isPending &&
+              !isError &&
+              foundAnimals.map((foundAnimal) => (
+                <Link
+                  to={`/zwierzeta/${foundAnimal.id}`}
+                  key={foundAnimal.id}
+                  className="space-y-2 transition-colors duration-200 hover:text-green-800"
+                >
+                  <div className="relative grid aspect-video place-items-center overflow-hidden rounded-xl bg-black/10">
+                    <span
+                      className={`${styleAnimalStatus("ZNALEZIONY")} absolute top-3 right-3 z-2 rounded-2xl px-4 py-2 text-xs font-semibold`}
+                    >
+                      ZNALEZIONY
+                    </span>
+                    {foundAnimal.imageUrl.length > 0 ? (
+                      <img
+                        src={foundAnimal.imageUrl[0]}
+                        alt={foundAnimal.name}
+                        className="absolute size-full object-cover"
+                      />
+                    ) : (
+                      <ImageOff className="absolute size-10 object-cover text-black opacity-20 md:size-20" />
+                    )}
+                  </div>
+                  <div className="space-y-1">
+                    <h3 className="font-semibold lg:text-lg">
+                      Znaleziono dnia{" "}
+                      {new Date(foundAnimal.foundAt).toLocaleDateString()} w
+                      miejscowości {foundAnimal.foundLocation || "nieznanej"}.
+                    </h3>
+                    <p className="line-clamp-4 text-xs leading-5 lg:text-sm lg:leading-6">
+                      {foundAnimal.description}
+                    </p>
+                  </div>
+                </Link>
+              ))}
+          </div>
+          <div ref={loadMoreRef} className="flex justify-center py-4">
+            {isFetchingNextPage && (
+              <Loader2 className="size-8 animate-spin text-green-900" />
+            )}
           </div>
         </section>
       </Container>
     </main>
+  );
+};
+
+const LoadingFoundAnimals = () => {
+  return Array.from({ length: PAGE_SIZE }).map((_, index) => (
+    <div key={index} className="space-y-2">
+      <Skeleton className="aspect-video rounded-xl" />
+      <div className="space-y-2">
+        <Skeleton className="h-10 w-40 rounded-xl" />
+        <Skeleton className="h-10 w-full rounded-xl" />
+      </div>
+    </div>
+  ));
+};
+
+const ErrorFoundAnimals = () => {
+  return (
+    <section
+      id="error-found-animals"
+      className="col-span-full flex flex-col items-center justify-center gap-4 rounded-2xl border border-red-200 bg-red-50 px-6 py-12 text-center"
+    >
+      <CircleAlert className="size-12 text-red-600" />
+      <div className="space-y-2">
+        <h2 className="text-lg font-semibold text-red-900 md:text-xl">
+          Wystapił błąd
+        </h2>
+        <p className="max-w-md text-sm text-red-800 md:text-base">
+          Wystąpił błąd podczas ładowania zwierząt. Odśwież stronę lub spróbuj
+          później.
+        </p>
+      </div>
+    </section>
+  );
+};
+
+const EmptyFoundAnimals = () => {
+  return (
+    <section
+      id="empty-found-animals"
+      className="col-span-full flex flex-col items-center justify-center gap-4 rounded-2xl border border-blue-900 bg-blue-50 px-6 py-12 text-center"
+    >
+      <Info className="size-12 text-blue-600" />
+      <div className="space-y-2">
+        <h2 className="text-lg font-semibold text-blue-900 md:text-xl">
+          Brak znalezionych zwierząt
+        </h2>
+        <p className="max-w-md text-sm text-blue-900 md:text-base">
+          Aktualnie brak znalezionych zwierząt. Wróć wkrótce, aby poznać nasze
+          znalezione zwierzaki.
+        </p>
+      </div>
+    </section>
   );
 };
 

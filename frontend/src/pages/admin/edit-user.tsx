@@ -1,18 +1,38 @@
 "use client";
 
 import { toast } from "sonner";
-import { useLocation, useNavigate, useParams } from "react-router";
-import { useEffect, useRef, useState } from "react";
+import { useLocation, useNavigate, useParams, Link } from "react-router";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm, Controller } from "react-hook-form";
-import { Button, Container, Input, Label } from "@/components/ui";
-import { Textarea } from "@/components/ui/textarea";
+import {
+  Button,
+  Container,
+  Input,
+  Label,
+  Textarea,
+  Table,
+  TableBody,
+  TableCaption,
+  TableCell,
+  TableFooter,
+  TableHead,
+  TableHeader,
+  TableRow,
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+} from "@/components/ui";
 import axios from "axios";
-import { Plus, Trash } from "lucide-react";
+import { MoreHorizontalIcon, Plus, Trash } from "lucide-react";
 import { supabase } from "@/lib/supabase";
-import { SingleValueSelector } from "@/components/shared";
+import { MultiValueSelector, SingleValueSelector } from "@/components/shared";
 import { editUserSchema, type EditUserFormData } from "@/schemas/user.schema";
 import { userRoleValues, userGenderValues } from "@/constants/user.constants";
+import { adoptionStatusOptions } from "@/constants/adoption.constants";
+import type { Adoption } from "@/types/adoption";
+import { formatAdoptionStatus, styleAdoptionStatus } from "@/lib/utils";
 
 type AppUser = {
   id: number;
@@ -91,7 +111,13 @@ const EditUserPage = () => {
     createdAt: "",
   });
 
+  const [adoptions, setAdoptions] = useState<Adoption[]>([]);
+  const [selectedAdoptionStatuses, setSelectedAdoptionStatuses] = useState<
+    string[]
+  >([]);
+
   const existingImage = watch("imageUrl");
+  const userRole = watch("role");
 
   const previewImage = pendingFile
     ? URL.createObjectURL(pendingFile)
@@ -133,6 +159,39 @@ const EditUserPage = () => {
 
     if (id) fetchUser();
   }, [id, reset, navigate, returnTo]);
+
+  useEffect(() => {
+    const fetchAdoptions = async () => {
+      try {
+        const res = await axios.get<Adoption[]>(`/api/adoptions?userId=${id}`, {
+          withCredentials: true,
+        });
+        setAdoptions(res.data);
+      } catch {
+        toast.error("Nie udało się pobrać adopcji użytkownika.");
+      }
+    };
+
+    if (id && userRole === "UZYTKOWNIK") {
+      fetchAdoptions();
+    } else {
+      setAdoptions([]);
+    }
+  }, [id, userRole]);
+
+  const filteredAdoptions = useMemo(() => {
+    return adoptions.filter((adoption) => {
+      const matchesStatus =
+        selectedAdoptionStatuses.length === 0 ||
+        selectedAdoptionStatuses.includes(adoption.status);
+
+      return matchesStatus;
+    });
+  }, [adoptions, selectedAdoptionStatuses]);
+
+  const resetAdoptionFilters = () => {
+    setSelectedAdoptionStatuses([]);
+  };
 
   useEffect(() => {
     if (!pendingFile) return;
@@ -231,11 +290,11 @@ const EditUserPage = () => {
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
           <div className="space-y-6">
-            <Label>Zdjęcie (maksymalnie 1)</Label>
+            <Label>Zdjęcie profilowe</Label>
 
             <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
               {/* ZDJĘCIE */}
-              <div className="relative aspect-square overflow-hidden rounded-xl bg-gray-200">
+              <div className="relative aspect-square overflow-hidden rounded-full bg-gray-200">
                 {previewImage ? (
                   <>
                     <span
@@ -502,6 +561,126 @@ const EditUserPage = () => {
             {isSubmitting ? "Zapisywanie..." : "Zaktualizuj dane użytkownika"}
           </Button>
         </form>
+
+        {userRole === "UZYTKOWNIK" && (
+          <section id="adoptions" className="space-y-4">
+            <div className="space-y-2">
+              <h2 className="text-2xl font-bold text-green-900 md:text-3xl">
+                Adopcje
+              </h2>
+              <p className="text-sm leading-6 font-medium md:text-base md:leading-7">
+                Lista adopcji złożonych przez tego użytkownika.
+              </p>
+            </div>
+
+            <div className="top-0 z-2 flex flex-wrap items-center gap-4 bg-white py-4 sm:sticky">
+              <MultiValueSelector
+                items={adoptionStatusOptions}
+                placeholder="Status"
+                value={selectedAdoptionStatuses}
+                onValueChange={setSelectedAdoptionStatuses}
+              />
+
+              <Button onClick={resetAdoptionFilters} variant="destructive">
+                Resetuj filtry
+              </Button>
+            </div>
+
+            <Table>
+              <TableCaption>Adopcje użytkownika</TableCaption>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Zwierzę</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Data złożenia</TableHead>
+                  <TableHead>Wiadomość użytkownika</TableHead>
+                  <TableHead>Wiadomość pracownika</TableHead>
+                  <TableHead className="text-right">Opcje</TableHead>
+                </TableRow>
+              </TableHeader>
+
+              <TableBody>
+                {filteredAdoptions.length ? (
+                  filteredAdoptions.map((adoption) => (
+                    <TableRow
+                      key={adoption.id}
+                      onClick={() =>
+                        navigate(`/admin/adopcje/${adoption.id}/edycja`)
+                      }
+                      className="cursor-pointer"
+                    >
+                      <TableCell>{adoption.animal.name}</TableCell>
+                      <TableCell>
+                        <span
+                          className={`${styleAdoptionStatus(adoption.status)} rounded-2xl px-4 py-2 text-xs`}
+                        >
+                          {formatAdoptionStatus[adoption.status]}
+                        </span>
+                      </TableCell>
+                      <TableCell>
+                        {new Date(adoption.createdAt).toLocaleDateString(
+                          "pl-PL",
+                          {
+                            day: "2-digit",
+                            month: "2-digit",
+                            year: "numeric",
+                          },
+                        )}{" "}
+                        r.
+                      </TableCell>
+                      <TableCell>
+                        {adoption.message
+                          ? `${adoption.message.slice(0, 30)}...`
+                          : "-"}
+                      </TableCell>
+                      <TableCell>
+                        {adoption.employeeNote
+                          ? `${adoption.employeeNote.slice(0, 30)}...`
+                          : "Brak"}
+                      </TableCell>
+                      <TableCell
+                        className="text-right"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="transparent" size="icon">
+                              <MoreHorizontalIcon />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem>
+                              <Link
+                                to={`/pracownik/adopcje/${adoption.id}/edycja`}
+                              >
+                                Szczegóły
+                              </Link>
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                ) : (
+                  <TableRow>
+                    <TableCell colSpan={6} className="text-center">
+                      Brak adopcji spełniających wybrane filtry.
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+
+              <TableFooter>
+                <TableRow>
+                  <TableCell colSpan={5}>Suma adopcji</TableCell>
+                  <TableCell className="text-right">
+                    {filteredAdoptions.length}
+                  </TableCell>
+                </TableRow>
+              </TableFooter>
+            </Table>
+          </section>
+        )}
       </Container>
     </main>
   );

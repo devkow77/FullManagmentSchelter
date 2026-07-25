@@ -7,7 +7,8 @@ import {
   createUserSchema,
 } from '../validators/user.validator';
 import bcrypt from 'bcrypt';
-import { Role } from '../generated/prisma/enums';
+import { Gender, Role } from '../generated/prisma/enums';
+import type { Prisma } from '../generated/prisma/client';
 import {
   userDetailSelect,
   userListSelect,
@@ -87,16 +88,123 @@ export const updatePassword = async (req: Request, res: Response) => {
   }
 };
 
-// 2. Pobierz wszystkich pracowników
-export const getWorkers = async (_req: Request, res: Response) => {
+const DEFAULT_WORKERS_PAGE_SIZE = 10;
+const WORKER_ROLES = [Role.ADMINISTRATOR, Role.PRACOWNIK] as const;
+
+const parseCsvParam = (value: unknown) => {
+  if (typeof value !== 'string' || value.length === 0) return [];
+  return value
+    .split(',')
+    .map((item) => item.trim())
+    .filter(Boolean);
+};
+
+const parseBooleanList = (value: unknown) => {
+  const items = parseCsvParam(value);
+  const booleans: boolean[] = [];
+
+  for (const item of items) {
+    if (item === 'true') booleans.push(true);
+    else if (item === 'false') booleans.push(false);
+  }
+
+  return [...new Set(booleans)];
+};
+
+// 2. Pobierz wszystkich pracowników (z opcjonalną paginacją i filtrami)
+export const getWorkers = async (req: Request, res: Response) => {
   try {
+    const { page, limit, search, role, gender, city, hasChildren, isFormFilled } =
+      req.query;
+
+    const where: Prisma.UserWhereInput = {
+      role: { not: Role.UZYTKOWNIK },
+    };
+
+    if (typeof search === 'string' && search.trim().length > 0) {
+      where.fullName = { contains: search.trim(), mode: 'insensitive' };
+    }
+
+    const roleVals = parseCsvParam(role).filter((r) =>
+      (WORKER_ROLES as readonly string[]).includes(r),
+    ) as Role[];
+    if (roleVals.length > 0) {
+      where.role = { in: roleVals };
+    }
+
+    const genderVals = parseCsvParam(gender).filter((g) =>
+      Object.values(Gender).includes(g as Gender),
+    ) as Gender[];
+    if (genderVals.length > 0) {
+      where.gender = { in: genderVals };
+    }
+
+    const cityVals = parseCsvParam(city);
+    if (cityVals.length > 0) {
+      where.city = { in: cityVals };
+    }
+
+    const hasChildrenVals = parseBooleanList(hasChildren);
+    if (hasChildrenVals.length === 1) {
+      where.hasChildren = hasChildrenVals[0];
+    }
+
+    const isFormFilledVals = parseBooleanList(isFormFilled);
+    if (isFormFilledVals.length === 1) {
+      where.isFormFilled = isFormFilledVals[0];
+    }
+
+    let pageNumber: number | undefined;
+    let pageSize = DEFAULT_WORKERS_PAGE_SIZE;
+
+    if (typeof page === 'string' && page.length > 0) {
+      pageNumber = Number(page);
+      if (!Number.isInteger(pageNumber) || pageNumber < 1) {
+        return res.status(StatusCodes.BAD_REQUEST).json({
+          msg: 'Nieprawidłowy parametr page!',
+        });
+      }
+    }
+
+    if (typeof limit === 'string' && limit.length > 0) {
+      const parsedLimit = Number(limit);
+      if (!Number.isInteger(parsedLimit) || parsedLimit < 1) {
+        return res.status(StatusCodes.BAD_REQUEST).json({
+          msg: 'Nieprawidłowy parametr limit!',
+        });
+      }
+      pageSize = Math.min(parsedLimit, 50);
+    }
+
+    // Paginacja — gdy podano page (jak na liście admina)
+    if (pageNumber !== undefined) {
+      const skip = (pageNumber - 1) * pageSize;
+
+      const [users, total] = await Promise.all([
+        prisma.user.findMany({
+          where,
+          select: userListSelect,
+          orderBy: { createdAt: 'desc' },
+          take: pageSize,
+          skip,
+        }),
+        prisma.user.count({ where }),
+      ]);
+
+      return res.status(StatusCodes.OK).json({
+        data: users,
+        total,
+        page: pageNumber,
+        pageSize,
+        hasMore: pageNumber * pageSize < total,
+      });
+    }
+
+    // Bez paginacji — np. statystyki
     const users = await prisma.user.findMany({
-      where: {
-        role: {
-          not: Role.UZYTKOWNIK,
-        },
-      },
+      where,
       select: userListSelect,
+      orderBy: { createdAt: 'desc' },
     });
 
     return res.status(StatusCodes.OK).json(users);
@@ -107,14 +215,91 @@ export const getWorkers = async (_req: Request, res: Response) => {
   }
 };
 
-// 3. Pobierz wszystkich użytkowników
-export const getUsers = async (_req: Request, res: Response) => {
+// 3. Pobierz wszystkich użytkowników (z opcjonalną paginacją i filtrami)
+export const getUsers = async (req: Request, res: Response) => {
   try {
+    const { page, limit, search, gender, city, isBanned, isFormFilled } =
+      req.query;
+
+    const where: Prisma.UserWhereInput = {
+      role: Role.UZYTKOWNIK,
+    };
+
+    if (typeof search === 'string' && search.trim().length > 0) {
+      where.fullName = { contains: search.trim(), mode: 'insensitive' };
+    }
+
+    const genderVals = parseCsvParam(gender).filter((g) =>
+      Object.values(Gender).includes(g as Gender),
+    ) as Gender[];
+    if (genderVals.length > 0) {
+      where.gender = { in: genderVals };
+    }
+
+    const cityVals = parseCsvParam(city);
+    if (cityVals.length > 0) {
+      where.city = { in: cityVals };
+    }
+
+    const isBannedVals = parseBooleanList(isBanned);
+    if (isBannedVals.length === 1) {
+      where.isBanned = isBannedVals[0];
+    }
+
+    const isFormFilledVals = parseBooleanList(isFormFilled);
+    if (isFormFilledVals.length === 1) {
+      where.isFormFilled = isFormFilledVals[0];
+    }
+
+    let pageNumber: number | undefined;
+    let pageSize = DEFAULT_WORKERS_PAGE_SIZE;
+
+    if (typeof page === 'string' && page.length > 0) {
+      pageNumber = Number(page);
+      if (!Number.isInteger(pageNumber) || pageNumber < 1) {
+        return res.status(StatusCodes.BAD_REQUEST).json({
+          msg: 'Nieprawidłowy parametr page!',
+        });
+      }
+    }
+
+    if (typeof limit === 'string' && limit.length > 0) {
+      const parsedLimit = Number(limit);
+      if (!Number.isInteger(parsedLimit) || parsedLimit < 1) {
+        return res.status(StatusCodes.BAD_REQUEST).json({
+          msg: 'Nieprawidłowy parametr limit!',
+        });
+      }
+      pageSize = Math.min(parsedLimit, 50);
+    }
+
+    if (pageNumber !== undefined) {
+      const skip = (pageNumber - 1) * pageSize;
+
+      const [users, total] = await Promise.all([
+        prisma.user.findMany({
+          where,
+          select: userListSelect,
+          orderBy: { createdAt: 'desc' },
+          take: pageSize,
+          skip,
+        }),
+        prisma.user.count({ where }),
+      ]);
+
+      return res.status(StatusCodes.OK).json({
+        data: users,
+        total,
+        page: pageNumber,
+        pageSize,
+        hasMore: pageNumber * pageSize < total,
+      });
+    }
+
     const users = await prisma.user.findMany({
-      where: {
-        role: Role.UZYTKOWNIK,
-      },
+      where,
       select: userListSelect,
+      orderBy: { createdAt: 'desc' },
     });
 
     return res.status(StatusCodes.OK).json(users);

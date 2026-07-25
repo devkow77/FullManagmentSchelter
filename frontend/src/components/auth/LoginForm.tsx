@@ -3,7 +3,7 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import axios, { AxiosError } from "axios";
-import { useNavigate } from "react-router";
+import { Link, useNavigate } from "react-router";
 import { toast } from "sonner";
 import { useAuth } from "@/context/AuthContext";
 
@@ -106,9 +106,9 @@ const LoginForm = ({ on2FARequired }: LoginFormProps) => {
 
               <p className="text-sm lg:text-base">
                 Nie masz konta?{" "}
-                <a href="/rejestracja" className="font-semibold">
+                <Link to="/rejestracja" className="font-semibold">
                   Zarejestruj się
-                </a>
+                </Link>
               </p>
             </div>
           </form>

@@ -11,19 +11,19 @@ export const styleAnimalStatus = (status: string) => {
 
   switch (status) {
     case "SZUKA_DOMU":
-      styles = "bg-red-200 text-red-600";
+      styles = "bg-red-100 border border-red-300 text-red-800";
       break;
     case "ZNALEZIONY":
-      styles = "bg-blue-200 text-blue-600";
+      styles = "bg-blue-100 border border-blue-300 text-blue-800";
       break;
     case "W_TRAKCIE_ADOPCJI":
-      styles = "bg-yellow-200 text-yellow-600";
+      styles = "bg-yellow-100 border border-yellow-300 text-yellow-800";
       break;
     case "ADOPTOWANY":
-      styles = "bg-green-200 text-green-600";
+      styles = "bg-green-100 border border-green-300 text-green-800";
       break;
     default:
-      styles = "bg-slate-200 text-slate-600";
+      styles = "bg-slate-100 border border-slate-300 text-slate-800";
   }
 
   return styles;
@@ -34,22 +34,32 @@ export const styleAnimalHealthStatus = (status: string) => {
 
   switch (status) {
     case "ZDROWY":
-      styles = "bg-green-200 text-green-600";
+      styles = "bg-green-100 border border-green-300 text-green-800";
       break;
     case "CHORY":
-      styles = "bg-red-200 text-red-600";
+      styles = "bg-red-100 border border-red-300 text-red-800";
       break;
     case "ZARAŻONY":
-      styles = "bg-yellow-200 text-yellow-600";
+      styles = "bg-yellow-100 border border-yellow-300 text-yellow-800";
       break;
     case "POTRZEBUJE_OPERACJI":
-      styles = "bg-purple-200 text-purple-600";
+      styles = "bg-purple-100 border border-purple-300 text-purple-800";
       break;
     default:
-      styles = "bg-slate-200 text-slate-600";
+      styles = "bg-slate-100 border border-slate-300 text-slate-800";
   }
 
   return styles;
+};
+
+export const styleAnimalNeed = (count: number) => {
+  if (count === 0) return "text-black";
+  return "text-red-800";
+};
+
+export const styleEmptyField = (field: unknown) => {
+  if (field === null) return "text-red-800";
+  return "text-black";
 };
 
 export const formatAnimalGender = (gender: string) =>
@@ -78,22 +88,29 @@ export const formatAnimalStatus: Record<string, string> = {
   ADOPTOWANY: "Adoptowany",
 };
 
+export const formatAnimalSize: Record<string, string> = {
+  MALY: "Mały",
+  SREDNI: "Średni",
+  DUZY: "Duży",
+  INNE: "Inne",
+};
+
 // USERS
 export const styleUserRole = (role: string) => {
   let styles: string = "";
 
   switch (role) {
     case "UZYTKOWNIK":
-      styles = "bg-slate-200 text-slate-600";
+      styles = "bg-slate-100 border border-slate-300 text-slate-800";
       break;
     case "PRACOWNIK":
-      styles = "bg-blue-200 text-blue-600";
+      styles = "bg-blue-100 border border-blue-300 text-blue-800";
       break;
     case "ADMINISTRATOR":
-      styles = "bg-red-200 text-red-600";
+      styles = "bg-red-100 border border-red-300 text-red-800";
       break;
     default:
-      styles = "bg-slate-200 text-slate-600";
+      styles = "bg-slate-100 border border-slate-300 text-slate-800";
   }
 
   return styles;
@@ -117,19 +134,19 @@ export const styleAdoptionStatus = (status: string) => {
 
   switch (status) {
     case "OCZEKUJACA":
-      styles = "bg-yellow-200 text-yellow-600";
+      styles = "bg-yellow-100 border border-yellow-300 text-yellow-800";
       break;
     case "ZAAKCEPTOWANA":
-      styles = "bg-green-200 text-green-600";
+      styles = "bg-green-100 border border-green-300 text-green-800";
       break;
     case "ODRZUCONA":
-      styles = "bg-red-200 text-red-600";
+      styles = "bg-red-100 border border-red-300 text-red-800";
       break;
     case "ANULOWANA":
-      styles = "bg-slate-200 text-slate-600";
+      styles = "bg-slate-100 border border-slate-300 text-slate-800";
       break;
     default:
-      styles = "bg-slate-200 text-slate-600";
+      styles = "bg-slate-100 border border-slate-300 text-slate-800";
   }
 
   return styles;
@@ -149,25 +166,25 @@ export const styleMedicalRecordType = (status: string) => {
 
   switch (status) {
     case "WIZYTA":
-      styles = "bg-yellow-200 text-yellow-600";
+      styles = "bg-yellow-100 border border-yellow-300 text-yellow-800";
       break;
     case "BADANIE":
-      styles = "bg-blue-200 text-blue-600";
+      styles = "bg-blue-100 border border-blue-300 text-blue-800";
       break;
     case "OPERACJA":
-      styles = "bg-red-200 text-red-600";
+      styles = "bg-red-100 border border-red-300 text-red-800";
       break;
     case "SZCZEPIENIE":
-      styles = "bg-purple-200 text-purple-600";
+      styles = "bg-purple-100 border border-purple-300 text-purple-800";
       break;
     case "URAZ":
-      styles = "bg-orange-200 text-orange-600";
+      styles = "bg-orange-100 border border-orange-300 text-orange-800";
       break;
     case "INNE":
-      styles = "bg-slate-200 text-slate-600";
+      styles = "bg-slate-100 border border-slate-300 text-slate-800";
       break;
     default:
-      styles = "bg-slate-200 text-slate-600";
+      styles = "bg-slate-100 border border-slate-300 text-slate-800";
   }
 
   return styles;
@@ -178,16 +195,16 @@ export const styleMedicalRecordStatus = (status: string) => {
 
   switch (status) {
     case "DO_REALIZACJI":
-      styles = "bg-red-200 text-red-600";
+      styles = "bg-red-100 border border-red-300 text-red-800";
       break;
     case "W_TRAKCIE":
-      styles = "bg-yellow-200 text-yellow-600";
+      styles = "bg-yellow-100 border border-yellow-300 text-yellow-800";
       break;
     case "ZREALIZOWANA":
-      styles = "bg-green-200 text-green-600";
+      styles = "bg-green-100 border border-green-300 text-green-800";
       break;
     default:
-      styles = "bg-red-200 text-red-600";
+      styles = "bg-red-100 border border-red-300 text-red-800";
   }
 
   return styles;
@@ -209,6 +226,8 @@ export const formatMedicalRecordType: Record<string, string> = {
 };
 
 // GLOBAL
+
+// Funckja do obliczania wieku zwierzaka
 export const calculateAge = (dateOfBirth: string | Date) => {
   const birthDate = new Date(dateOfBirth);
   const today = new Date();
@@ -219,3 +238,7 @@ export const calculateAge = (dateOfBirth: string | Date) => {
   if (age >= 2 && age <= 4) return `${age} lata`;
   return `${age} lat`;
 };
+
+// Funkcja do kolorowania aktywnychlinków w navbarie
+export const styleActiveLink = (pathname: string, href: string) =>
+  pathname === href ? "font-semibold text-green-900" : "font-normal text-black";

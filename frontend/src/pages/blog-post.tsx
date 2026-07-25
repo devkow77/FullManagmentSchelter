@@ -1,18 +1,18 @@
 import { Container } from "@/components/ui";
 import { useState, useEffect } from "react";
 import axios from "axios";
-import { useParams } from "react-router";
+import { useParams, Link } from "react-router";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Pagination } from "swiper/modules";
 import "swiper/css";
 import "swiper/css/pagination";
-import { Skeleton } from "@/components/ui/skeleton";
+import { Skeleton } from "@/components/ui";
 
 interface Post {
   slug: string;
   title: string;
-  content: any;
-  image: any;
+  content: { children: { text: string }[] }[];
+  image: { url: string }[];
   createdAt: string;
 }
 
@@ -33,7 +33,9 @@ const BlogPostPage = () => {
         const allPosts = res.data.data;
 
         const currentPost = allPosts.find((p: Post) => p.slug === slug);
-        const similiarPosts = allPosts.filter((p: Post) => p.slug !== slug);
+        const similiarPosts = allPosts
+          .filter((p: Post) => p.slug !== slug)
+          .slice(0, 6);
 
         setPost(currentPost);
         setSimiliarPosts(similiarPosts);
@@ -57,7 +59,6 @@ const BlogPostPage = () => {
               <Skeleton className="h-15 w-70 sm:w-100" />
               <ul className="space-y-4">
                 <Skeleton className="h-7.5 w-60" />
-                <Skeleton className="h-7.5 w-50" />
                 <Skeleton className="h-7.5 w-70" />
               </ul>
               <Skeleton className="h-300 w-full" />
@@ -91,10 +92,10 @@ const BlogPostPage = () => {
     return Math.max(1, Math.ceil(numberOfWords / 100));
   };
 
-  const getPlainText = (content: any[]) => {
+  const getPlainText = (content: { children: { text: string }[] }[]) => {
     return content
       ?.map((block) =>
-        block.children?.map((child: any) => child.text).join(" "),
+        block.children?.map((child: { text: string }) => child.text).join(" "),
       )
       .join(" ");
   };
@@ -103,7 +104,7 @@ const BlogPostPage = () => {
     <main>
       <Container className="space-y-12 md:space-y-16">
         <section id="post" className="space-y-6 gap-x-8 lg:flex lg:space-y-8">
-          <div className="relative mx-auto aspect-square max-h-100 flex-1 overflow-hidden rounded-full border-4 border-green-900 bg-black/20">
+          <div className="relative mx-auto aspect-square max-h-100 flex-1 overflow-hidden rounded-full bg-black/20">
             <img
               src={`http://localhost:1337${post?.image[0].url}`}
               alt={post?.title}
@@ -124,9 +125,8 @@ const BlogPostPage = () => {
               </li>
               <li>
                 Szacowany czas czytania:{" "}
-                {calculateTimeReading(post?.content[0].children[0].text)} min
+                {calculateTimeReading(getPlainText(post?.content || []))} min
               </li>
-              <li>Autor: Jan Kowalski</li>
             </ul>
             <p className="text-sm leading-6 md:text-base md:leading-7">
               {getPlainText(post?.content || [])}
@@ -154,12 +154,15 @@ const BlogPostPage = () => {
           >
             {similiarPosts.map((post: Post, index) => (
               <SwiperSlide key={index}>
-                <a href={`/blog/${post.slug}`} className="space-y-2">
-                  <div className="relative grid aspect-video place-items-center overflow-hidden rounded-xl bg-black/10">
+                <Link
+                  to={`/blog/${post.slug}`}
+                  className="space-y-2 transition-colors hover:text-green-900"
+                >
+                  <div className="relative grid aspect-video place-items-center overflow-hidden rounded-2xl bg-black/10">
                     <img
                       src={`http://localhost:1337${post?.image[0].url}`}
                       alt={post?.title}
-                      className="absolute size-full object-cover object-center duration-200 hover:scale-110"
+                      className="absolute size-full object-cover object-center"
                     />
                   </div>
                   <div className="space-y-1">
@@ -174,12 +177,33 @@ const BlogPostPage = () => {
                       </li>
                     </ul>
                     <p className="line-clamp-2 text-xs leading-5 lg:text-sm lg:leading-6">
-                      {getPlainText(post.content || [])}
+                      {getPlainText(post.content)}
                     </p>
                   </div>
-                </a>
+                </Link>
               </SwiperSlide>
             ))}
+            <SwiperSlide>
+              <Link
+                to="/blog"
+                className="space-y-2 transition-colors hover:text-green-900"
+              >
+                <div className="relative grid aspect-video place-items-center overflow-hidden rounded-2xl bg-green-900">
+                  <h3 className="text-xl font-semibold text-white lg:text-3xl">
+                    Wszystkie
+                  </h3>
+                </div>
+                <div className="space-y-1">
+                  <h3 className="font-semibold lg:text-lg">
+                    Zobacz wszystkie posty
+                  </h3>
+                  <p className="line-clamp-2 text-xs leading-5 lg:text-sm lg:leading-6">
+                    Przejrzyj pełną listę naszych akcji i aktualności ze
+                    schroniska.
+                  </p>
+                </div>
+              </Link>
+            </SwiperSlide>
           </Swiper>
         </section>
       </Container>

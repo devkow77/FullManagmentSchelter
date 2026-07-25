@@ -6,19 +6,102 @@ import {
   adoptionDetailInclude,
   adoptionListInclude,
 } from '../selects/adoption.select';
+import { AdoptionStatus } from '../generated/prisma/enums';
+import type { Prisma } from '../generated/prisma/client';
 
-// 1. Pobierz wszystkie adopcje
-export const getAdoptions = async (_req: Request, res: Response) => {
+const DEFAULT_ADOPTIONS_PAGE_SIZE = 10;
+
+const parseCsvParam = (value: unknown) => {
+  if (typeof value !== 'string' || value.length === 0) return [];
+  return value
+    .split(',')
+    .map((item) => item.trim())
+    .filter(Boolean);
+};
+
+// 1. Pobierz wszystkie adopcje (z opcjonalną paginacją i filtrami)
+export const getAdoptions = async (req: Request, res: Response) => {
+  const { userId, page, limit, status } = req.query;
+
+  let numericUserId: number | undefined;
+
+  if (userId !== undefined) {
+    numericUserId = Number(userId);
+
+    if (isNaN(numericUserId)) {
+      return res.status(StatusCodes.BAD_REQUEST).json({
+        msg: 'Nieprawidłowe ID użytkownika!',
+      });
+    }
+  }
+
   try {
+    const where: Prisma.AdoptionWhereInput = {};
+
+    if (numericUserId !== undefined) {
+      where.userId = numericUserId;
+    }
+
+    const statusVals = parseCsvParam(status).filter((s) =>
+      Object.values(AdoptionStatus).includes(s as AdoptionStatus),
+    ) as AdoptionStatus[];
+    if (statusVals.length > 0) {
+      where.status = { in: statusVals };
+    }
+
+    let pageNumber: number | undefined;
+    let pageSize = DEFAULT_ADOPTIONS_PAGE_SIZE;
+
+    if (typeof page === 'string' && page.length > 0) {
+      pageNumber = Number(page);
+      if (!Number.isInteger(pageNumber) || pageNumber < 1) {
+        return res.status(StatusCodes.BAD_REQUEST).json({
+          msg: 'Nieprawidłowy parametr page!',
+        });
+      }
+    }
+
+    if (typeof limit === 'string' && limit.length > 0) {
+      const parsedLimit = Number(limit);
+      if (!Number.isInteger(parsedLimit) || parsedLimit < 1) {
+        return res.status(StatusCodes.BAD_REQUEST).json({
+          msg: 'Nieprawidłowy parametr limit!',
+        });
+      }
+      pageSize = Math.min(parsedLimit, 50);
+    }
+
+    if (pageNumber !== undefined) {
+      const skip = (pageNumber - 1) * pageSize;
+
+      const [adoptions, total] = await Promise.all([
+        prisma.adoption.findMany({
+          where,
+          orderBy: { createdAt: 'desc' },
+          include: adoptionListInclude,
+          take: pageSize,
+          skip,
+        }),
+        prisma.adoption.count({ where }),
+      ]);
+
+      return res.status(StatusCodes.OK).json({
+        data: adoptions,
+        total,
+        page: pageNumber,
+        pageSize,
+        hasMore: pageNumber * pageSize < total,
+      });
+    }
+
     const adoptions = await prisma.adoption.findMany({
-      orderBy: {
-        createdAt: 'desc',
-      },
+      where,
+      orderBy: { createdAt: 'desc' },
       include: adoptionListInclude,
     });
 
     return res.status(StatusCodes.OK).json(adoptions);
-  } catch (err) {
+  } catch {
     return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
       msg: 'Wewnętrzny błąd serwera!',
     });
@@ -52,7 +135,7 @@ export const getAdoptionById = async (req: Request, res: Response) => {
     }
 
     return res.status(StatusCodes.OK).json(adoption);
-  } catch (err) {
+  } catch {
     return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
       msg: 'Wewnętrzny błąd serwera!',
     });
@@ -105,7 +188,7 @@ export const changeAdoptionStatus = async (req: Request, res: Response) => {
     return res.status(StatusCodes.OK).json({
       msg: 'Adopcja została zaktualizowana!',
     });
-  } catch (err) {
+  } catch {
     return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
       msg: 'Wewnętrzny błąd serwera podczas aktualizacji!',
     });

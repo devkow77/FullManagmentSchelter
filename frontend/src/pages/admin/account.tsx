@@ -99,7 +99,7 @@ const AdminAccountPage = () => {
               </li>
               <li className="mt-4">
                 <span
-                  className={`${styleUserRole(user?.role as string)} rounded-sm p-2 px-4 font-medium`}
+                  className={`${styleUserRole(user?.role as string)} rounded-2xl border-2 p-2 px-4 font-medium`}
                 >
                   {user?.role}
                 </span>
@@ -121,7 +121,7 @@ const AdminAccountPage = () => {
             <Label>Aktualne hasło</Label>
             <Input
               {...register("currentPassword")}
-              className="mt-2 mb-4"
+              className={`mt-2 mb-4 ${errors.currentPassword && "bg-red-600/20"}`}
               placeholder="Podaj swoje aktualne hasło..."
               autoFocus
               type="password"
@@ -134,7 +134,7 @@ const AdminAccountPage = () => {
             <Label>Nowe hasło</Label>
             <Input
               {...register("newPassword")}
-              className="mt-2 mb-4"
+              className={`mt-2 mb-4 ${errors.newPassword && "bg-red-600/20"}`}
               placeholder="Podaj nowe hasło..."
               type="password"
             />
@@ -152,14 +152,14 @@ const AdminAccountPage = () => {
               type="password"
             />
             {errors.confirmNewPassword && (
-              <p className="-mt-2 mb-4 text-xs font-medium text-red-600 lg:text-sm">
+              <p className="-mt-2 mb-4 text-xs font-medium text-red-800 lg:text-sm">
                 {errors.confirmNewPassword.message}
               </p>
             )}
 
             <Button
               type="submit"
-              className="cursor-pointer bg-green-600"
+              variant="success"
               disabled={!isDirty || isSubmitting}
             >
               {isSubmitting ? "Aktualizacja..." : "Ustaw nowe hasło"}
@@ -185,11 +185,17 @@ const AdminAccountPage = () => {
                 Zeskanuj poniższy kod QR w aplikacji Authenticator (np. Google
                 Authenticator lub Authy):
               </p>
-              {qrCode && <img src={qrCode} alt="QR Code do TOTP" />}
+              {qrCode && (
+                <img
+                  src={qrCode}
+                  alt="QR Code do TOTP"
+                  className="rounded-2xl bg-black p-1"
+                />
+              )}
               <p className="text-sm leading-6 md:text-base md:leading-7">
                 Lub wpisz ręcznie klucz:
               </p>
-              <div className="w-fit bg-black px-4 py-2 wrap-break-word text-white select-all">
+              <div className="w-fit rounded-2xl bg-black px-4 py-2 break-all text-white select-all">
                 {manualKey}
               </div>
               <p className="text-sm leading-6 md:text-base md:leading-7">

@@ -1,6 +1,4 @@
-import { Container } from "@/components/ui/index";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
+import { Container, Input, Button } from "@/components/ui";
 import { FaFacebookSquare, FaInstagram, FaTiktok } from "react-icons/fa";
 import type { IconType } from "react-icons";
 import GoogleMaps from "./GoogleMaps";
@@ -9,14 +7,16 @@ import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import axios from "axios";
 import { toast } from "sonner";
+import { useMutation } from "@tanstack/react-query";
+import { Link } from "react-router";
 
-interface Link {
+interface FooterLink {
   name: string;
   href?: string;
   icon?: IconType;
 }
 
-const links: Link[] = [
+const links: FooterLink[] = [
   {
     name: "Strona główna",
     href: "/",
@@ -47,7 +47,7 @@ const links: Link[] = [
   },
 ];
 
-const socials: Link[] = [
+const socials: FooterLink[] = [
   {
     name: "Facebook",
     href: "https://facebook.com",
@@ -65,7 +65,7 @@ const socials: Link[] = [
   },
 ];
 
-const informations: Link[] = [
+const informations: FooterLink[] = [
   {
     name: "Regulamin serwisu",
     href: "/regulamin",
@@ -94,7 +94,7 @@ const Footer = () => {
   const {
     register,
     handleSubmit,
-    formState: { errors, isSubmitting },
+    formState: { errors },
     reset,
   } = useForm<NewsletterFormData>({
     resolver: zodResolver(newsletterSchema),
@@ -104,16 +104,26 @@ const Footer = () => {
     },
   });
 
-  const onSubmit = async (data: NewsletterFormData) => {
-    try {
-      const res = await axios.post("/api/newsletter/subscribe", data);
+  const subscribeMutation = useMutation({
+    mutationFn: (data: NewsletterFormData) =>
+      axios.post("/api/newsletter/subscribe", data),
+    onSuccess: (res) => {
       toast.success(res.data.msg);
       reset();
-    } catch (err: any) {
-      toast.error(
-        err.response?.data?.msg ?? "Wystąpił błąd podczas zapisywania.",
-      );
-    }
+    },
+    onError: (err) => {
+      if (axios.isAxiosError(err)) {
+        toast.error(
+          err.response?.data?.msg ?? "Wystąpił błąd podczas zapisywania.",
+        );
+      } else {
+        toast.error("Wystąpił błąd podczas zapisywania.");
+      }
+    },
+  });
+
+  const onSubmit = (data: NewsletterFormData) => {
+    subscribeMutation.mutate(data);
   };
 
   return (
@@ -123,15 +133,15 @@ const Footer = () => {
           Tu nas znajdziesz
         </h2>
         <GoogleMaps />
-        <section className="my-12 flex flex-wrap items-center justify-between gap-4">
+        <section
+          id="newsletter"
+          className="my-12 flex flex-wrap justify-between gap-4"
+        >
           <div className="space-y-2">
             <h3 className="font-medium">
               Zapisz się do <span className="font-bold">newslettera</span> i
               bądź na bieżąco z naszymi działaniami!
             </h3>
-            <p className="text-xs text-neutral-600 dark:text-neutral-400">
-              Otrzymasz informacje o zwierzętach szukających domu.
-            </p>
           </div>
           <form
             onSubmit={handleSubmit(onSubmit)}
@@ -142,17 +152,17 @@ const Footer = () => {
                 type="email"
                 placeholder="Email"
                 {...register("email")}
-                className={errors.email ? "border-red-500" : ""}
+                className={errors.email && "bg-red-600/20"}
               />
               <Button
                 type="submit"
                 variant={"success"}
-                disabled={isSubmitting}
+                disabled={subscribeMutation.isPending}
               >
-                {isSubmitting ? "Zapisywanie..." : "Subskrybuj"}
+                {subscribeMutation.isPending ? "Zapisywanie..." : "Subskrybuj"}
               </Button>
             </div>
-            <label className="flex items-start gap-2 text-xs">
+            <label className="flex items-start gap-2 text-sm">
               <input
                 type="checkbox"
                 {...register("consent")}
@@ -161,20 +171,23 @@ const Footer = () => {
               <span>
                 Wyrażam zgodę na otrzymywanie informacji o zwierzętach
                 schroniska na podany adres email.{" "}
-                <a href="/polityka-prywatnosci" className="underline">
+                <Link to="/polityka-prywatnosci" className="font-medium">
                   Polityka prywatności
-                </a>
+                </Link>
               </span>
             </label>
             {errors.consent && (
-              <p className="text-xs text-red-600">{errors.consent.message}</p>
+              <p className="text-sm text-red-600">{errors.consent.message}</p>
             )}
             {errors.email && (
-              <p className="text-xs text-red-600">{errors.email.message}</p>
+              <p className="text-sm text-red-600">{errors.email.message}</p>
             )}
           </form>
         </section>
-        <section className="border-t border-neutral-300 py-12 dark:border-neutral-700">
+        <section
+          id="footer-links"
+          className="border-t border-neutral-300 py-12 dark:border-neutral-700"
+        >
           <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
             <section className="space-y-6">
               <h2 className="font-semibold">Schronisko</h2>
@@ -188,9 +201,9 @@ const Footer = () => {
             <section className="space-y-6 lg:mx-auto">
               <h2 className="font-semibold">Linki</h2>
               <ul className="space-y-4">
-                {links.map((link: Link, index: number) => (
-                  <li key={index}>
-                    <a href={link.href}>{link.name}</a>
+                {links.map((link: FooterLink, index: number) => (
+                  <li key={index} className="hover:text-green-900">
+                    <Link to={link.href ?? "/"}>{link.name}</Link>
                   </li>
                 ))}
               </ul>
@@ -200,14 +213,14 @@ const Footer = () => {
               <ul className="space-y-4">
                 {socials.map((social, index) => (
                   <li key={index}>
-                    <a
-                      href={social.href}
+                    <Link
+                      to={social.href ?? "/"}
                       className="flex items-center gap-x-2"
                       target="_blank"
                     >
                       {social.icon && <social.icon className="text-2xl" />}
                       <p>{social.name}</p>
-                    </a>
+                    </Link>
                   </li>
                 ))}
               </ul>
@@ -228,9 +241,9 @@ const Footer = () => {
             <section className="flex flex-col justify-end gap-y-6 sm:col-span-2 lg:items-end">
               <h2 className="font-semibold">Informacje</h2>
               <ul className="flex flex-wrap items-center gap-4">
-                {informations.map((info: Link, index: number) => (
+                {informations.map((info: FooterLink, index: number) => (
                   <li key={index}>
-                    <a href={info.href}>{info.name}</a>
+                    <Link to={info.href ?? "/"}>{info.name}</Link>
                   </li>
                 ))}
               </ul>

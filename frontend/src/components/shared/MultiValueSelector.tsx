@@ -8,7 +8,7 @@ import {
   ComboboxList,
   ComboboxValue,
   ComboboxChip,
-} from "../ui/combobox";
+} from "@/components/ui";
 import type { LabelValueType } from "@/types/common";
 
 type SelectorProps = {

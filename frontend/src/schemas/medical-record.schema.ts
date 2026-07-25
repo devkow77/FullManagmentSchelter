@@ -20,9 +20,12 @@ export const medicalRecordSchema = z.object({
   type: MedicalRecordTypeEnum,
   description: z.string().min(20, "Opis musi mieć co najmniej 20 znaków."),
   date: requiredDateSchema,
-  cost: z.coerce
-    .number({ message: "Koszt musi być liczbą." })
-    .min(0, "Koszt nie może być ujemny."),
+  cost: z.preprocess(
+    (val) => (val === "" || val === null || val === undefined ? undefined : val),
+    z.coerce
+      .number({ message: "Koszt jest wymagany." })
+      .min(0, "Koszt nie może być ujemny."),
+  ),
   status: MedicalRecordStatusEnum,
 });
 

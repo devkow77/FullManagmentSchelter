@@ -5,6 +5,9 @@ import VerifyTotpForm from "./VerifyTotpForm";
 import MultiValueSelector from "./MultiValueSelector";
 import SingleValueSelector from "./SingleValueSelector";
 import AgeSlider from "./AgeSlider";
+import FavouriteAnimalButton from "./FavouriteAnimalButton";
+import AnimalCard from "./AnimalCard";
+import BlogCard from "./BlogCard";
 
 export {
   ShortFaqList,
@@ -14,4 +17,7 @@ export {
   MultiValueSelector,
   SingleValueSelector,
   AgeSlider,
+  FavouriteAnimalButton,
+  AnimalCard,
+  BlogCard,
 };

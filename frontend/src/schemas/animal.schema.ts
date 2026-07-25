@@ -43,7 +43,7 @@ export const animalSchema = z.object({
   description: z
     .string()
     .min(20, "Opis musi mieć co najmniej 20 znaków.")
-    .max(200, "Opis może mieć maksymalnie 200 znaków."),
+    .max(500, "Opis może mieć maksymalnie 500 znaków."),
   status: AnimalStatusEnum,
   healthStatus: AnimalHealthStatusEnum,
   nextVisitDate: requiredDateSchema,
@@ -52,6 +52,20 @@ export const animalSchema = z.object({
     .string()
     .min(3, "Miejsowość musi posiadać minimum 3 znaki.")
     .max(40, "Miejscowość może maksymalnie posiadać 40 znaków."),
+  cageNumber: z
+    .string()
+    .min(1, "Numer klatki jest wymagany.")
+    .max(20, "Numer klatki może mieć maksymalnie 20 znaków."),
+  isSterilized: z.boolean().default(false),
+  isVaccinated: z.boolean().default(false),
+  isChildFriendly: z.boolean().default(false),
+  isTrained: z.boolean().default(false),
+  lovesPlay: z.boolean().default(false),
+  lovesWalks: z.boolean().default(false),
+  acceptsDogs: z.boolean().default(false),
+  acceptsCats: z.boolean().default(false),
+  lovesAffection: z.boolean().default(false),
+  poorlyToleratesShelter: z.boolean().default(false),
   imageUrl: z.array(z.string()).max(5, "Możesz dodać maksymalnie 5 zdjęć."),
 });
 

@@ -25,7 +25,7 @@ const vetsSeed = async () => {
     ],
   });
 
-  console.log('Seed weterynarzy zakończony');
+  console.log('✓ Seed weterynarzy zakończony');
 };
 
 export default vetsSeed;

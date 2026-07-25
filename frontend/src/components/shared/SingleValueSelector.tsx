@@ -6,7 +6,7 @@ import {
   ComboboxChipsInput,
   ComboboxList,
   ComboboxItem,
-} from "../ui/combobox";
+} from "@/components/ui";
 
 type SelectorProps = {
   items: string[];
@@ -27,10 +27,7 @@ const SingleValueSelector = ({
     onValueChange={(val) => onValueChange(val)}
   >
     <ComboboxChips>
-      <ComboboxChipsInput
-        placeholder={placeholder}
-        className="placeholder:text-muted-foreground py-1 text-sm lg:text-base"
-      />
+      <ComboboxChipsInput placeholder={placeholder} />
     </ComboboxChips>
     <ComboboxContent>
       <ComboboxEmpty>Brak dostępnych opcji</ComboboxEmpty>

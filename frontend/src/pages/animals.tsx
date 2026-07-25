@@ -1,84 +1,175 @@
-import { Container } from "@/components/ui";
-import { useEffect, useState } from "react";
-import { Button } from "@/components/ui/button";
+import { Button, Container, Skeleton } from "@/components/ui";
+import { useEffect, useRef, useState, useMemo, useCallback } from "react";
 import axios from "axios";
-import { Skeleton } from "@/components/ui/skeleton";
-import { Heart } from "lucide-react";
 import {
   animalTypeOptions,
   animalGenderOptions,
   animalSizeOptions,
   animalTraitOptions,
 } from "@/constants/animal.constants";
-import { MultiValueSelector, AgeSlider } from "@/components/shared";
-interface Animal {
-  slug: string;
+import { MultiValueSelector, AgeSlider, AnimalCard } from "@/components/shared";
+import { keepPreviousData, useInfiniteQuery } from "@tanstack/react-query";
+import { cn } from "@/lib/utils";
+import { CircleAlert, Info, Loader2 } from "lucide-react";
+
+const PAGE_SIZE = 6;
+const DEFAULT_AGE_RANGE: [number, number] = [0, 25];
+
+interface AnimalListItem {
+  id: number;
   name: string;
   type: string;
   gender: string;
   size: string;
   traits: string[];
-  age: number;
-  img: string;
+  dateOfBirth: Date | string;
+  status: string;
+  healthStatus: string;
+  imageUrl: string[];
+  needsCount: number;
+  nextVisitDate: Date | string;
   description: string;
 }
 
+type PageResponse = {
+  data: AnimalListItem[];
+  total: number;
+  page: number;
+  pageSize: number;
+  hasMore: boolean;
+};
+
+interface Filters {
+  types: string[];
+  genders: string[];
+  sizes: string[];
+  traits: string[];
+  ageRange: [number, number];
+}
+
+interface PageParams {
+  pageParam: number;
+  filters: Filters;
+}
+
+const getAnimalsPage = async ({ pageParam, filters }: PageParams) => {
+  const params = new URLSearchParams({
+    page: String(pageParam),
+    limit: String(PAGE_SIZE),
+  });
+
+  if (filters.types.length > 0) params.set("type", filters.types.join(","));
+  if (filters.genders.length > 0)
+    params.set("gender", filters.genders.join(","));
+  if (filters.sizes.length > 0) params.set("size", filters.sizes.join(","));
+  if (filters.traits.length > 0) params.set("traits", filters.traits.join(","));
+  if (
+    filters.ageRange[0] !== DEFAULT_AGE_RANGE[0] ||
+    filters.ageRange[1] !== DEFAULT_AGE_RANGE[1]
+  ) {
+    params.set("ageMin", String(filters.ageRange[0]));
+    params.set("ageMax", String(filters.ageRange[1]));
+  }
+
+  const res = await axios.get<PageResponse>(
+    `/api/animals?${params.toString()}`,
+  );
+
+  return res.data;
+};
+
 const AnimalsPage = () => {
-  const [animals, setAnimals] = useState<Animal[]>([]);
-  const [filteredAnimals, setFilteredAnimals] = useState<Animal[]>([]);
-  const [loading, setLoading] = useState<boolean>(false);
+  const [types, setTypes] = useState<string[]>([]);
+  const [genders, setGenders] = useState<string[]>([]);
+  const [sizes, setSizes] = useState<string[]>([]);
+  const [traits, setTraits] = useState<string[]>([]);
+  const [ageRange, setAgeRange] = useState<[number, number]>(DEFAULT_AGE_RANGE);
 
-  const [selectedAnimals, setSelectedAnimals] = useState<string[]>([]);
-  const [selectedGender, setSelectedGender] = useState<string[]>([]);
-  const [selectedSize, setSelectedSize] = useState<string[]>([]);
-  const [selectedTraits, setSelectedTraits] = useState<string[]>([]);
-  const [ageRange, setAgeRange] = useState<[number, number]>([0, 25]);
+  const filters: Filters = useMemo(
+    () => ({
+      types,
+      genders,
+      sizes,
+      traits,
+      ageRange,
+    }),
+    [types, genders, sizes, traits, ageRange],
+  );
 
-  useEffect(() => {
-    const handleGetAnimals = async () => {
-      setLoading(true);
-      try {
-        const res = await axios.get("/api/animals");
-        setAnimals(res.data);
-        setFilteredAnimals(res.data);
-      } catch (err) {
-        console.error("Błąd podczas pobierania zwierząt:", err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    handleGetAnimals();
+  const resetFilters = useCallback(() => {
+    setTypes([]);
+    setGenders([]);
+    setSizes([]);
+    setTraits([]);
+    setAgeRange(DEFAULT_AGE_RANGE);
   }, []);
 
-  const applyFilters = () => {
-    const filtered = animals.filter((animal) => {
-      const matchesType =
-        selectedAnimals.length === 0 || selectedAnimals.includes(animal.type);
+  const {
+    data,
+    isPending,
+    isFetching,
+    isFetchingNextPage,
+    hasNextPage,
+    fetchNextPage,
+    isError,
+  } = useInfiniteQuery({
+    queryKey: ["animals", filters],
+    queryFn: ({ pageParam }) => getAnimalsPage({ pageParam, filters }),
+    initialPageParam: 1,
+    getNextPageParam: (lastPage) =>
+      lastPage.hasMore ? lastPage.page + 1 : undefined,
+    placeholderData: keepPreviousData,
+  });
 
-      const matchesGender =
-        selectedGender.length === 0 || selectedGender.includes(animal.gender);
+  const loadMoreRef = useRef<HTMLDivElement | null>(null);
+  const lastScrollY = useRef(0);
+  const [isFiltersVisible, setIsFiltersVisible] = useState(true);
+  const isFiltering = isFetching && !isFetchingNextPage && !isPending;
 
-      const matchesSize =
-        selectedSize.length === 0 || selectedSize.includes(animal.size);
+  useEffect(() => {
+    lastScrollY.current = window.scrollY;
 
-      const matchesTraits =
-        selectedTraits.length === 0 ||
-        selectedTraits.every((trait) => animal.traits.includes(trait));
+    const onScroll = () => {
+      const currentY = window.scrollY;
+      const delta = currentY - lastScrollY.current;
 
-      const matchesAge = animal.age >= ageRange[0] && animal.age <= ageRange[1];
+      if (currentY < 80) {
+        setIsFiltersVisible(true);
+      } else if (delta > 8) {
+        setIsFiltersVisible(false);
+      } else if (delta < -8) {
+        setIsFiltersVisible(true);
+      }
 
-      return (
-        matchesType &&
-        matchesGender &&
-        matchesSize &&
-        matchesTraits &&
-        matchesAge
-      );
-    });
+      lastScrollY.current = currentY;
+    };
 
-    setFilteredAnimals(filtered);
-  };
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
+  useEffect(() => {
+    const target = loadMoreRef.current;
+    if (!target) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0]?.isIntersecting && hasNextPage && !isFetchingNextPage) {
+          void fetchNextPage();
+        }
+      },
+      { rootMargin: "200px" },
+    );
+
+    observer.observe(target);
+    return () => observer.disconnect();
+  }, [fetchNextPage, hasNextPage, isFetchingNextPage]);
+
+  const animals = useMemo(
+    () => data?.pages.flatMap((page) => page.data) ?? [],
+    [data],
+  );
+  const total = data?.pages[0]?.total ?? 0;
 
   return (
     <main>
@@ -89,85 +180,121 @@ const AnimalsPage = () => {
               Wszystkie zwierzęta
             </h1>
             <p className="text-sm leading-6 md:text-base md:leading-7">
-              Aktualnie posiadamy {animals.length} zwierząt, które czekają na
-              nowy dom!
+              Aktualnie posiadamy {isPending ? "..." : total} zwierząt, które
+              czekają na nowy dom!
             </p>
           </div>
-          <div className="top-0 z-2 -mt-4 flex flex-wrap items-center gap-4 bg-white py-4 sm:sticky lg:-mt-8">
+          <div
+            className={cn(
+              "sticky top-0 z-20 -mt-4 flex flex-wrap items-center gap-4 bg-white py-4 transition-transform duration-300 lg:-mt-8",
+              isFiltersVisible
+                ? "translate-y-0"
+                : "pointer-events-none -translate-y-full",
+            )}
+          >
             <MultiValueSelector
               items={animalTypeOptions}
               placeholder="Wybierz zwierzę"
-              value={selectedAnimals}
-              onValueChange={setSelectedAnimals}
+              value={types}
+              onValueChange={setTypes}
             />
             <MultiValueSelector
               items={animalGenderOptions}
               placeholder="Wybierz płeć"
-              value={selectedGender}
-              onValueChange={setSelectedGender}
+              value={genders}
+              onValueChange={setGenders}
             />
             <MultiValueSelector
               items={animalSizeOptions}
               placeholder="Wybierz rozmiar"
-              value={selectedSize}
-              onValueChange={setSelectedSize}
+              value={sizes}
+              onValueChange={setSizes}
             />
             <MultiValueSelector
               items={animalTraitOptions}
               placeholder="Wybierz cechy"
-              value={selectedTraits}
-              onValueChange={setSelectedTraits}
+              value={traits}
+              onValueChange={setTraits}
             />
             <AgeSlider value={ageRange} onChange={setAgeRange} />
-            <Button onClick={applyFilters} variant={"success"}>
-              Zastosuj
+            <Button onClick={resetFilters} variant="destructive">
+              Resetuj filtry
             </Button>
+            {isFiltering && (
+              <span className="flex items-center gap-2 text-sm text-green-900">
+                <Loader2 className="size-4 animate-spin" />
+                Filtrowanie...
+              </span>
+            )}
           </div>
 
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 lg:gap-6">
-            {loading ? (
-              Array.from({ length: 12 }).map((_, index) => (
-                <div key={index} className="space-y-2">
-                  <Skeleton className="aspect-video rounded-xl" />
-                  <div className="space-y-2">
-                    <Skeleton className="h-5 w-40 rounded-xl" />
-                    <Skeleton className="h-20 w-100 rounded-xl" />
-                  </div>
-                </div>
-              ))
-            ) : filteredAnimals.length === 0 ? (
-              <div className="sm:col-span-2 lg:col-span-3">
-                <p className="text-center font-medium">
-                  Nie znaleziono zwierząt spełniających wybrane kryteria.
-                </p>
-              </div>
-            ) : (
-              filteredAnimals.map((animal, index) => (
-                <a
-                  href={`/zwierzeta/${animal.type}/${animal.slug}`}
-                  key={index}
-                  className="space-y-2"
-                >
-                  <div className="relative grid aspect-video place-items-center overflow-hidden rounded-xl bg-black/10">
-                    <span className="absolute top-3 right-3 rounded-full bg-white p-1 sm:p-2">
-                      <Heart className="scale-80 text-red-600 sm:scale-100" />
-                    </span>
-                  </div>
-                  <div>
-                    <h3 className="font-semibold lg:text-lg">
-                      {animal.name} {animal.age} lat
-                    </h3>
-                    <p className="line-clamp-4 text-xs leading-5 lg:text-sm lg:leading-6">
-                      {animal.description}
-                    </p>
-                  </div>
-                </a>
-              ))
+          <div
+            className={`grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 lg:gap-6 ${
+              isFiltering ? "opacity-60 transition-opacity" : ""
+            }`}
+          >
+            {isError && <ErrorAnimals />}
+            {isPending && <LoadingAnimals />}
+            {!isPending && animals.length === 0 && <EmptyAnimals />}
+            {animals.map((animal) => (
+              <AnimalCard key={animal.id} animal={animal} />
+            ))}
+          </div>
+
+          <div ref={loadMoreRef} className="flex justify-center py-4">
+            {isFetchingNextPage && (
+              <Loader2 className="size-8 animate-spin text-green-900" />
             )}
           </div>
         </section>
       </Container>
     </main>
+  );
+};
+
+const LoadingAnimals = () => {
+  return Array.from({ length: PAGE_SIZE }).map((_, index) => (
+    <div key={index} className="space-y-2">
+      <Skeleton className="aspect-video rounded-xl" />
+      <div className="space-y-2">
+        <Skeleton className="h-10 w-40 rounded-xl" />
+        <Skeleton className="h-20 w-full rounded-xl" />
+      </div>
+    </div>
+  ));
+};
+
+const EmptyAnimals = () => {
+  return (
+    <section
+      id="empty-animals"
+      className="col-span-full flex flex-col items-center justify-center gap-4 rounded-2xl border border-blue-900 bg-blue-50 px-6 py-12 text-center"
+    >
+      <Info className="size-12 text-blue-600" />
+      <div className="space-y-2">
+        <h2 className="text-xl font-semibold text-blue-900">Brak zwierząt</h2>
+        <p className="max-w-md text-sm text-blue-900 md:text-base">
+          Nie znaleziono zwierząt spełniających wybrane kryteria.
+        </p>
+      </div>
+    </section>
+  );
+};
+
+const ErrorAnimals = () => {
+  return (
+    <section className="flex flex-col items-center justify-center gap-4 rounded-xl border border-red-200 bg-red-50 px-6 py-12 text-center">
+      <CircleAlert className="size-12 text-red-600" />
+      <div className="space-y-2">
+        <h2 className="text-xl font-semibold text-red-900">
+          Nie udało się załadować zwierząt
+        </h2>
+        <p className="max-w-md text-sm text-red-800 md:text-base">
+          Wystąpił problem podczas pobierania listy zwierząt. Sprawdź połączenie
+          z internetem i spróbuj ponownie.
+        </p>
+      </div>
+    </section>
   );
 };
 

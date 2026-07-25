@@ -1,4 +1,4 @@
-import { Slider } from "@/components/ui/slider";
+import { Slider } from "@/components/ui";
 
 const AgeSlider = ({
   value,
@@ -7,7 +7,7 @@ const AgeSlider = ({
   value: [number, number];
   onChange: (v: [number, number]) => void;
 }) => (
-  <div className="w-64">
+  <div className="col-span-2 w-64">
     <label className="mb-2 block text-sm">
       Wiek (lata): {value[0]} - {value[1]}
     </label>

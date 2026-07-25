@@ -6,7 +6,7 @@ import { toast } from "sonner";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button, Input, Label } from "@/components/ui";
-import { useNavigate } from "react-router";
+import { useNavigate, Link } from "react-router";
 import { useEffect } from "react";
 import { useTotp } from "@/hooks/useTotp";
 import { DisableTotpForm, VerifyTotpForm } from "@/components/shared";
@@ -120,7 +120,7 @@ const AccountPage = () => {
             </p>
           </div>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 lg:gap-6">
-            <a href="/" className="space-y-2">
+            <Link to="/" className="space-y-2">
               <div className="relative grid aspect-video place-items-center overflow-hidden rounded-xl bg-black/10">
                 <span className="absolute top-3 right-3 rounded-2xl bg-yellow-200 px-4 py-2 text-xs font-semibold text-yellow-600">
                   OCZEKUJE NA AKCEPTACJE
@@ -132,9 +132,9 @@ const AccountPage = () => {
                   Spokojny pies który uwielbia się bawić...
                 </p>
               </div>
-            </a>
+            </Link>
             {Array.from({ length: 2 }).map((_, index: number) => (
-              <a href="/" key={index} className="space-y-2">
+              <Link to="/" key={index} className="space-y-2">
                 <div className="relative grid aspect-video place-items-center overflow-hidden rounded-xl bg-black/10"></div>
                 <div>
                   <h3 className="font-semibold lg:text-lg">Felix</h3>
@@ -142,7 +142,7 @@ const AccountPage = () => {
                     Adoptowano 15.02.2025 r.
                   </p>
                 </div>
-              </a>
+              </Link>
             ))}
           </div>
         </section>

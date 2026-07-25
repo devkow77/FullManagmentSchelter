@@ -5,8 +5,12 @@ import {
   phoneSchema,
 } from "@/schemas/common.schema";
 
-export const RoleEnum = z.enum(["UZYTKOWNIK", "ADMINISTRATOR", "PRACOWNIK"]);
-export const GenderEnum = z.enum(["MEZCZYZNA", "KOBIETA"]);
+export const RoleEnum = z.enum(["UZYTKOWNIK", "ADMINISTRATOR", "PRACOWNIK"], {
+  message: "Rola nie może być pusta.",
+});
+export const GenderEnum = z.enum(["MEZCZYZNA", "KOBIETA"], {
+  message: "Płeć nie może być pusta.",
+});
 
 export const editUserSchema = z.object({
   fullName: z

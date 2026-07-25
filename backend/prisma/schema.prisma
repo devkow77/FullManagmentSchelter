@@ -18,8 +18,6 @@ enum Role {
   ADMINISTRATOR
 }
 
-
-
 model User {
   id               Int      @id @default(autoincrement()) // ID użytkownika
   fullName         String   // Imię i nazwisko
@@ -50,6 +48,9 @@ model User {
   imageUrl         String? // URL zdjęcia
   adoptions        Adoption[] // Adopcje
   processedAdoptions Adoption[] @relation("processedBy") // Adopcje, które zostały przetworzone przez tego użytkownika
+  animalDailyCareFed AnimalDailyCare[] @relation("AnimalDailyCareFedBy") // Dzienne karmienie odznaczone przez pracownika
+  animalDailyCareWatered AnimalDailyCare[] @relation("AnimalDailyCareWateredBy") // Dzienne pojenie odznaczone przez pracownika
+  animalDailyCareCleaned AnimalDailyCare[] @relation("AnimalDailyCareCleanedBy") // Dzienne sprzątanie odznaczone przez pracownika
 }
 
 enum AnimalType {
@@ -86,6 +87,14 @@ enum AnimalHealthStatus {
   POTRZEBUJE_OPERACJI
 }
 
+enum AnimalNeedCategory {
+  JEDZENIE    // Jedzenie / karma
+  LEKI        // Leki
+  WYPOSAZENIE // Wyposażenie
+  OPIEKA      // Specjalna opieka
+  INNE        // Inne
+}
+
 model Animal {
   id               Int           @id @default(autoincrement()) // ID zwierzęcia
   name             String        // Imię
@@ -95,6 +104,18 @@ model Animal {
   traits           String        // Cechy
   dateOfBirth      DateTime      // Data urodzenia
   description      String        // Opis
+  cageNumber       String        // Numer klatki / kojca
+
+  isSterilized            Boolean @default(false) // Sterylizacja / kastracja
+  isVaccinated            Boolean @default(false) // Szczepienia
+  isChildFriendly         Boolean @default(false) // Przyjazny dzieciom
+  isTrained               Boolean @default(false) // Szkolony
+  lovesPlay               Boolean @default(false) // Uwielbia zabawę
+  lovesWalks              Boolean @default(false) // Uwielbia spacery
+  acceptsDogs             Boolean @default(false) // Akceptuje psy
+  acceptsCats             Boolean @default(false) // Akceptuje koty
+  lovesAffection          Boolean @default(false) // Uwielbia pieszczoty
+  poorlyToleratesShelter  Boolean @default(false) // Źle nosi pobyt w schronisku
 
   status           AnimalStatus  @default(ZNALEZIONY) // Status
   healthStatus     AnimalHealthStatus  @default(ZDROWY) // Stan zdrowia
@@ -103,8 +124,14 @@ model Animal {
   foundLocation    String        // Miejsowość znalezienia
 
   imageUrl         String[]      // URL zdjęć
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
   adoptions        Adoption[]    // Adopcje
   medicalRecords   MedicalRecord[] // Rekordy medyczne
+  dailyCare        AnimalDailyCare[] // Dzienna opieka (jedzenie, woda, sprzątanie)
+  needs            AnimalNeed[] // Potrzeby zwierzęcia
+
+  @@unique([cageNumber])
 }
 
 enum AdoptionStatus {
@@ -185,4 +212,48 @@ model NewsletterSubscriber {
   unsubscribeToken String   @unique
   consentAt        DateTime @default(now())
   createdAt        DateTime @default(now())
+}
+
+model AnimalDailyCare {
+  id          Int      @id @default(autoincrement()) // ID wpisu dziennej opieki
+  animalId    Int      // ID zwierzęcia
+  date        DateTime // Dzień, którego dotyczy wpis
+
+  fed         Boolean  @default(false) // Czy podano jedzenie
+  watered     Boolean  @default(false) // Czy podano wodę
+  cleaned     Boolean  @default(false) // Czy posprzątano kojec
+
+  fedById     Int?     // Pracownik, który odznaczył jedzenie
+  wateredById Int?     // Pracownik, który odznaczył wodę
+  cleanedById Int?     // Pracownik, który odznaczył sprzątanie
+  fedAt       DateTime? // Kiedy odznaczono jedzenie
+  wateredAt   DateTime? // Kiedy odznaczono wodę
+  cleanedAt   DateTime? // Kiedy odznaczono sprzątanie
+
+  animal      Animal   @relation(fields: [animalId], references: [id], onDelete: Cascade)
+  fedBy       User?    @relation("AnimalDailyCareFedBy", fields: [fedById], references: [id], onDelete: SetNull)
+  wateredBy   User?    @relation("AnimalDailyCareWateredBy", fields: [wateredById], references: [id], onDelete: SetNull)
+  cleanedBy   User?    @relation("AnimalDailyCareCleanedBy", fields: [cleanedById], references: [id], onDelete: SetNull)
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([animalId, date])
+  @@index([date])
+}
+
+model AnimalNeed {
+  id          Int                @id @default(autoincrement()) // ID potrzeby
+  animalId    Int                // ID zwierzęcia
+  category    AnimalNeedCategory @default(INNE) // Kategoria potrzeby
+  name        String             // Nazwa, np. "Karma hipoalergiczna"
+  description String?            // Dodatkowy opis lub instrukcja
+  isActive    Boolean            @default(true) // Czy potrzeba jest aktualna
+
+  animal      Animal             @relation(fields: [animalId], references: [id], onDelete: Cascade)
+
+  createdAt   DateTime           @default(now())
+  updatedAt   DateTime           @updatedAt
+
+  @@index([animalId])
 }

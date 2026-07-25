@@ -2,11 +2,12 @@ import { Button, Container, Input, Label } from "@/components/ui";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Textarea } from "@/components/ui/textarea";
+import { Textarea } from "@/components/ui";
 import { useAuth } from "@/context/AuthContext";
 import { useEffect } from "react";
-import axios from "axios";
+import axios, { AxiosError } from "axios";
 import { toast } from "sonner";
+import { Link } from "react-router";
 
 const contactSchema = z.object({
   fullName: z
@@ -55,8 +56,11 @@ const ContactPage = () => {
       const res = await axios.post("/api/contact", data);
       toast.success(res.data.msg);
       reset();
-    } catch (err: any) {
-      toast.info(err.response.data.msg);
+    } catch (err: unknown) {
+      if (err instanceof AxiosError) {
+        toast.info(err.response?.data.msg);
+      }
+      console.error(err);
     }
   };
 
@@ -80,8 +84,9 @@ const ContactPage = () => {
               <Label>Email</Label>
               <Input
                 {...register("email")}
-                className="mt-2 mb-4"
+                className={`${errors.email && "bg-red-600/20"} mt-2 mb-4`}
                 placeholder="Podaj swój email..."
+                type="email"
                 disabled={!!user}
               />
               {errors.email && (
@@ -90,10 +95,11 @@ const ContactPage = () => {
                 </p>
               )}
 
+              {/* Imię i nazwisko */}
               <Label>Imię i nazwisko</Label>
               <Input
                 {...register("fullName")}
-                className="mt-2 mb-4"
+                className={`${errors.fullName && "bg-red-600/20"} mt-2 mb-4`}
                 placeholder="Podaj swoje imię i nazwisko..."
                 disabled={!!user}
               />
@@ -103,11 +109,11 @@ const ContactPage = () => {
                 </p>
               )}
 
-              {/* Password */}
+              {/* Wiadomość */}
               <Label>Wiadomość</Label>
               <Textarea
                 {...register("message")}
-                className="mt-2 mb-4 resize-none md:h-50"
+                className={`${errors.message && "bg-red-600/20"} mt-2 mb-4 resize-none md:h-50`}
                 placeholder="Podaj swoją wiadomość..."
               />
               {errors.message && (
@@ -127,9 +133,9 @@ const ContactPage = () => {
 
                 <p className="text-sm lg:text-base">
                   Sprawdź czy twoje pytanie znajduje się w{" "}
-                  <a href="/faq" className="font-semibold">
+                  <Link to="/faq" className="font-semibold">
                     FAQ
-                  </a>
+                  </Link>
                 </p>
               </div>
             </form>
@@ -138,9 +144,9 @@ const ContactPage = () => {
               Jesteś zalogowany jako{" "}
               {user.role === "ADMINISTRATOR" ? "administrator" : "pracownik"}.
               Aby zarządzać wiadomościami, przejdź do panelu{" "}
-              <a href="/wiadomosci" className="font-semibold">
+              <Link to="/wiadomosci" className="font-semibold">
                 wiadomości
-              </a>
+              </Link>
               .
             </p>
           )}

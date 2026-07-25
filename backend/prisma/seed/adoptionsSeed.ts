@@ -75,7 +75,7 @@ const adoptionsSeed = async () => {
 
   await prisma.adoption.createMany({ data: adoptions });
 
-  console.log(`Seedowanie zakończone. Dodano ${adoptions.length} adopcji.`);
+  console.log(`✓ Seedowanie zakończone. Dodano ${adoptions.length} adopcji.`);
 };
 
 export default adoptionsSeed;
