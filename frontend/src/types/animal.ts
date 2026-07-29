@@ -16,6 +16,15 @@ export type AnimalHealthStatus =
   | "ZARAŻONY"
   | "POTRZEBUJE_OPERACJI";
 
+export type Cage = {
+  id: number;
+  zone: string;
+  number: number;
+  label?: string;
+  isOccupied?: boolean;
+  animal?: { id: number; name: string } | null;
+};
+
 export type Animal = {
   id: number;
   name: string;
@@ -25,7 +34,9 @@ export type Animal = {
   traits: string;
   dateOfBirth: Date | string;
   description: string;
-  cageNumber: string;
+  cageId: number | null;
+  cage: Cage | null;
+  cageNumber: string | null;
   isSterilized: boolean;
   isVaccinated: boolean;
   isChildFriendly: boolean;
@@ -38,7 +49,7 @@ export type Animal = {
   poorlyToleratesShelter: boolean;
   status: AnimalStatus;
   healthStatus: AnimalHealthStatus;
-  nextVisitDate: Date | string;
+  nextVisitDate: Date | string | null;
   foundAt: Date | string;
   foundLocation: string;
   availableFrom?: Date | string;
@@ -54,11 +65,13 @@ export type AnimalListItem = {
   size: string;
   traits: string[];
   dateOfBirth: Date | string;
-  cageNumber: string;
+  cageId: number | null;
+  cage: Cage | null;
+  cageNumber: string | null;
   status: string;
   healthStatus: string;
   imageUrl: string[];
   needsCount: number;
-  nextVisitDate: Date | string;
+  nextVisitDate: Date | string | null;
   description: string;
 };

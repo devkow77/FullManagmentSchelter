@@ -158,7 +158,7 @@ const BlogPostPage = () => {
                   to={`/blog/${post.slug}`}
                   className="space-y-2 transition-colors hover:text-green-900"
                 >
-                  <div className="relative grid aspect-video place-items-center overflow-hidden rounded-2xl bg-black/10">
+                  <div className="relative grid aspect-video place-items-center overflow-hidden rounded-2xl bg-black/5">
                     <img
                       src={`http://localhost:1337${post?.image[0].url}`}
                       alt={post?.title}

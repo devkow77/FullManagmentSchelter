@@ -14,8 +14,18 @@ import { Role } from '../generated/prisma/enums';
 
 const router = Router();
 
-router.get('/', getVets);
-router.get('/:id', authenticateUser, getVetById);
+router.get(
+  '/',
+  authenticateUser,
+  authorizeRoles(Role.PRACOWNIK, Role.ADMINISTRATOR),
+  getVets,
+);
+router.get(
+  '/:id',
+  authenticateUser,
+  authorizeRoles(Role.PRACOWNIK, Role.ADMINISTRATOR),
+  getVetById,
+);
 router.post(
   '/',
   authenticateUser,

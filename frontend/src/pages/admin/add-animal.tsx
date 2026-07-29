@@ -2,7 +2,7 @@
 
 import { toast } from "sonner";
 import { useNavigate, useParams } from "react-router";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm, Controller } from "react-hook-form";
 import { Button, Container, Input, Label, Textarea } from "@/components/ui";
@@ -10,7 +10,7 @@ import axios from "axios";
 import { Plus, Star, Trash } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { SingleValueSelector } from "@/components/shared";
-import { animalSchema, type AnimalFormData } from "@/schemas/animal.schema";
+import { animalSchema, type AnimalFormData, getMinNextVisitDate } from "@/schemas/animal.schema";
 import {
   animalTypeValues,
   animalGenderValues,
@@ -18,6 +18,19 @@ import {
   animalStatusValues,
   animalHealthStatusValues,
 } from "@/constants/animal.constants";
+import type { Cage } from "@/types/animal";
+import { useQuery } from "@tanstack/react-query";
+
+const getAvailableCages = async () => {
+  const res = await axios.get<Cage[]>("/api/cages", {
+    params: { available: true },
+    withCredentials: true,
+  });
+  return res.data;
+};
+
+const formatCageNumber = (number: number) =>
+  String(number).padStart(2, "0");
 
 const AddAnimalPage = () => {
   const { id } = useParams();
@@ -42,10 +55,10 @@ const AddAnimalPage = () => {
       description: "",
       status: "ZNALEZIONY",
       healthStatus: "ZDROWY",
-      nextVisitDate: new Date().toISOString().split("T")[0],
+      nextVisitDate: "",
       foundAt: new Date().toISOString().split("T")[0],
       foundLocation: "",
-      cageNumber: "",
+      cageId: 0,
       isSterilized: false,
       isVaccinated: false,
       isChildFriendly: false,
@@ -68,6 +81,38 @@ const AddAnimalPage = () => {
   const [primaryImageIndex, setPrimaryImageIndex] = useState(0);
 
   const existingImages = watch("imageUrl") || [];
+  const selectedCageId = watch("cageId");
+  const [selectedZone, setSelectedZone] = useState<string | null>(null);
+
+  const { data: cages = [] } = useQuery({
+    queryKey: ["cages", "available"],
+    queryFn: getAvailableCages,
+  });
+
+  const freeZones = useMemo(
+    () => [...new Set(cages.map((cage) => cage.zone))].sort(),
+    [cages],
+  );
+
+  const cagesInSelectedZone = useMemo(
+    () =>
+      selectedZone
+        ? cages
+            .filter((cage) => cage.zone === selectedZone)
+            .sort((a, b) => a.number - b.number)
+        : [],
+    [cages, selectedZone],
+  );
+
+  const cageNumberItems = useMemo(
+    () => cagesInSelectedZone.map((cage) => formatCageNumber(cage.number)),
+    [cagesInSelectedZone],
+  );
+
+  const selectedCageNumber = useMemo(() => {
+    const cage = cagesInSelectedZone.find((item) => item.id === selectedCageId);
+    return cage ? formatCageNumber(cage.number) : null;
+  }, [cagesInSelectedZone, selectedCageId]);
 
   const previewImages = [
     ...existingImages,
@@ -237,20 +282,20 @@ const AddAnimalPage = () => {
                 return (
                   <div
                     key={index}
-                    className={`${isPrimary ? "border-3 border-yellow-400" : ""} relative aspect-square overflow-hidden rounded-xl bg-gray-200`}
+                    className={`${isPrimary ? "scale-105 border-4 border-yellow-400" : ""} relative aspect-square overflow-hidden rounded-2xl bg-gray-200`}
                   >
                     {img ? (
                       <>
                         <span
                           onClick={() => handleRemoveImage(index)}
-                          className="absolute top-15 right-3 z-10 cursor-pointer rounded-full bg-white p-1 sm:p-2"
+                          className="absolute top-12 right-3 z-10 cursor-pointer rounded-full bg-white/50 p-1 sm:top-14 sm:p-2"
                         >
                           <Trash className="scale-80 text-red-600 sm:scale-100" />
                         </span>
 
                         <span
                           onClick={() => handleSetPrimaryImage(index)}
-                          className="absolute top-3 right-3 z-10 cursor-pointer rounded-full bg-white/10 p-1 sm:p-2"
+                          className="absolute top-3 right-3 z-10 cursor-pointer rounded-full bg-white/50 p-1 sm:p-2"
                         >
                           <Star
                             className={`scale-80 text-yellow-600 sm:scale-100 ${isPrimary ? "fill-yellow-600" : ""}`}
@@ -292,7 +337,7 @@ const AddAnimalPage = () => {
             </div>
           </div>
           <div className="flex flex-col gap-4 lg:flex-row lg:gap-8">
-            <div className="grid flex-1 grid-cols-1 gap-4 sm:grid-cols-2">
+            <div className="flex-1 space-y-4">
               {/* IMIĘ */}
               <div className="space-y-2">
                 <Label htmlFor="name">Imię</Label>
@@ -333,9 +378,9 @@ const AddAnimalPage = () => {
 
               {/* DATA URODZENIA */}
               <div className="space-y-2">
-                <Label htmlFor="dateBirth">Data urodzenia</Label>
+                <Label htmlFor="dateOfBirth">Data urodzenia</Label>
                 <Input
-                  id="dateBirth"
+                  id="dateOfBirth"
                   type="date"
                   {...register("dateOfBirth")}
                   placeholder="Podaj datę urodzenia..."
@@ -430,7 +475,7 @@ const AddAnimalPage = () => {
                 )}
               </div>
 
-              {/* GATUNEK */}
+              {/* STAN ZDROWIA */}
               <div className="space-y-2">
                 <Label>Stan zdrowia</Label>
                 <Controller
@@ -452,24 +497,56 @@ const AddAnimalPage = () => {
                 )}
               </div>
 
-              {/* NUMER KLATKI */}
+              {/* STREFA I WOLNA KLATKA */}
               <div className="space-y-2">
-                <Label htmlFor="cageNumber">Numer klatki</Label>
-                <Input
-                  id="cageNumber"
-                  {...register("cageNumber")}
-                  placeholder="np. A-12"
-                  className={errors.cageNumber && "bg-red-600/20"}
+                <Label>Strefa</Label>
+                <SingleValueSelector
+                  items={freeZones}
+                  placeholder="Wybierz strefę"
+                  value={selectedZone}
+                  onValueChange={(zone) => {
+                    setSelectedZone(zone);
+                    const stillValid = cages.some(
+                      (cage) => cage.id === selectedCageId && cage.zone === zone,
+                    );
+                    if (!stillValid) setValue("cageId", 0);
+                  }}
                 />
-                {errors.cageNumber && (
+              </div>
+
+              <div className="space-y-2">
+                <Label>Wolna klatka</Label>
+                <Controller
+                  name="cageId"
+                  control={control}
+                  render={({ field }) => (
+                    <SingleValueSelector
+                      items={cageNumberItems}
+                      placeholder={
+                        selectedZone
+                          ? "Wybierz wolną klatkę"
+                          : "Najpierw wybierz strefę"
+                      }
+                      value={selectedCageNumber}
+                      onValueChange={(numberLabel) => {
+                        const cage = cagesInSelectedZone.find(
+                          (item) =>
+                            formatCageNumber(item.number) === numberLabel,
+                        );
+                        field.onChange(cage?.id ?? 0);
+                      }}
+                    />
+                  )}
+                />
+                {errors.cageId && (
                   <p className="text-xs font-medium text-red-600 lg:text-sm">
-                    {errors.cageNumber.message}
+                    {errors.cageId.message}
                   </p>
                 )}
               </div>
 
               {/* CECHY BOOLEAN */}
-              <div className="flex flex-col gap-3 sm:col-span-2 lg:col-span-3">
+              <div className="grid grid-cols-1 gap-3 sm:col-span-2 sm:grid-cols-2">
                 <Label className="flex cursor-pointer items-center gap-2 text-sm font-medium md:text-base">
                   <Input
                     type="checkbox"
@@ -591,6 +668,8 @@ const AddAnimalPage = () => {
                 <Input
                   id="nextVisitDate"
                   type="date"
+                  min={getMinNextVisitDate()}
+                  className={errors.nextVisitDate && "bg-red-600/20"}
                   {...register("nextVisitDate")}
                 />
                 {errors.nextVisitDate && (
@@ -607,8 +686,8 @@ const AddAnimalPage = () => {
               <Textarea
                 id="description"
                 {...register("description")}
+                className="h-50 resize-none lg:h-full"
                 placeholder="Napisz coś więcej o zwierzęciu..."
-                className={`h-50 resize-none lg:h-full ${errors.description && "bg-red-600/20"}`}
               />
               {errors.description && (
                 <p className="text-xs font-medium text-red-600 lg:text-sm">

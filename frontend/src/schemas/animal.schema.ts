@@ -1,5 +1,8 @@
 import { z } from "zod";
-import { requiredDateSchema } from "@/schemas/common.schema";
+import {
+  emptyStringToNull,
+  requiredDateSchema,
+} from "@/schemas/common.schema";
 
 export const AnimalTypeEnum = z.enum(
   ["PIES", "KOT", "KROLIK", "CHOMIK", "ZOLW", "INNE"],
@@ -30,6 +33,35 @@ export const animalSizeValues = AnimalSizeEnum.options;
 export const animalStatusValues = AnimalStatusEnum.options;
 export const animalHealthStatusValues = AnimalHealthStatusEnum.options;
 
+const startOfTomorrow = () => {
+  const date = new Date();
+  date.setHours(0, 0, 0, 0);
+  date.setDate(date.getDate() + 1);
+  return date;
+};
+
+const toLocalDateInputValue = (date: Date) => {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+};
+
+export const getMinNextVisitDate = () =>
+  toLocalDateInputValue(startOfTomorrow());
+
+const futureVisitDateSchema = z.preprocess(
+  emptyStringToNull,
+  z.union([
+    z.null(),
+    z.coerce.date({ message: "Niepoprawna data." }).refine((date) => {
+      const value = new Date(date);
+      value.setHours(0, 0, 0, 0);
+      return value >= startOfTomorrow();
+    }, "Data następnej wizyty musi być późniejsza niż dziś."),
+  ]),
+);
+
 export const animalSchema = z.object({
   name: z
     .string()
@@ -46,16 +78,16 @@ export const animalSchema = z.object({
     .max(500, "Opis może mieć maksymalnie 500 znaków."),
   status: AnimalStatusEnum,
   healthStatus: AnimalHealthStatusEnum,
-  nextVisitDate: requiredDateSchema,
+  nextVisitDate: futureVisitDateSchema,
   foundAt: requiredDateSchema,
   foundLocation: z
     .string()
     .min(3, "Miejsowość musi posiadać minimum 3 znaki.")
     .max(40, "Miejscowość może maksymalnie posiadać 40 znaków."),
-  cageNumber: z
-    .string()
-    .min(1, "Numer klatki jest wymagany.")
-    .max(20, "Numer klatki może mieć maksymalnie 20 znaków."),
+  cageId: z.coerce
+    .number({ message: "Klatka jest wymagana." })
+    .int("Klatka jest wymagana.")
+    .positive("Klatka jest wymagana."),
   isSterilized: z.boolean().default(false),
   isVaccinated: z.boolean().default(false),
   isChildFriendly: z.boolean().default(false),

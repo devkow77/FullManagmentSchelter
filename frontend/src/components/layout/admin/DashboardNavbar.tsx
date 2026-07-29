@@ -10,7 +10,8 @@ import {
   IdCardLanyard,
   ShieldPlus,
   CalendarSync,
-  Heart,
+  Columns4,
+  CalendarDays,
 } from "lucide-react";
 import { Link, useLocation } from "react-router";
 import { useQuery } from "@tanstack/react-query";
@@ -20,7 +21,7 @@ const dailyCareStatusQueryKey = ["animals", "daily-care-status"] as const;
 const animalNeedsStatusQueryKey = ["animals", "needs-status"] as const;
 const pendingAdoptionsQueryKey = ["adoptions", "pending-count"] as const;
 const dailyTasksHref = "/pracownik/codzienne-obowiazki";
-const needsHref = "/admin/zapotrzebowania";
+const needsHref = "/pracownik/zapotrzebowania-zwierzat";
 const adoptionsHref = "/admin/adopcje";
 
 const getDailyCareStatus = async () => {
@@ -67,29 +68,15 @@ const adminOptions: AdminOptions[] = [
     name: "Zarządzaj użytkownikami",
   },
   {
-    icon: ShieldPlus,
-    href: "/admin/weterynarze",
-    name: "Zarządzaj weterynarzami",
+    icon: Columns4,
+    href: "/admin/klatki",
+    name: "Zarządzaj klatkami",
   },
-  {
-    icon: Pencil,
-    href: `${import.meta.env.VITE_STRIPE_CMS_ADMIN_URL}/admin`,
-    name: "Zarządzaj blogiem",
-  },
+
   {
     icon: File,
     href: "/admin/adopcje",
     name: "Wnioski adopcyjne",
-  },
-  {
-    icon: ClipboardPlus,
-    href: "/pracownik/raporty-medyczne",
-    name: "Raporty medyczne",
-  },
-  {
-    icon: ChartColumn,
-    href: "/admin/statystyki",
-    name: "Statystyki",
   },
   {
     icon: CalendarSync,
@@ -97,14 +84,34 @@ const adminOptions: AdminOptions[] = [
     name: "Codzienne obowiązki pracowników",
   },
   {
+    icon: CalendarDays,
+    href: "/admin/tydzien-pracy",
+    name: "Zarządzaj tygodniem pracy",
+  },
+  {
+    icon: ShieldPlus,
+    href: "/admin/weterynarze",
+    name: "Zarządzaj weterynarzami",
+  },
+  {
+    icon: ClipboardPlus,
+    href: "/pracownik/raporty-medyczne",
+    name: "Raporty medyczne",
+  },
+  {
     icon: Package,
     href: needsHref,
     name: "Zapotrzebowania",
   },
   {
-    icon: Heart,
-    href: "/ulubione-zwierzeta",
-    name: "Ulubione zwierzęta",
+    icon: Pencil,
+    href: `${import.meta.env.VITE_STRIPE_CMS_ADMIN_URL}/admin`,
+    name: "Zarządzaj blogiem",
+  },
+  {
+    icon: ChartColumn,
+    href: "/admin/statystyki",
+    name: "Statystyki",
   },
 ];
 
@@ -124,7 +131,7 @@ const getCardClassName = (
     return "rounded-2xl border-2 border-yellow-300 bg-yellow-100 text-yellow-800 duration-300 hover:bg-yellow-50 hover:shadow-lg";
   }
 
-  return "rounded-2xl border border-gray-200 bg-gray-100 duration-300 hover:bg-white hover:shadow-lg";
+  return "rounded-2xl border border-gray-300 bg-gray-100 duration-300 hover:bg-white hover:shadow-lg";
 };
 
 const DashboardNavbar = () => {

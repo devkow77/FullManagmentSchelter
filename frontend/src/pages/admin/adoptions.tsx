@@ -10,28 +10,21 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-  DropdownMenu,
-  DropdownMenuTrigger,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  Pagination,
-  PaginationContent,
-  PaginationItem,
-  PaginationPrevious,
-  PaginationEllipsis,
-  PaginationLink,
-  PaginationNext,
-  Skeleton,
 } from "@/components/ui";
 import { useState, useMemo } from "react";
-import { CircleAlert, MoreHorizontalIcon } from "lucide-react";
 import DashboardNavbar from "@/components/layout/admin/DashboardNavbar";
 import axios from "axios";
 import { formatAdoptionStatus, styleAdoptionStatus } from "@/lib/utils";
 import type { Adoption } from "@/types/adoption";
-import { MultiValueSelector } from "@/components/shared";
+import {
+  MultiValueSelector,
+  TablePagination,
+  DashboardErrorState,
+  DashboardTableSkeleton,
+  TableRowActions,
+} from "@/components/shared";
 import { adoptionStatusOptions } from "@/constants/adoption.constants";
-import { useNavigate, Link } from "react-router";
+import { useNavigate } from "react-router";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 
 const PAGE_SIZE = 10;
@@ -69,28 +62,6 @@ const getAdoptionsPage = async ({
     `/api/adoptions?${params.toString()}`,
   );
   return res.data;
-};
-
-const getPageItems = (current: number, total: number) => {
-  if (total <= 7) {
-    return Array.from({ length: total }, (_, i) => i + 1);
-  }
-
-  const pages: (number | "ellipsis")[] = [1];
-
-  if (current > 3) pages.push("ellipsis");
-
-  const start = Math.max(2, current - 1);
-  const end = Math.min(total - 1, current + 1);
-
-  for (let page = start; page <= end; page++) {
-    pages.push(page);
-  }
-
-  if (current < total - 2) pages.push("ellipsis");
-
-  pages.push(total);
-  return pages;
 };
 
 const AdminAdoptionsPage = () => {
@@ -154,8 +125,15 @@ const AdminAdoptionsPage = () => {
           <DashboardNavbar />
         </section>
 
-        {isLoading && <LoadingAdoptions />}
-        {error && <ErrorAdoptions />}
+        {isLoading && (
+          <DashboardTableSkeleton columns={6} filters={3} rows={8} />
+        )}
+        {error && (
+          <DashboardErrorState
+            title="Nie udało się załadować adopcji"
+            description="Wystąpił problem podczas pobierania listy adopcji. Sprawdź połączenie z internetem i spróbuj ponownie."
+          />
+        )}
         {!isLoading && !error && (
           <section id="table">
             <div className="top-0 z-2 flex flex-wrap items-center gap-4 bg-white py-4 sm:sticky">
@@ -219,22 +197,10 @@ const AdminAdoptionsPage = () => {
                         className="text-right"
                         onClick={(e) => e.stopPropagation()}
                       >
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="transparent" size="icon">
-                              <MoreHorizontalIcon />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuItem asChild>
-                              <Link
-                                to={`/pracownik/adopcje/${adoption.id}/edycja`}
-                              >
-                                Szczegóły
-                              </Link>
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
+                        <TableRowActions
+                          editTo={`/pracownik/adopcje/${adoption.id}/edycja`}
+                          editLabel="Szczegóły"
+                        />
                       </TableCell>
                     </TableRow>
                   ))
@@ -253,62 +219,11 @@ const AdminAdoptionsPage = () => {
               <TableFooter>
                 <TableRow>
                   <TableCell colSpan={6}>
-                    <Pagination>
-                      <PaginationContent>
-                        <PaginationItem>
-                          <PaginationPrevious
-                            href="#"
-                            aria-disabled={page <= 1}
-                            className={
-                              page <= 1
-                                ? "pointer-events-none opacity-50"
-                                : undefined
-                            }
-                            onClick={(e) => {
-                              e.preventDefault();
-                              goToPage(page - 1);
-                            }}
-                          />
-                        </PaginationItem>
-
-                        {getPageItems(page, totalPages).map((item, index) =>
-                          item === "ellipsis" ? (
-                            <PaginationItem key={`ellipsis-${index}`}>
-                              <PaginationEllipsis />
-                            </PaginationItem>
-                          ) : (
-                            <PaginationItem key={item}>
-                              <PaginationLink
-                                href="#"
-                                isActive={item === page}
-                                onClick={(e) => {
-                                  e.preventDefault();
-                                  goToPage(item);
-                                }}
-                              >
-                                {item}
-                              </PaginationLink>
-                            </PaginationItem>
-                          ),
-                        )}
-
-                        <PaginationItem>
-                          <PaginationNext
-                            href="#"
-                            aria-disabled={page >= totalPages}
-                            className={
-                              page >= totalPages
-                                ? "pointer-events-none opacity-50"
-                                : undefined
-                            }
-                            onClick={(e) => {
-                              e.preventDefault();
-                              goToPage(page + 1);
-                            }}
-                          />
-                        </PaginationItem>
-                      </PaginationContent>
-                    </Pagination>
+                    <TablePagination
+                      page={page}
+                      totalPages={totalPages}
+                      onPageChange={goToPage}
+                    />
                   </TableCell>
                 </TableRow>
                 <TableRow>
@@ -323,64 +238,6 @@ const AdminAdoptionsPage = () => {
         )}
       </Container>
     </main>
-  );
-};
-
-const ErrorAdoptions = () => {
-  return (
-    <section
-      id="error"
-      className="flex flex-col items-center justify-center gap-4 rounded-xl border border-red-200 bg-red-50 px-6 py-12 text-center"
-    >
-      <CircleAlert className="size-12 text-red-600" />
-      <div className="space-y-2">
-        <h2 className="text-xl font-semibold text-red-900">
-          Nie udało się załadować adopcji
-        </h2>
-        <p className="max-w-md text-sm text-red-800 md:text-base">
-          Wystąpił problem podczas pobierania listy adopcji. Sprawdź połączenie
-          z internetem i spróbuj ponownie.
-        </p>
-      </div>
-    </section>
-  );
-};
-
-const LoadingAdoptions = () => {
-  return (
-    <section id="table" className="space-y-4">
-      <div className="flex flex-wrap items-center gap-4 py-4">
-        <Skeleton className="h-9 w-48" />
-        <Skeleton className="h-9 w-28" />
-        <Skeleton className="h-9 w-36" />
-      </div>
-
-      <Table>
-        <TableHeader>
-          <TableRow>
-            {Array.from({ length: 6 }).map((_, index) => (
-              <TableHead key={index}>
-                <Skeleton className="h-4 w-20" />
-              </TableHead>
-            ))}
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {Array.from({ length: 8 }).map((_, rowIndex) => (
-            <TableRow key={rowIndex}>
-              {Array.from({ length: 5 }).map((_, cellIndex) => (
-                <TableCell key={cellIndex}>
-                  <Skeleton className="h-4 w-24" />
-                </TableCell>
-              ))}
-              <TableCell className="text-right">
-                <Skeleton className="ml-auto size-8 rounded-md" />
-              </TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
-    </section>
   );
 };
 

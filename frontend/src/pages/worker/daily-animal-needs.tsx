@@ -13,21 +13,42 @@ import {
   TableRow,
   Input,
 } from "@/components/ui";
-import { useEffect, useMemo, useRef, useState, type ChangeEvent } from "react";
+import { useMemo, useState, type ChangeEvent } from "react";
 import {
-  useInfiniteQuery,
   keepPreviousData,
   useMutation,
+  useQuery,
   useQueryClient,
-  type InfiniteData,
 } from "@tanstack/react-query";
 import { useNavigate } from "react-router";
-import { CircleAlert, Loader2 } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import axios from "axios";
-import { SingleValueSelector } from "@/components/shared";
+import {
+  AnimalAvatar,
+  MultiValueSelector,
+  SingleValueSelector,
+  UserAvatar,
+  TablePagination,
+  DashboardErrorState,
+  DashboardTableSkeleton,
+} from "@/components/shared";
 import DashboardNavbar from "@/components/layout/admin/DashboardNavbar";
+import { useAuth } from "@/context/AuthContext";
+import type { Worker } from "@/types/user";
+import type { AnimalType } from "@/types/animal";
 
 const dailyCareStatusQueryKey = ["animals", "daily-care-status"] as const;
+const workersProgressQueryKey = [
+  "animals",
+  "daily-care",
+  "workers-progress",
+] as const;
+const workersForCareFilterQueryKey = [
+  "users",
+  "workers",
+  "daily-care-filter",
+] as const;
+const cageOptionsQueryKey = ["cages", "options", "daily-care-filter"] as const;
 
 const PAGE_SIZE = 8;
 
@@ -47,6 +68,11 @@ type CareUser = {
   fullName: string;
 } | null;
 
+type AssignedWorker = {
+  id: number;
+  fullName: string;
+};
+
 type TodayCare = {
   fed: boolean;
   watered: boolean;
@@ -61,10 +87,12 @@ type CareField = "fed" | "watered" | "cleaned";
 export type AnimalListItem = {
   id: number;
   name: string;
+  type: AnimalType;
   gender: string;
-  cageNumber: string;
+  cageNumber: string | null;
   imageUrl: string[];
   todayCare: TodayCare;
+  assignedWorkers?: AssignedWorker[];
 };
 
 type AnimalsPageResponse = {
@@ -75,14 +103,29 @@ type AnimalsPageResponse = {
   hasMore: boolean;
 };
 
-type Filters = {
-  careStatus: CareStatusLabel | null;
+type CageOptionsResponse = {
+  zones: string[];
 };
 
-interface PageParams {
-  pageParam: number;
-  filters: Filters;
-}
+type Filters = {
+  careStatus: CareStatusLabel | null;
+  careBy: string[];
+  zones: string[];
+};
+
+type WorkerProgressItem = {
+  id: number;
+  fullName: string;
+  imageUrl: string | null;
+  zones: string[];
+  completedCages: number;
+  totalCages: number;
+  percent: number;
+};
+
+type WorkersProgressResponse = {
+  workers: WorkerProgressItem[];
+};
 
 const emptyCare = (): TodayCare => ({
   fed: false,
@@ -96,9 +139,38 @@ const emptyCare = (): TodayCare => ({
 const isCareComplete = (care: TodayCare) =>
   care.fed && care.watered && care.cleaned;
 
-const getAnimalsPage = async ({ pageParam, filters }: PageParams) => {
+const getWorkersForFilter = async () => {
+  const res = await axios.get<Worker[]>("/api/users/workers", {
+    params: { role: "PRACOWNIK" },
+    withCredentials: true,
+  });
+  return res.data;
+};
+
+const getCageOptions = async () => {
+  const res = await axios.get<CageOptionsResponse>("/api/cages/options", {
+    withCredentials: true,
+  });
+  return res.data;
+};
+
+const getWorkersProgress = async () => {
+  const res = await axios.get<WorkersProgressResponse>(
+    "/api/animals/daily-care/workers-progress",
+    { withCredentials: true },
+  );
+  return res.data;
+};
+
+const getAnimalsPage = async ({
+  page,
+  filters,
+}: {
+  page: number;
+  filters: Filters;
+}) => {
   const params = new URLSearchParams({
-    page: String(pageParam),
+    page: String(page),
     limit: String(PAGE_SIZE),
     dailyCare: "true",
   });
@@ -106,6 +178,12 @@ const getAnimalsPage = async ({ pageParam, filters }: PageParams) => {
   const careStatus = careStatusToParam(filters.careStatus);
   if (careStatus) {
     params.set("dailyCareStatus", careStatus);
+  }
+  if (filters.careBy.length > 0) {
+    params.set("careBy", filters.careBy.join(","));
+  }
+  if (filters.zones.length > 0) {
+    params.set("zone", filters.zones.join(","));
   }
 
   const res = await axios.get<AnimalsPageResponse>(
@@ -139,41 +217,85 @@ const getPerformersLabel = (care: TodayCare) => {
   return [...new Set(names)].join(", ") || "—";
 };
 
+const getAssignedWorkersLabel = (workers: AssignedWorker[] | undefined) =>
+  workers && workers.length > 0
+    ? workers.map((worker) => worker.fullName).join(", ")
+    : "—";
+
 const DailyAnimalNeedsPage = () => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const { user } = useAuth();
+  const canEditCare = user?.role === "PRACOWNIK";
 
+  const [page, setPage] = useState(1);
   const [careStatus, setCareStatus] = useState<CareStatusLabel | null>(null);
+  const [selectedWorkers, setSelectedWorkers] = useState<string[]>([]);
+  const [selectedZones, setSelectedZones] = useState<string[]>([]);
   const [pendingKeys, setPendingKeys] = useState<Set<string>>(new Set());
 
   const filters: Filters = useMemo(
     () => ({
       careStatus,
+      careBy: selectedWorkers,
+      zones: selectedZones,
     }),
-    [careStatus],
+    [careStatus, selectedWorkers, selectedZones],
   );
 
-  const queryKey = ["daily-animal-needs", filters] as const;
+  const { data: workers = [] } = useQuery({
+    queryKey: workersForCareFilterQueryKey,
+    queryFn: getWorkersForFilter,
+  });
+
+  const { data: cageOptions } = useQuery({
+    queryKey: cageOptionsQueryKey,
+    queryFn: getCageOptions,
+  });
 
   const {
-    data,
-    isPending,
-    isFetching,
-    isFetchingNextPage,
-    hasNextPage,
-    fetchNextPage,
-    isError,
-  } = useInfiniteQuery({
+    data: workersProgressData,
+    isPending: isWorkersProgressPending,
+    isError: isWorkersProgressError,
+  } = useQuery({
+    queryKey: workersProgressQueryKey,
+    queryFn: getWorkersProgress,
+  });
+
+  const workerOptions = useMemo(
+    () =>
+      workers.map((worker) => ({
+        label: worker.fullName,
+        value: String(worker.id),
+      })),
+    [workers],
+  );
+
+  const zoneOptions = useMemo(
+    () =>
+      (cageOptions?.zones ?? []).map((zone) => ({
+        label: zone,
+        value: zone,
+      })),
+    [cageOptions?.zones],
+  );
+
+  const queryKey = ["daily-animal-needs", page, filters] as const;
+
+  const { data, isPending, isFetching, isError } = useQuery({
     queryKey,
-    queryFn: ({ pageParam }) => getAnimalsPage({ pageParam, filters }),
-    initialPageParam: 1,
-    getNextPageParam: (lastPage) =>
-      lastPage.hasMore ? lastPage.page + 1 : undefined,
+    queryFn: () => getAnimalsPage({ page, filters }),
     placeholderData: keepPreviousData,
   });
 
-  const loadMoreRef = useRef<HTMLDivElement | null>(null);
-  const isFiltering = isFetching && !isFetchingNextPage && !isPending;
+  const animals = data?.data ?? [];
+  const total = data?.total ?? 0;
+  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+  const isFiltering = isFetching && !isPending;
+
+  if (page > totalPages) {
+    setPage(totalPages);
+  }
 
   const careMutation = useMutation({
     mutationFn: updateDailyCare,
@@ -184,35 +306,44 @@ const DailyAnimalNeedsPage = () => {
     },
     onSuccess: (todayCare, { animalId }) => {
       const activeStatus = careStatusToParam(careStatus);
-      const matchesFilter =
+      const matchesStatusFilter =
         activeStatus === null ||
         (activeStatus === "complete"
           ? isCareComplete(todayCare)
           : !isCareComplete(todayCare));
 
-      void queryClient.invalidateQueries({ queryKey: dailyCareStatusQueryKey });
+      const performerIds = [
+        todayCare.fedBy,
+        todayCare.wateredBy,
+        todayCare.cleanedBy,
+      ]
+        .filter((user): user is NonNullable<CareUser> => user !== null)
+        .map((user) => String(user.id));
 
-      if (!matchesFilter) {
-        void queryClient.invalidateQueries({ queryKey });
+      const matchesWorkerFilter =
+        selectedWorkers.length === 0 ||
+        selectedWorkers.some((id) => performerIds.includes(id));
+
+      void queryClient.invalidateQueries({ queryKey: dailyCareStatusQueryKey });
+      void queryClient.invalidateQueries({ queryKey: workersProgressQueryKey });
+
+      if (!matchesStatusFilter || !matchesWorkerFilter) {
+        void queryClient.invalidateQueries({
+          queryKey: ["daily-animal-needs"],
+        });
         return;
       }
 
-      queryClient.setQueryData<InfiniteData<AnimalsPageResponse>>(
-        queryKey,
-        (old) => {
-          if (!old) return old;
+      queryClient.setQueryData<AnimalsPageResponse>(queryKey, (old) => {
+        if (!old) return old;
 
-          return {
-            ...old,
-            pages: old.pages.map((page) => ({
-              ...page,
-              data: page.data.map((animal) =>
-                animal.id === animalId ? { ...animal, todayCare } : animal,
-              ),
-            })),
-          };
-        },
-      );
+        return {
+          ...old,
+          data: old.data.map((animal) =>
+            animal.id === animalId ? { ...animal, todayCare } : animal,
+          ),
+        };
+      });
     },
     onSettled: (_data, _error, { animalId, field }) => {
       const key = `${animalId}-${field}`;
@@ -224,31 +355,21 @@ const DailyAnimalNeedsPage = () => {
     },
   });
 
-  useEffect(() => {
-    const target = loadMoreRef.current;
-    if (!target) return;
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (entries[0]?.isIntersecting && hasNextPage && !isFetchingNextPage) {
-          void fetchNextPage();
-        }
-      },
-      { rootMargin: "200px" },
-    );
-
-    observer.observe(target);
-    return () => observer.disconnect();
-  }, [fetchNextPage, hasNextPage, isFetchingNextPage]);
-
-  const animals = useMemo(
-    () => data?.pages.flatMap((page) => page.data) ?? [],
-    [data],
-  );
-  const total = data?.pages[0]?.total ?? 0;
+  const handleFilterChange = <T,>(setter: (value: T) => void, value: T) => {
+    setter(value);
+    setPage(1);
+  };
 
   const resetFilters = () => {
     setCareStatus(null);
+    setSelectedWorkers([]);
+    setSelectedZones([]);
+    setPage(1);
+  };
+
+  const goToPage = (nextPage: number) => {
+    if (nextPage < 1 || nextPage > totalPages || nextPage === page) return;
+    setPage(nextPage);
   };
 
   const handleCareToggle = (
@@ -256,6 +377,7 @@ const DailyAnimalNeedsPage = () => {
     field: CareField,
     value: boolean,
   ) => {
+    if (!canEditCare) return;
     careMutation.mutate({ animalId, field, value });
   };
 
@@ -274,8 +396,23 @@ const DailyAnimalNeedsPage = () => {
             </p>
           </div>
           <DashboardNavbar />
-          {isPending && <LoadingAnimals />}
-          {isError && <ErrorAnimals />}
+
+          {isPending && (
+            <DashboardTableSkeleton
+              columns={7}
+              showAvatar
+              showActions={false}
+              filters={3}
+              rows={PAGE_SIZE}
+              tableClassName="table-fixed"
+            />
+          )}
+          {isError && (
+            <DashboardErrorState
+              title="Nie udało się załadować zwierząt"
+              description="Wystąpił problem podczas pobierania listy zwierząt. Sprawdź połączenie z internetem i spróbuj ponownie."
+            />
+          )}
           {!isPending && !isError && (
             <div id="table">
               <div className="sticky top-0 z-10 grid grid-cols-2 items-center gap-4 bg-white py-4 md:flex md:flex-wrap">
@@ -286,10 +423,31 @@ const DailyAnimalNeedsPage = () => {
                     placeholder="Wybierz"
                     value={careStatus}
                     onValueChange={(value) =>
-                      setCareStatus(value as CareStatusLabel | null)
+                      handleFilterChange(
+                        setCareStatus,
+                        value as CareStatusLabel | null,
+                      )
                     }
                   />
                 </div>
+
+                <MultiValueSelector
+                  items={workerOptions}
+                  placeholder="Pracownik"
+                  value={selectedWorkers}
+                  onValueChange={(value) =>
+                    handleFilterChange(setSelectedWorkers, value)
+                  }
+                />
+
+                <MultiValueSelector
+                  items={zoneOptions}
+                  placeholder="Strefa"
+                  value={selectedZones}
+                  onValueChange={(value) =>
+                    handleFilterChange(setSelectedZones, value)
+                  }
+                />
 
                 <Button onClick={resetFilters} variant="destructive">
                   Resetuj filtry
@@ -307,6 +465,7 @@ const DailyAnimalNeedsPage = () => {
                   <TableRow>
                     <TableHead>Imię</TableHead>
                     <TableHead>Numer klatki</TableHead>
+                    <TableHead>Przypisany pracownik</TableHead>
                     <TableHead>Jedzenie</TableHead>
                     <TableHead>Woda</TableHead>
                     <TableHead>Sprzątanie</TableHead>
@@ -326,24 +485,25 @@ const DailyAnimalNeedsPage = () => {
                         >
                           <TableCell className="font-medium">
                             <div className="flex items-center gap-x-4">
-                              {animal.imageUrl.length ? (
-                                <img
-                                  src={animal.imageUrl[0]}
-                                  className="size-12 shrink-0 rounded-full object-cover"
-                                  alt={animal.name}
-                                  loading="lazy"
-                                />
-                              ) : (
-                                <div className="size-12 shrink-0 rounded-full bg-gray-200" />
-                              )}
+                              <AnimalAvatar
+                                type={animal.type}
+                                src={animal.imageUrl[0]}
+                                alt={animal.name}
+                              />
                               {animal.name}
                             </div>
                           </TableCell>
-                          <TableCell>{animal.cageNumber}</TableCell>
+                          <TableCell>{animal.cageNumber ?? "—"}</TableCell>
+                          <TableCell className="whitespace-normal">
+                            {getAssignedWorkersLabel(animal.assignedWorkers)}
+                          </TableCell>
                           <TableCell onClick={(e) => e.stopPropagation()}>
                             <CareCheckbox
                               checked={care.fed}
-                              disabled={pendingKeys.has(`${animal.id}-fed`)}
+                              disabled={
+                                !canEditCare ||
+                                pendingKeys.has(`${animal.id}-fed`)
+                              }
                               ariaLabel={`Jedzenie — ${animal.name}`}
                               onChange={(value) =>
                                 handleCareToggle(animal.id, "fed", value)
@@ -353,7 +513,10 @@ const DailyAnimalNeedsPage = () => {
                           <TableCell onClick={(e) => e.stopPropagation()}>
                             <CareCheckbox
                               checked={care.watered}
-                              disabled={pendingKeys.has(`${animal.id}-watered`)}
+                              disabled={
+                                !canEditCare ||
+                                pendingKeys.has(`${animal.id}-watered`)
+                              }
                               ariaLabel={`Woda — ${animal.name}`}
                               onChange={(value) =>
                                 handleCareToggle(animal.id, "watered", value)
@@ -363,7 +526,10 @@ const DailyAnimalNeedsPage = () => {
                           <TableCell onClick={(e) => e.stopPropagation()}>
                             <CareCheckbox
                               checked={care.cleaned}
-                              disabled={pendingKeys.has(`${animal.id}-cleaned`)}
+                              disabled={
+                                !canEditCare ||
+                                pendingKeys.has(`${animal.id}-cleaned`)
+                              }
                               ariaLabel={`Sprzątanie — ${animal.name}`}
                               onChange={(value) =>
                                 handleCareToggle(animal.id, "cleaned", value)
@@ -379,7 +545,7 @@ const DailyAnimalNeedsPage = () => {
                   ) : (
                     <TableRow>
                       <TableCell
-                        colSpan={6}
+                        colSpan={7}
                         className="py-5 text-center font-medium"
                       >
                         Brak zwierząt o podanych filtrach.
@@ -389,17 +555,34 @@ const DailyAnimalNeedsPage = () => {
                 </TableBody>
                 <TableFooter>
                   <TableRow>
-                    <TableCell colSpan={5}>Suma zwierząt</TableCell>
+                    <TableCell colSpan={7}>
+                      <TablePagination
+                        page={page}
+                        totalPages={totalPages}
+                        onPageChange={goToPage}
+                      />
+                    </TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell colSpan={6}>Suma zwierząt</TableCell>
                     <TableCell className="text-right">{total}</TableCell>
                   </TableRow>
                 </TableFooter>
               </Table>
-              <div ref={loadMoreRef} className="flex justify-center py-4">
-                {isFetchingNextPage && (
-                  <Loader2 className="size-8 animate-spin text-green-900" />
-                )}
-              </div>
             </div>
+          )}
+
+          {isWorkersProgressPending && <LoadingWorkersProgress />}
+          {isWorkersProgressError && (
+            <DashboardErrorState
+              title="Wystąpił błąd"
+              description="Wystąpił błąd podczas ładowania postępu pracowników. Spróbuj później ponownie."
+            />
+          )}
+          {!isWorkersProgressPending && !isWorkersProgressError && (
+            <WorkersProgressTable
+              workers={workersProgressData?.workers ?? []}
+            />
           )}
         </section>
       </Container>
@@ -407,6 +590,7 @@ const DailyAnimalNeedsPage = () => {
   );
 };
 
+// Komponent checkbox
 const CareCheckbox = ({
   checked,
   disabled,
@@ -427,58 +611,91 @@ const CareCheckbox = ({
       onChange={(event: ChangeEvent<HTMLInputElement>) =>
         onChange(event.target.checked)
       }
-      className="size-5 w-5 min-w-5 cursor-pointer rounded border accent-green-600 disabled:cursor-wait"
+      className="size-5 w-5 min-w-5 cursor-pointer rounded border accent-green-600 disabled:cursor-not-allowed disabled:opacity-60"
     />
   );
 };
 
-const ErrorAnimals = () => {
+// Tabela do wyswietlania postępu pracowników
+const WorkersProgressTable = ({
+  workers,
+}: {
+  workers: WorkerProgressItem[];
+}) => {
   return (
-    <section
-      id="error"
-      className="flex flex-col items-center justify-center gap-4 rounded-xl border border-red-200 bg-red-50 px-6 py-12 text-center"
-    >
-      <CircleAlert className="size-12 text-red-600" />
-      <div className="space-y-2">
-        <h2 className="text-xl font-semibold text-red-900">
-          Nie udało się załadować zwierząt
-        </h2>
-        <p className="max-w-md text-sm text-red-800 md:text-base">
-          Wystąpił problem podczas pobierania listy zwierząt. Sprawdź połączenie
-          z internetem i spróbuj ponownie.
-        </p>
-      </div>
-    </section>
+    <div id="workers-progress" className="space-y-3">
+      <h2 className="text-xl font-semibold text-green-900 md:text-2xl">
+        Postęp pracowników
+      </h2>
+      <Table>
+        <TableCaption>
+          Wykonanie opieki w przypisanych strefach na dziś
+        </TableCaption>
+        <TableHeader>
+          <TableRow>
+            <TableHead>Pracownik</TableHead>
+            <TableHead>Strefy przypisane</TableHead>
+            <TableHead>Wykonane klatki</TableHead>
+            <TableHead>Postęp</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {workers.length ? (
+            workers.map((worker) => (
+              <TableRow key={worker.id}>
+                <TableCell className="font-medium">
+                  <div className="flex items-center gap-x-4">
+                    <UserAvatar src={worker.imageUrl} alt={worker.fullName} />
+                    {worker.fullName}
+                  </div>
+                </TableCell>
+                <TableCell>
+                  {worker.zones.length > 0 ? worker.zones.join(", ") : "—"}
+                </TableCell>
+                <TableCell>
+                  {worker.completedCages} / {worker.totalCages}
+                </TableCell>
+                <TableCell>{worker.percent}%</TableCell>
+              </TableRow>
+            ))
+          ) : (
+            <TableRow>
+              <TableCell colSpan={4} className="py-5 text-center font-medium">
+                Brak przypisań stref na dziś.
+              </TableCell>
+            </TableRow>
+          )}
+        </TableBody>
+      </Table>
+    </div>
   );
 };
 
-const LoadingAnimals = () => {
+// UI ładowania postępu pracowników
+const LoadingWorkersProgress = () => {
   return (
-    <section id="table" className="space-y-4">
-      <div className="flex flex-wrap items-center gap-4 py-4">
-        <Skeleton className="h-9 w-48" />
-        <Skeleton className="h-9 w-36" />
-      </div>
-      <Table className="table-fixed">
+    <div className="space-y-3">
+      <Skeleton className="h-7 w-56" />
+      <Table>
         <TableHeader>
           <TableRow>
-            {Array.from({ length: 6 }).map((_, index) => (
+            {Array.from({ length: 4 }).map((_, index) => (
               <TableHead key={index}>
-                <Skeleton className="h-4 w-20" />
+                <Skeleton className="h-4 w-24" />
               </TableHead>
             ))}
           </TableRow>
         </TableHeader>
         <TableBody>
-          {Array.from({ length: PAGE_SIZE }).map((_, rowIndex) => (
+          {Array.from({ length: 3 }).map((_, rowIndex) => (
             <TableRow key={rowIndex}>
               <TableCell>
                 <div className="flex items-center gap-x-4">
                   <Skeleton className="size-12 shrink-0 rounded-full" />
-                  <Skeleton className="h-4 w-24" />
+                  <Skeleton className="h-4 w-32" />
                 </div>
               </TableCell>
-              {Array.from({ length: 5 }).map((_, cellIndex) => (
+              {Array.from({ length: 3 }).map((_, cellIndex) => (
                 <TableCell key={cellIndex}>
                   <Skeleton className="h-4 w-16" />
                 </TableCell>
@@ -487,7 +704,7 @@ const LoadingAnimals = () => {
           ))}
         </TableBody>
       </Table>
-    </section>
+    </div>
   );
 };
 

@@ -95,6 +95,11 @@ export const formatAnimalSize: Record<string, string> = {
   INNE: "Inne",
 };
 
+export const formatCageLabel = (cage: {
+  zone: string;
+  number: number;
+}): string => `${cage.zone}-${String(cage.number).padStart(2, "0")}`;
+
 // USERS
 export const styleUserRole = (role: string) => {
   let styles: string = "";

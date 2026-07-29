@@ -1,7 +1,7 @@
 "use client";
 
 import { toast } from "sonner";
-import { useLocation, useNavigate, useParams, Link } from "react-router";
+import { useLocation, useNavigate, useParams } from "react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm, Controller } from "react-hook-form";
@@ -19,15 +19,15 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-  DropdownMenu,
-  DropdownMenuTrigger,
-  DropdownMenuContent,
-  DropdownMenuItem,
 } from "@/components/ui";
 import axios from "axios";
-import { MoreHorizontalIcon, Plus, Trash } from "lucide-react";
+import { Trash, UserRound } from "lucide-react";
 import { supabase } from "@/lib/supabase";
-import { MultiValueSelector, SingleValueSelector } from "@/components/shared";
+import {
+  MultiValueSelector,
+  SingleValueSelector,
+  TableRowActions,
+} from "@/components/shared";
 import { editUserSchema, type EditUserFormData } from "@/schemas/user.schema";
 import { userRoleValues, userGenderValues } from "@/constants/user.constants";
 import { adoptionStatusOptions } from "@/constants/adoption.constants";
@@ -294,7 +294,7 @@ const EditUserPage = () => {
 
             <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
               {/* ZDJĘCIE */}
-              <div className="relative aspect-square overflow-hidden rounded-full bg-gray-200">
+              <div className="relative aspect-square overflow-hidden rounded-full bg-gray-100">
                 {previewImage ? (
                   <>
                     <span
@@ -315,7 +315,7 @@ const EditUserPage = () => {
                     onClick={() => fileInputRef.current?.click()}
                     className="flex size-full cursor-pointer items-center justify-center text-gray-400"
                   >
-                    <Plus size={26} />
+                    <UserRound className="size-10 text-gray-300 md:size-20" />
                   </div>
                 )}
               </div>
@@ -642,28 +642,19 @@ const EditUserPage = () => {
                         className="text-right"
                         onClick={(e) => e.stopPropagation()}
                       >
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="transparent" size="icon">
-                              <MoreHorizontalIcon />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuItem>
-                              <Link
-                                to={`/pracownik/adopcje/${adoption.id}/edycja`}
-                              >
-                                Szczegóły
-                              </Link>
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
+                        <TableRowActions
+                          editTo={`/pracownik/adopcje/${adoption.id}/edycja`}
+                          editLabel="Szczegóły"
+                        />
                       </TableCell>
                     </TableRow>
                   ))
                 ) : (
                   <TableRow>
-                    <TableCell colSpan={6} className="text-center">
+                    <TableCell
+                      colSpan={6}
+                      className="py-5 text-center font-medium"
+                    >
                       Brak adopcji spełniających wybrane filtry.
                     </TableCell>
                   </TableRow>

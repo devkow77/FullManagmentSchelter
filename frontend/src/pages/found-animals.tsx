@@ -99,42 +99,9 @@ const FoundAnimalsPage = () => {
             {!isPending && !isError && foundAnimals.length === 0 && (
               <EmptyFoundAnimals />
             )}
-            {!isPending &&
-              !isError &&
-              foundAnimals.map((foundAnimal) => (
-                <Link
-                  to={`/zwierzeta/${foundAnimal.id}`}
-                  key={foundAnimal.id}
-                  className="space-y-2 transition-colors duration-200 hover:text-green-800"
-                >
-                  <div className="relative grid aspect-video place-items-center overflow-hidden rounded-xl bg-black/10">
-                    <span
-                      className={`${styleAnimalStatus("ZNALEZIONY")} absolute top-3 right-3 z-2 rounded-2xl px-4 py-2 text-xs font-semibold`}
-                    >
-                      ZNALEZIONY
-                    </span>
-                    {foundAnimal.imageUrl.length > 0 ? (
-                      <img
-                        src={foundAnimal.imageUrl[0]}
-                        alt={foundAnimal.name}
-                        className="absolute size-full object-cover"
-                      />
-                    ) : (
-                      <ImageOff className="absolute size-10 object-cover text-black opacity-20 md:size-20" />
-                    )}
-                  </div>
-                  <div className="space-y-1">
-                    <h3 className="font-semibold lg:text-lg">
-                      Znaleziono dnia{" "}
-                      {new Date(foundAnimal.foundAt).toLocaleDateString()} w
-                      miejscowości {foundAnimal.foundLocation || "nieznanej"}.
-                    </h3>
-                    <p className="line-clamp-4 text-xs leading-5 lg:text-sm lg:leading-6">
-                      {foundAnimal.description}
-                    </p>
-                  </div>
-                </Link>
-              ))}
+            {foundAnimals.map((foundAnimal) => (
+              <FoundAnimalCard key={foundAnimal.id} foundAnimal={foundAnimal} />
+            ))}
           </div>
           <div ref={loadMoreRef} className="flex justify-center py-4">
             {isFetchingNextPage && (
@@ -147,6 +114,43 @@ const FoundAnimalsPage = () => {
   );
 };
 
+// Komponent karty zwierzęcia
+const FoundAnimalCard = ({ foundAnimal }: { foundAnimal: FoundAnimal }) => {
+  return (
+    <Link
+      to={`/zwierzeta/${foundAnimal.id}`}
+      className="space-y-2 transition-colors duration-200 hover:text-green-800"
+    >
+      <div className="relative grid aspect-video place-items-center overflow-hidden rounded-xl bg-gray-100">
+        <span
+          className={`${styleAnimalStatus("ZNALEZIONY")} absolute top-3 right-3 z-2 rounded-2xl px-4 py-2 text-xs font-semibold`}
+        >
+          ZNALEZIONY
+        </span>
+        {foundAnimal.imageUrl.length > 0 ? (
+          <img
+            src={foundAnimal.imageUrl[0]}
+            alt={foundAnimal.name}
+            className="absolute size-full object-cover"
+          />
+        ) : (
+          <ImageOff className="absolute size-10 object-cover text-gray-300 md:size-20" />
+        )}
+      </div>
+      <div className="space-y-1">
+        <h3 className="font-semibold lg:text-lg">
+          Znaleziono dnia {new Date(foundAnimal.foundAt).toLocaleDateString()} w
+          miejscowości {foundAnimal.foundLocation || "nieznanej"}.
+        </h3>
+        <p className="line-clamp-4 text-xs leading-5 lg:text-sm lg:leading-6">
+          {foundAnimal.description}
+        </p>
+      </div>
+    </Link>
+  );
+};
+
+// UI podczas ładowania zwierzat
 const LoadingFoundAnimals = () => {
   return Array.from({ length: PAGE_SIZE }).map((_, index) => (
     <div key={index} className="space-y-2">
@@ -159,6 +163,7 @@ const LoadingFoundAnimals = () => {
   ));
 };
 
+// UI podczas wystąpienia błędu
 const ErrorFoundAnimals = () => {
   return (
     <section
@@ -179,6 +184,7 @@ const ErrorFoundAnimals = () => {
   );
 };
 
+// UI podczas braku zwierzat
 const EmptyFoundAnimals = () => {
   return (
     <section

@@ -5,7 +5,6 @@ import {
   AnimalType,
   MedicalRecordStatus,
   MedicalRecordType,
-  Role,
 } from '../generated/prisma/enums';
 import {
   medicalRecordDetailInclude,
@@ -14,8 +13,6 @@ import {
 import { animalIdSelect } from '../selects/animal.select';
 import { vetIdSelect } from '../selects/vet.select';
 import type { Prisma } from '../generated/prisma/client';
-import jwt from 'jsonwebtoken';
-
 const medicalRecordTypes = Object.values(MedicalRecordType);
 const medicalRecordStatuses = Object.values(MedicalRecordStatus);
 const DEFAULT_RECORDS_PAGE_SIZE = 10;
@@ -364,7 +361,6 @@ export const deleteUniqueMedicalRecord = async (
   res: Response,
 ) => {
   const { id } = req.params;
-  const token = req.cookies.token;
 
   const numericId = Number(id);
 
@@ -375,17 +371,6 @@ export const deleteUniqueMedicalRecord = async (
   }
 
   try {
-    const payload = jwt.verify(token, process.env.JWT_SECRET!) as {
-      userId: number;
-      userRole: Role;
-    };
-
-    if (payload.userRole !== Role.ADMINISTRATOR) {
-      return res.status(StatusCodes.FORBIDDEN).json({
-        msg: 'Nie masz uprawnień do usuwania raportów medycznych!',
-      });
-    }
-
     const existingMedicalRecord = await prisma.medicalRecord.findUnique({
       where: { id: numericId },
     });

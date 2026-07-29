@@ -13,12 +13,12 @@ const yearsAgo = (years: number): Date => {
   return date;
 };
 
-/** Numer klatki w formacie pawilon-kojec, np. A-12, B-03 */
-const toCageNumber = (index: number): string => {
-  const cagesPerBlock = 20;
-  const block = String.fromCharCode(65 + Math.floor(index / cagesPerBlock));
-  const cage = String((index % cagesPerBlock) + 1).padStart(2, '0');
-  return `${block}-${cage}`;
+/** Indeks klatki: strefa A/B/C/D, numery 1..20 */
+const toCageIndex = (index: number) => {
+  const cagesPerZone = 20;
+  const zone = String.fromCharCode(65 + Math.floor(index / cagesPerZone));
+  const number = (index % cagesPerZone) + 1;
+  return { zone, number };
 };
 
 /** Zroznicowane flagi cech dla seeda (na podstawie indeksu) */
@@ -1104,12 +1104,28 @@ const animalsSeed = async () => {
     },
   ];
 
+  const cages = await prisma.cage.findMany({
+    orderBy: [{ zone: 'asc' }, { number: 'asc' }],
+  });
+
+  const cageByKey = new Map(
+    cages.map((cage) => [`${cage.zone}-${cage.number}`, cage.id]),
+  );
+
   await prisma.animal.createMany({
-    data: animals.map((animal, index) => ({
-      ...animal,
-      cageNumber: toCageNumber(index),
-      ...toBooleanTraits(index),
-    })),
+    data: animals.map((animal, index) => {
+      const { zone, number } = toCageIndex(index);
+      const cageId = cageByKey.get(`${zone}-${number}`);
+      if (!cageId) {
+        throw new Error(`Brak klatki ${zone}-${number} w seedzie klatek.`);
+      }
+
+      return {
+        ...animal,
+        cageId,
+        ...toBooleanTraits(index),
+      };
+    }),
   });
 
   console.log(`✓ Seedowanie zakończone. Dodano ${animals.length} zwierząt.`);

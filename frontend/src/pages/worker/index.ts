@@ -4,6 +4,8 @@ import MedicalRecordsPage from "./medical-records";
 import AddMedicalRecordPage from "./add-medical-record";
 import EditMedicalRecordPage from "./edit-medical-record";
 import DailyAnimalNeedsPage from "./daily-animal-needs";
+import AnimalDemandsPage from "./demands";
+import AddDemandPage from "./add-demand";
 
 export {
   WorkerUsersPage,
@@ -12,4 +14,6 @@ export {
   AddMedicalRecordPage,
   EditMedicalRecordPage,
   DailyAnimalNeedsPage,
+  AnimalDemandsPage,
+  AddDemandPage,
 };

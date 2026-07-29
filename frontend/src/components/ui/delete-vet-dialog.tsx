@@ -1,14 +1,4 @@
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from './alert-dialog';
+import ConfirmDeleteDialog from "./confirm-delete-dialog";
 
 type Props = {
   vetId: number;
@@ -17,34 +7,13 @@ type Props = {
 
 function DeleteVetDialog({ vetId, onConfirm }: Props) {
   return (
-    <AlertDialog>
-      <AlertDialogTrigger className="cursor-pointer px-1.5 text-sm text-red-600">
-        Usuń klinikę
-      </AlertDialogTrigger>
-      <AlertDialogContent>
-        <AlertDialogHeader>
-          <AlertDialogTitle>
-            Czy na pewno chcesz usunąć weterynarza?
-          </AlertDialogTitle>
-
-          <AlertDialogDescription>
-            Po kliknięciu usuń wszystkie dane o weterynarzu zostaną usunięte w
-            bazie, wraz z powiązanymi raportami medycznymi.
-          </AlertDialogDescription>
-        </AlertDialogHeader>
-
-        <AlertDialogFooter>
-          <AlertDialogCancel>Anuluj</AlertDialogCancel>
-
-          <AlertDialogAction
-            onClick={() => onConfirm(vetId)}
-            className="cursor-pointer text-red-600"
-          >
-            Tak, usuń
-          </AlertDialogAction>
-        </AlertDialogFooter>
-      </AlertDialogContent>
-    </AlertDialog>
+    <ConfirmDeleteDialog
+      triggerLabel="Usuń klinikę"
+      title="Czy na pewno chcesz usunąć weterynarza?"
+      description="Po kliknięciu usuń wszystkie dane o weterynarzu zostaną usunięte w bazie, wraz z powiązanymi raportami medycznymi."
+      triggerClassName="cursor-pointer px-1.5 text-sm text-red-600"
+      onConfirm={() => onConfirm(vetId)}
+    />
   );
 }
 

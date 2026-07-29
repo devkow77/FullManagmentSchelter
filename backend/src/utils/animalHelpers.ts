@@ -7,6 +7,7 @@ import {
   AnimalType,
 } from '../generated/prisma/enums';
 import type { Prisma } from '../generated/prisma/client';
+import { formatCageLabel } from '../selects/animal.select';
 
 // ** ZMIENNE GLOBALNE **//
 
@@ -79,21 +80,27 @@ type DailyCareRecord = {
   cleanedBy: DailyCareUser;
 };
 
+type CageInfo = { id: number; zone: string; number: number } | null;
+
 // FP 5. FUNKCJA ZMIENIA W ANIMAL _COUNT { NEEDS: NUMBER } NA NEEDSCOUNT: NUMBER -- //
 export const mapAnimalListItem = <
   T extends {
     _count: { needs: number };
+    cage?: CageInfo;
     dailyCare?: DailyCareRecord[];
   },
 >({
   _count,
   dailyCare,
+  cage,
   ...animal
 }: T) => {
   const care = dailyCare?.[0];
 
   return {
     ...animal,
+    cage: cage ?? null,
+    cageNumber: cage ? formatCageLabel(cage) : null,
     needsCount: _count.needs,
     ...(dailyCare !== undefined
       ? {
@@ -110,11 +117,22 @@ export const mapAnimalListItem = <
   };
 };
 
+export const mapAnimalDetail = <T extends { cage?: CageInfo }>({
+  cage,
+  ...animal
+}: T) => ({
+  ...animal,
+  cage: cage ?? null,
+  cageNumber: cage ? formatCageLabel(cage) : null,
+});
+
 // FP 6. FUNKCJA POMOCNICZA SPRAWDZAJACA I PARSUJACA ID Z PARAMETROW URL
 export const getValidAnimalId = (req: Request): number | null => {
   const numericId = Number(req.params.id);
   return Number.isInteger(numericId) && numericId > 0 ? numericId : null;
 };
+
+export { formatCageLabel };
 
 // ** FUNKCJE GLOWNE (FG) ** //
 
@@ -134,6 +152,8 @@ export const parseAnimalsQuery = (req: Request) => {
     search,
     healthStatus,
     dailyCareStatus,
+    careBy,
+    zone,
   } = req.query;
 
   // -- Ustawianie limitu pobieranych rekordow na strone (max 20) -- //
@@ -220,6 +240,12 @@ export const parseAnimalsQuery = (req: Request) => {
 
   if (healthVals.length > 0) where.healthStatus = { in: healthVals };
 
+  // -- Filtr po strefie klatki -- //
+  const zoneVals = parseCsvParam(zone).map((z) => z.toUpperCase());
+  if (zoneVals.length > 0) {
+    where.cage = { is: { zone: { in: zoneVals } } };
+  }
+
   // -- Filtr dla cech zwierzecia, sprawdza czy posiada wszystkie podane cechy -- //
   const traitList = parseCsvParam(traits);
   if (traitList.length > 0) {
@@ -254,6 +280,8 @@ export const parseAnimalsQuery = (req: Request) => {
   }
 
   // -- Filtr dziennej opieki: wykonano wszystkie 3 / niewykonano -- //
+  const dailyCareAnd: Prisma.AnimalWhereInput[] = [];
+
   if (typeof dailyCareStatus === 'string' && dailyCareStatus.length > 0) {
     if (dailyCareStatus !== 'complete' && dailyCareStatus !== 'incomplete') {
       throw new BadRequestError(
@@ -265,27 +293,61 @@ export const parseAnimalsQuery = (req: Request) => {
     const todayCareDate = { date: { gte: start, lt: end } };
 
     if (dailyCareStatus === 'complete') {
-      where.dailyCare = {
-        some: {
-          ...todayCareDate,
-          fed: true,
-          watered: true,
-          cleaned: true,
-        },
-      };
-    } else {
-      where.OR = [
-        { dailyCare: { none: todayCareDate } },
-        {
-          dailyCare: {
-            some: {
-              ...todayCareDate,
-              OR: [{ fed: false }, { watered: false }, { cleaned: false }],
-            },
+      dailyCareAnd.push({
+        dailyCare: {
+          some: {
+            ...todayCareDate,
+            fed: true,
+            watered: true,
+            cleaned: true,
           },
         },
-      ];
+      });
+    } else {
+      dailyCareAnd.push({
+        OR: [
+          { dailyCare: { none: todayCareDate } },
+          {
+            dailyCare: {
+              some: {
+                ...todayCareDate,
+                OR: [{ fed: false }, { watered: false }, { cleaned: false }],
+              },
+            },
+          },
+        ],
+      });
     }
+  }
+
+  // -- Filtr po pracownikach, ktorzy wykonali dzisiejsza opieke -- //
+  const careByIds = parseCsvParam(careBy)
+    .map((id) => Number(id))
+    .filter((id) => Number.isInteger(id) && id > 0);
+
+  if (careByIds.length > 0) {
+    const { start, end } = getTodayRange();
+    dailyCareAnd.push({
+      dailyCare: {
+        some: {
+          date: { gte: start, lt: end },
+          OR: [
+            { fedById: { in: careByIds } },
+            { wateredById: { in: careByIds } },
+            { cleanedById: { in: careByIds } },
+          ],
+        },
+      },
+    });
+  }
+
+  if (dailyCareAnd.length > 0) {
+    const existingAnd = where.AND
+      ? Array.isArray(where.AND)
+        ? where.AND
+        : [where.AND]
+      : [];
+    where.AND = [...existingAnd, ...dailyCareAnd];
   }
 
   // -- Offset dla bazy danych, ile rekordow pominac, zeby wyswietlic wlasciwa strone -- //

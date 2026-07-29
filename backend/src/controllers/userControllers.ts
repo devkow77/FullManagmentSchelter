@@ -7,7 +7,7 @@ import {
   createUserSchema,
 } from '../validators/user.validator';
 import bcrypt from 'bcrypt';
-import { Gender, Role } from '../generated/prisma/enums';
+import { Gender, Role, AdoptionStatus } from '../generated/prisma/enums';
 import type { Prisma } from '../generated/prisma/client';
 import {
   userDetailSelect,
@@ -16,10 +16,36 @@ import {
   userRoleSelect,
 } from '../selects/user.select';
 
-// 1. Aktualizacja hasła
+const DEFAULT_WORKERS_PAGE_SIZE = 10;
+const WORKER_ROLES = [Role.ADMINISTRATOR, Role.PRACOWNIK] as const;
+
+// FUNKCJA PARSUJACA Z STRINGA NA TABLICE
+const parseCsvParam = (value: unknown) => {
+  if (typeof value !== 'string' || value.length === 0) return [];
+  return value
+    .split(',')
+    .map((item) => item.trim())
+    .filter(Boolean);
+};
+
+// FUNKCJA PARSUJACA Z STRINGA NA SET BOOLEANÓW
+const parseBooleanList = (value: unknown) => {
+  const items = parseCsvParam(value);
+  const booleans: boolean[] = [];
+
+  for (const item of items) {
+    if (item === 'true') booleans.push(true);
+    else if (item === 'false') booleans.push(false);
+  }
+
+  return [...new Set(booleans)];
+};
+
+// 1. AKTUALIZACJA HASŁA
 export const updatePassword = async (req: Request, res: Response) => {
   const parsedBody = updatePasswordSchema.safeParse(req.body);
 
+  // -- Jezeli walidacja nie powiodła się to zwracamy błąd -- //
   if (!parsedBody.success) {
     return res.status(StatusCodes.BAD_REQUEST).json({
       msg: 'Nieprawidłowy format danych!',
@@ -28,6 +54,7 @@ export const updatePassword = async (req: Request, res: Response) => {
 
   const userId = req.userId;
 
+  // -- Jezeli uzytkownik nie jest zalogowany to zwracamy błąd -- //
   if (!userId) {
     return res.status(StatusCodes.UNAUTHORIZED).json({
       msg: 'Brak tokenu, autoryzacja odmówiona!',
@@ -40,6 +67,7 @@ export const updatePassword = async (req: Request, res: Response) => {
       select: userPasswordSelect,
     });
 
+    // -- Jezeli uzytkownik nie istnieje to zwracamy błąd -- //
     if (!existingUser) {
       return res.status(StatusCodes.NOT_FOUND).json({
         msg: 'Nie ma takiego użytkownika!',
@@ -48,25 +76,30 @@ export const updatePassword = async (req: Request, res: Response) => {
 
     const { newPassword, currentPassword } = parsedBody.data;
 
+    // -- Sprawdzamy czy hasło jest poprawne -- //
     const isMatch = await bcrypt.compare(
       currentPassword,
       existingUser.password,
     );
 
+    // -- Jezeli hasło nie jest poprawne to zwracamy błąd -- //
     if (!isMatch) {
       return res.status(StatusCodes.UNAUTHORIZED).json({
         msg: 'Nieprawidłowe obecne hasło!',
       });
     }
 
+    // -- Sprawdzamy czy nowe hasło jest inne niż obecne -- //
     if (currentPassword === newPassword) {
       return res.status(StatusCodes.BAD_REQUEST).json({
         msg: 'Nowe hasło musi być inne niż obecne!',
       });
     }
 
+    // -- Hashujemy nowe hasło -- //
     const hashedPassword = await bcrypt.hash(newPassword, 10);
 
+    // -- Aktualizujemy hasło uzytkownika -- //
     await prisma.user.update({
       where: { id: userId },
       data: { password: hashedPassword },
@@ -88,43 +121,32 @@ export const updatePassword = async (req: Request, res: Response) => {
   }
 };
 
-const DEFAULT_WORKERS_PAGE_SIZE = 10;
-const WORKER_ROLES = [Role.ADMINISTRATOR, Role.PRACOWNIK] as const;
-
-const parseCsvParam = (value: unknown) => {
-  if (typeof value !== 'string' || value.length === 0) return [];
-  return value
-    .split(',')
-    .map((item) => item.trim())
-    .filter(Boolean);
-};
-
-const parseBooleanList = (value: unknown) => {
-  const items = parseCsvParam(value);
-  const booleans: boolean[] = [];
-
-  for (const item of items) {
-    if (item === 'true') booleans.push(true);
-    else if (item === 'false') booleans.push(false);
-  }
-
-  return [...new Set(booleans)];
-};
-
 // 2. Pobierz wszystkich pracowników (z opcjonalną paginacją i filtrami)
 export const getWorkers = async (req: Request, res: Response) => {
   try {
-    const { page, limit, search, role, gender, city, hasChildren, isFormFilled } =
-      req.query;
+    // -- Parametry z query stringa (np. ?page=1&search=Jan&role=ADMINISTRATOR) -- //
+    const {
+      page,
+      limit,
+      search,
+      role,
+      gender,
+      city,
+      hasChildren,
+      isFormFilled,
+    } = req.query;
 
+    // -- Bazowy filtr: tylko pracownicy i administratorzy (bez zwykłych użytkowników) -- //
     const where: Prisma.UserWhereInput = {
       role: { not: Role.UZYTKOWNIK },
     };
 
+    // -- Wyszukiwanie po imieniu i nazwisku (bez rozróżniania wielkości liter) -- //
     if (typeof search === 'string' && search.trim().length > 0) {
       where.fullName = { contains: search.trim(), mode: 'insensitive' };
     }
 
+    // -- Filtr roli: CSV z query, tylko dozwolone role pracownicze -- //
     const roleVals = parseCsvParam(role).filter((r) =>
       (WORKER_ROLES as readonly string[]).includes(r),
     ) as Role[];
@@ -132,6 +154,7 @@ export const getWorkers = async (req: Request, res: Response) => {
       where.role = { in: roleVals };
     }
 
+    // -- Filtr płci: CSV, tylko wartości z enuma Gender -- //
     const genderVals = parseCsvParam(gender).filter((g) =>
       Object.values(Gender).includes(g as Gender),
     ) as Gender[];
@@ -139,24 +162,29 @@ export const getWorkers = async (req: Request, res: Response) => {
       where.gender = { in: genderVals };
     }
 
+    // -- Filtr miasta: CSV z nazwami miast -- //
     const cityVals = parseCsvParam(city);
     if (cityVals.length > 0) {
       where.city = { in: cityVals };
     }
 
+    // -- Filtr hasChildren: stosujemy tylko gdy wybrano dokładnie jedną wartość (true LUB false) -- //
     const hasChildrenVals = parseBooleanList(hasChildren);
     if (hasChildrenVals.length === 1) {
       where.hasChildren = hasChildrenVals[0];
     }
 
+    // -- Filtr isFormFilled: j.w. — obie wartości naraz = brak filtra -- //
     const isFormFilledVals = parseBooleanList(isFormFilled);
     if (isFormFilledVals.length === 1) {
       where.isFormFilled = isFormFilledVals[0];
     }
 
+    // -- Paginacja: page i limit są opcjonalne -- //
     let pageNumber: number | undefined;
     let pageSize = DEFAULT_WORKERS_PAGE_SIZE;
 
+    // -- Walidacja page: musi być dodatnią liczbą całkowitą -- //
     if (typeof page === 'string' && page.length > 0) {
       pageNumber = Number(page);
       if (!Number.isInteger(pageNumber) || pageNumber < 1) {
@@ -166,6 +194,7 @@ export const getWorkers = async (req: Request, res: Response) => {
       }
     }
 
+    // -- Walidacja limit: max 50 rekordów na stronę -- //
     if (typeof limit === 'string' && limit.length > 0) {
       const parsedLimit = Number(limit);
       if (!Number.isInteger(parsedLimit) || parsedLimit < 1) {
@@ -176,10 +205,11 @@ export const getWorkers = async (req: Request, res: Response) => {
       pageSize = Math.min(parsedLimit, 50);
     }
 
-    // Paginacja — gdy podano page (jak na liście admina)
+    // -- Z paginacją (gdy podano page) — lista admina: dane + total + hasMore -- //
     if (pageNumber !== undefined) {
       const skip = (pageNumber - 1) * pageSize;
 
+      // -- Równolegle: strona wyników + łączna liczba pasujących rekordów -- //
       const [users, total] = await Promise.all([
         prisma.user.findMany({
           where,
@@ -200,7 +230,7 @@ export const getWorkers = async (req: Request, res: Response) => {
       });
     }
 
-    // Bez paginacji — np. statystyki
+    // -- Bez paginacji — pełna lista (np. do selectów / statystyk) -- //
     const users = await prisma.user.findMany({
       where,
       select: userListSelect,
@@ -209,6 +239,144 @@ export const getWorkers = async (req: Request, res: Response) => {
 
     return res.status(StatusCodes.OK).json(users);
   } catch {
+    return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
+      msg: 'Wewnętrzny błąd serwera!',
+    });
+  }
+};
+
+const POLISH_MONTHS = [
+  'Styczeń',
+  'Luty',
+  'Marzec',
+  'Kwiecień',
+  'Maj',
+  'Czerwiec',
+  'Lipiec',
+  'Sierpień',
+  'Wrzesień',
+  'Październik',
+  'Listopad',
+  'Grudzień',
+] as const;
+
+export const getWorkerStats = async (_req: Request, res: Response) => {
+  try {
+    const workers = await prisma.user.findMany({
+      where: { role: { not: Role.UZYTKOWNIK } },
+      select: {
+        id: true,
+        fullName: true,
+        role: true,
+        gender: true,
+        isFormFilled: true,
+        twoFactorEnabled: true,
+        createdAt: true,
+      },
+      orderBy: { fullName: 'asc' },
+    });
+
+    const now = new Date();
+    const months: { key: string; month: string; count: number }[] = [];
+
+    for (let i = 5; i >= 0; i--) {
+      const date = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      const year = date.getFullYear();
+      const key = `${year}-${date.getMonth()}`;
+      months.push({
+        key,
+        month: `${POLISH_MONTHS[date.getMonth()]!} ${year}`,
+        count: 0,
+      });
+    }
+
+    const monthIndex = new Map(months.map((item, index) => [item.key, index]));
+    const windowStart = new Date(now.getFullYear(), now.getMonth() - 5, 1);
+
+    for (const worker of workers) {
+      if (worker.createdAt < windowStart) continue;
+      const key = `${worker.createdAt.getFullYear()}-${worker.createdAt.getMonth()}`;
+      const index = monthIndex.get(key);
+      if (index !== undefined) {
+        months[index]!.count += 1;
+      }
+    }
+
+    const processedCounts = await prisma.adoption.groupBy({
+      by: ['processedById'],
+      where: {
+        processedById: { not: null },
+        status: {
+          in: [
+            AdoptionStatus.ZAAKCEPTOWANA,
+            AdoptionStatus.ODRZUCONA,
+            AdoptionStatus.ANULOWANA,
+            AdoptionStatus.ZAKONCZONA,
+          ],
+        },
+      },
+      _count: { _all: true },
+    });
+
+    const processedByWorker = new Map(
+      processedCounts
+        .filter((item) => item.processedById !== null)
+        .map((item) => [item.processedById!, item._count._all]),
+    );
+
+    const adoptionActivity = workers
+      .map((worker) => ({
+        name: worker.fullName,
+        adoptions: processedByWorker.get(worker.id) ?? 0,
+      }))
+      .filter((item) => item.adoptions > 0)
+      .sort((a, b) => b.adoptions - a.adoptions)
+      .slice(0, 8);
+
+    const administrators = workers.filter(
+      (worker) => worker.role === Role.ADMINISTRATOR,
+    ).length;
+    const employees = workers.filter(
+      (worker) => worker.role === Role.PRACOWNIK,
+    ).length;
+    const men = workers.filter(
+      (worker) => worker.gender === Gender.MEZCZYZNA,
+    ).length;
+    const women = workers.filter(
+      (worker) => worker.gender === Gender.KOBIETA,
+    ).length;
+
+    const twoFactorEnabled = workers.filter(
+      (worker) => worker.twoFactorEnabled,
+    ).length;
+    const twoFactorPercent =
+      workers.length > 0
+        ? Math.round((twoFactorEnabled / workers.length) * 100)
+        : 0;
+
+    return res.status(StatusCodes.OK).json({
+      totals: {
+        total: workers.length,
+        administrators,
+        employees,
+        twoFactorEnabled,
+        twoFactorPercent,
+        men,
+        women,
+      },
+      newWorkersByMonth: months.map(({ month, count }) => ({ month, count })),
+      roleDistribution: [
+        { role: 'pracownicy', value: employees },
+        { role: 'administratorzy', value: administrators },
+      ],
+      genderDistribution: [
+        { gender: 'mezczyzni', value: men },
+        { gender: 'kobiety', value: women },
+      ],
+      adoptionActivity,
+    });
+  } catch (err) {
+    console.error('[getWorkerStats]', err);
     return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
       msg: 'Wewnętrzny błąd serwera!',
     });

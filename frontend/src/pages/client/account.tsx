@@ -121,7 +121,7 @@ const AccountPage = () => {
           </div>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 lg:gap-6">
             <Link to="/" className="space-y-2">
-              <div className="relative grid aspect-video place-items-center overflow-hidden rounded-xl bg-black/10">
+              <div className="relative grid aspect-video place-items-center overflow-hidden rounded-xl bg-black/5">
                 <span className="absolute top-3 right-3 rounded-2xl bg-yellow-200 px-4 py-2 text-xs font-semibold text-yellow-600">
                   OCZEKUJE NA AKCEPTACJE
                 </span>
@@ -135,7 +135,7 @@ const AccountPage = () => {
             </Link>
             {Array.from({ length: 2 }).map((_, index: number) => (
               <Link to="/" key={index} className="space-y-2">
-                <div className="relative grid aspect-video place-items-center overflow-hidden rounded-xl bg-black/10"></div>
+                <div className="relative grid aspect-video place-items-center overflow-hidden rounded-xl bg-black/5"></div>
                 <div>
                   <h3 className="font-semibold lg:text-lg">Felix</h3>
                   <p className="line-clamp-4 text-xs leading-5 lg:text-sm lg:leading-6">

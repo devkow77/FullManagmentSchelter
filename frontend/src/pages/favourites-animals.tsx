@@ -138,7 +138,7 @@ const FavouritesAnimalsPage = () => {
                   key={animal.id}
                   className="space-y-2 transition-colors duration-200 hover:text-green-800 sm:flex sm:gap-x-6"
                 >
-                  <div className="relative grid aspect-video max-w-md flex-1 place-items-center overflow-hidden rounded-xl bg-black/10">
+                  <div className="relative grid aspect-video max-w-md flex-1 place-items-center overflow-hidden rounded-xl bg-black/5">
                     <FavouriteAnimalButton
                       animalId={animal.id}
                       animalName={animal.name}

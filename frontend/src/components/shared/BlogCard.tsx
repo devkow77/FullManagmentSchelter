@@ -19,7 +19,7 @@ const BlogCard = ({ post }: { post: BlogPost }) => {
       to={`/blog/${post.slug}`}
       className="space-y-2 transition-colors duration-200 hover:text-green-900"
     >
-      <div className="relative grid aspect-video place-items-center overflow-hidden rounded-2xl bg-black/20">
+      <div className="relative grid aspect-video place-items-center overflow-hidden rounded-2xl bg-gray-100">
         {imagePath ? (
           <img
             src={`${cmsUrl}${imagePath}`}
@@ -27,7 +27,7 @@ const BlogCard = ({ post }: { post: BlogPost }) => {
             className="absolute size-full object-cover"
           />
         ) : (
-          <ImageOff className="absolute size-10 object-cover text-black opacity-20 md:size-20" />
+          <ImageOff className="absolute size-10 object-cover text-gray-300 md:size-20" />
         )}
       </div>
       <div className="space-y-1">

@@ -22,6 +22,7 @@ const HealthStatusEnum = z.enum(
   },
 );
 
+// SCHEMAT DLA ZWIERZAT
 export const animalSchema = z.object({
   name: z
     .string()
@@ -48,12 +49,15 @@ export const animalSchema = z.object({
   healthStatus: HealthStatusEnum,
   nextVisitDate: z.preprocess(
     (val) => {
-      if (val === '' || val == null) return undefined;
+      if (val === '' || val == null) return null;
       return val;
     },
-    z.coerce.date({
-      message: 'Data następnej wizyty jest wymagana.',
-    }),
+    z.union([
+      z.null(),
+      z.coerce.date({
+        message: 'Niepoprawna data następnej wizyty.',
+      }),
+    ]),
   ),
   foundAt: z.preprocess(
     (val) => {
@@ -68,10 +72,10 @@ export const animalSchema = z.object({
     .string()
     .min(3, 'Miejsowość musi posiadać minimum 3 znaki.')
     .max(40, 'Miejscowość może maksymalnie posiadać 40 znaków.'),
-  cageNumber: z
-    .string()
-    .min(1, 'Numer klatki jest wymagany.')
-    .max(20, 'Numer klatki może mieć maksymalnie 20 znaków.'),
+  cageId: z.coerce
+    .number({ message: 'Klatka jest wymagana.' })
+    .int('Klatka jest wymagana.')
+    .positive('Klatka jest wymagana.'),
   isSterilized: z.boolean().default(false),
   isVaccinated: z.boolean().default(false),
   isChildFriendly: z.boolean().default(false),

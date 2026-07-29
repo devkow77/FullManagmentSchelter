@@ -10,6 +10,9 @@ import AdminVetsPage from "./vets";
 import AddVetPage from "./add-vet";
 import EditVetPage from "./edit-vet";
 import AdminStatisticsPage from "./statistics";
+import AdminCagesPage from "./cages";
+import AddCagePage from "./add-cage";
+import WorkWeekPage from "./work-week";
 
 export {
   AdminAccountPage,
@@ -24,4 +27,7 @@ export {
   AddVetPage,
   EditVetPage,
   AdminStatisticsPage,
+  AdminCagesPage,
+  AddCagePage,
+  WorkWeekPage,
 };

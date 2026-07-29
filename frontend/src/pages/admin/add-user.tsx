@@ -138,7 +138,7 @@ const AddUserPage = () => {
           </h1>
 
           <p className="text-sm leading-6 font-medium md:text-base md:leading-7">
-            Wprowadź wszystkie dane pracownika poniżej.
+            Wprowadź wszystkie dane użytkownika poniżej.
           </p>
         </div>
 
@@ -147,7 +147,7 @@ const AddUserPage = () => {
             <Label>Zdjęcie (maksymalnie 1)</Label>
 
             <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
-              <div className="relative aspect-square overflow-hidden rounded-xl bg-gray-200">
+              <div className="relative aspect-square overflow-hidden rounded-full bg-black/20">
                 {previewImage ? (
                   <>
                     <span

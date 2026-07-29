@@ -7,52 +7,58 @@ datasource db {
   provider = "postgresql"
 }
 
+// Enum Płeć
 enum Gender {
   MEZCZYZNA
   KOBIETA
 }
 
+// Enum Rola użytkownika
 enum Role {
   UZYTKOWNIK
   PRACOWNIK
   ADMINISTRATOR
 }
 
+// Model Użytkownika
 model User {
-  id               Int      @id @default(autoincrement()) // ID użytkownika
-  fullName         String   // Imię i nazwisko
-  email            String   @unique // Email
-  password         String   // Hasło
-  gender           Gender   @default(MEZCZYZNA) // Płeć
-  role             Role     @default(UZYTKOWNIK) // Rola
+  id               Int      @id @default(autoincrement())
+  fullName         String  
+  email            String   @unique 
+  password         String   
+  gender           Gender   @default(MEZCZYZNA) 
+  role             Role     @default(UZYTKOWNIK) 
 
-  phoneNumber      String? // Numer telefonu
-  city             String? // Miasto
-  postalCode       String? // Kod pocztowy
-  street           String? // Ulica
+  phoneNumber      String?
+  city             String? 
+  postalCode       String? 
+  street           String? 
 
-  dateOfBirth      DateTime? // Data urodzenia
-  hasChildren      Boolean  @default(false) // Czy ma dzieci
-  hasOtherAnimals  Boolean  @default(false) // Czy ma inne zwierzęta
-  isBanned         Boolean  @default(false) // Czy konto jest zablokowane,  np. za złe zachowanie
-  isFormFilled     Boolean  @default(false) // Czy formularz został wypełniony, jezeli nie to nie mozna zgłosić adopcji, zwierzę moze być zgłoszone na stronie i oczekiwać na adopcję
+  dateOfBirth      DateTime?
+  hasChildren      Boolean  @default(false) 
+  hasOtherAnimals  Boolean  @default(false) 
+  isBanned         Boolean  @default(false)
+  isFormFilled     Boolean  @default(false) 
 
-  adminNote        String?  // Notatka dla pracowników schroniska
+  adminNote        String?  
 
-  twoFactorEnabled Boolean @default(false) // Czy 2FA jest włączone
-  twoFactorSecret  String? // Secret 2FA
+  twoFactorEnabled Boolean @default(false) 
+  twoFactorSecret  String? 
 
-  createdAt        DateTime @default(now()) // Data utworzenia
-  updatedAt        DateTime @updatedAt // Data aktualizacji
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt 
 
-  imageUrl         String? // URL zdjęcia
-  adoptions        Adoption[] // Adopcje
-  processedAdoptions Adoption[] @relation("processedBy") // Adopcje, które zostały przetworzone przez tego użytkownika
-  animalDailyCareFed AnimalDailyCare[] @relation("AnimalDailyCareFedBy") // Dzienne karmienie odznaczone przez pracownika
-  animalDailyCareWatered AnimalDailyCare[] @relation("AnimalDailyCareWateredBy") // Dzienne pojenie odznaczone przez pracownika
-  animalDailyCareCleaned AnimalDailyCare[] @relation("AnimalDailyCareCleanedBy") // Dzienne sprzątanie odznaczone przez pracownika
+  imageUrl         String? 
+  adoptions        Adoption[] 
+  processedAdoptions Adoption[] @relation("processedBy") 
+  animalDailyCareFed AnimalDailyCare[] @relation("AnimalDailyCareFedBy") 
+  animalDailyCareWatered AnimalDailyCare[] @relation("AnimalDailyCareWateredBy") 
+  animalDailyCareCleaned AnimalDailyCare[] @relation("AnimalDailyCareCleanedBy") 
+  dailyZoneAssignments DailyZoneAssignment[] 
+  reportedAnimalNeeds AnimalNeed[] @relation("AnimalNeedReportedBy") 
 }
 
+// Enum typ zwierzęcia
 enum AnimalType {
   PIES
   KOT
@@ -62,17 +68,20 @@ enum AnimalType {
   INNE
 }
 
+// Enum płeć zwierzęcia
 enum AnimalGender {
   SAMICA
   SAMIEC
 }
 
+// Enum rozmiar zwierzęcia
 enum AnimalSize {
   MALY
   SREDNI
   DUZY
 }
 
+// Enum status zwierzęcia
 enum AnimalStatus {
   SZUKA_DOMU
   ZNALEZIONY
@@ -80,6 +89,7 @@ enum AnimalStatus {
   ADOPTOWANY
 }
 
+// Enum stan zdrowia zwierzęcia
 enum AnimalHealthStatus {
   ZDROWY
   CHORY
@@ -87,82 +97,167 @@ enum AnimalHealthStatus {
   POTRZEBUJE_OPERACJI
 }
 
+// Enum kategoria potrzeby zwierzęcia
 enum AnimalNeedCategory {
-  JEDZENIE    // Jedzenie / karma
-  LEKI        // Leki
-  WYPOSAZENIE // Wyposażenie
-  OPIEKA      // Specjalna opieka
-  INNE        // Inne
+  JEDZENIE   
+  LEKI        
+  WYPOSAZENIE 
+  OPIEKA      
+  INNE        
 }
 
+// Model Zwierzęcia
 model Animal {
-  id               Int           @id @default(autoincrement()) // ID zwierzęcia
-  name             String        // Imię
-  type             AnimalType    @default(INNE) // Typ
-  gender           AnimalGender  @default(SAMIEC) // Płeć
-  size             AnimalSize    @default(SREDNI)  // Rozmiar
-  traits           String        // Cechy
-  dateOfBirth      DateTime      // Data urodzenia
-  description      String        // Opis
-  cageNumber       String        // Numer klatki / kojca
+  id               Int           @id @default(autoincrement()) 
+  name             String       
+  type             AnimalType    @default(INNE) 
+  gender           AnimalGender  @default(SAMIEC) 
+  size             AnimalSize    @default(SREDNI) 
+  traits           String      
+  dateOfBirth      DateTime      
+  description      String        
+  cageId           Int?          @unique 
+  cage             Cage?         @relation(fields: [cageId], references: [id], onDelete: SetNull)
 
-  isSterilized            Boolean @default(false) // Sterylizacja / kastracja
-  isVaccinated            Boolean @default(false) // Szczepienia
-  isChildFriendly         Boolean @default(false) // Przyjazny dzieciom
-  isTrained               Boolean @default(false) // Szkolony
-  lovesPlay               Boolean @default(false) // Uwielbia zabawę
-  lovesWalks              Boolean @default(false) // Uwielbia spacery
-  acceptsDogs             Boolean @default(false) // Akceptuje psy
-  acceptsCats             Boolean @default(false) // Akceptuje koty
-  lovesAffection          Boolean @default(false) // Uwielbia pieszczoty
-  poorlyToleratesShelter  Boolean @default(false) // Źle nosi pobyt w schronisku
+  isSterilized            Boolean @default(false) 
+  isVaccinated            Boolean @default(false) 
+  isChildFriendly         Boolean @default(false) 
+  isTrained               Boolean @default(false) 
+  lovesPlay               Boolean @default(false) 
+  lovesWalks              Boolean @default(false) 
+  acceptsDogs             Boolean @default(false) 
+  acceptsCats             Boolean @default(false) 
+  lovesAffection          Boolean @default(false) 
+  poorlyToleratesShelter  Boolean @default(false) 
 
-  status           AnimalStatus  @default(ZNALEZIONY) // Status
-  healthStatus     AnimalHealthStatus  @default(ZDROWY) // Stan zdrowia
-  nextVisitDate    DateTime?     // Data następnej wizyty
-  foundAt          DateTime      // Data znalezienia
-  foundLocation    String        // Miejsowość znalezienia
+  status           AnimalStatus  @default(ZNALEZIONY) 
+  healthStatus     AnimalHealthStatus  @default(ZDROWY) 
+  nextVisitDate    DateTime?     
+  foundAt          DateTime      
+  foundLocation    String       
 
-  imageUrl         String[]      // URL zdjęć
+  imageUrl         String[]      
   createdAt        DateTime      @default(now())
   updatedAt        DateTime      @updatedAt
-  adoptions        Adoption[]    // Adopcje
-  medicalRecords   MedicalRecord[] // Rekordy medyczne
-  dailyCare        AnimalDailyCare[] // Dzienna opieka (jedzenie, woda, sprzątanie)
-  needs            AnimalNeed[] // Potrzeby zwierzęcia
-
-  @@unique([cageNumber])
+  adoptions        Adoption[]    
+  medicalRecords   MedicalRecord[] 
+  dailyCare        AnimalDailyCare[] 
+  needs            AnimalNeed[] 
 }
 
+// Model Dziennej opieki zwierzęcia
+model AnimalDailyCare {
+  id          Int      @id @default(autoincrement()) 
+  animalId    Int      
+  date        DateTime
+
+  fed         Boolean  @default(false) 
+  watered     Boolean  @default(false) 
+  cleaned     Boolean  @default(false) 
+
+  fedById     Int?     
+  wateredById Int?     
+  cleanedById Int?  
+    
+  fedAt       DateTime?
+  wateredAt   DateTime? 
+  cleanedAt   DateTime? 
+
+  animal      Animal   @relation(fields: [animalId], references: [id], onDelete: Cascade)
+  fedBy       User?    @relation("AnimalDailyCareFedBy", fields: [fedById], references: [id], onDelete: SetNull)
+  wateredBy   User?    @relation("AnimalDailyCareWateredBy", fields: [wateredById], references: [id], onDelete: SetNull)
+  cleanedBy   User?    @relation("AnimalDailyCareCleanedBy", fields: [cleanedById], references: [id], onDelete: SetNull)
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([animalId, date])
+  @@index([date])
+}
+
+// Model Potrzeby zwierzęcia
+model AnimalNeed {
+  id           Int                @id @default(autoincrement())
+  animalId     Int                
+  category     AnimalNeedCategory @default(INNE) 
+  name         String             
+  description  String?            
+  isActive     Boolean            @default(true) 
+  reportedById Int?               
+
+  animal       Animal             @relation(fields: [animalId], references: [id], onDelete: Cascade)
+  reportedBy   User?              @relation("AnimalNeedReportedBy", fields: [reportedById], references: [id], onDelete: SetNull)
+
+  createdAt    DateTime           @default(now())
+  updatedAt    DateTime           @updatedAt
+
+  @@index([animalId])
+  @@index([reportedById])
+  @@index([isActive])
+}
+
+// Model Klatki
+model Cage {
+  id      Int     @id @default(autoincrement()) 
+  zone    String  
+  number  Int     
+  animal  Animal? 
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([zone, number])
+  @@index([zone])
+}
+
+// Model Przypisania strefy na dzień
+model DailyZoneAssignment {
+  id       Int      @id @default(autoincrement()) 
+  date     DateTime 
+  zone     String  
+  workerId Int      
+  worker   User     @relation(fields: [workerId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([date, zone, workerId]) // Ten sam pracownik nie może mieć dwa razy tej samej strefy w danym dniu
+  @@index([date])
+  @@index([date, zone])
+  @@index([workerId])
+}
+
+// Enum status adopcji
 enum AdoptionStatus {
-  OCZEKUJACA // Oczekująca
-  ZAAKCEPTOWANA // Zaakceptowana przez pracownika, mozliwosc przyjscia po odbiór zwierzęcia
-  ODRZUCONA // Odrzucona przez pracownika
-  ANULOWANA // Anulowana przez pracownika
-  ZAKONCZONA // Zakonczona przez pracownika, zwierzę zostało odebranie
+  OCZEKUJACA 
+  ZAAKCEPTOWANA 
+  ODRZUCONA 
+  ANULOWANA 
+  ZAKONCZONA 
 }
 
+// Model Adopcji
 model Adoption {
   id          Int             @id @default(autoincrement()) // ID adopcji
 
-  userId      Int // ID użytkownika
-  animalId    Int // ID zwierzęcia
+  userId      Int 
+  animalId    Int 
+  user        User            @relation(fields: [userId], references: [id], onDelete: Cascade) 
+  animal      Animal          @relation(fields: [animalId], references: [id], onDelete: Cascade) 
 
-  user        User            @relation(fields: [userId], references: [id], onDelete: Cascade) // Użytkownik
-  animal      Animal          @relation(fields: [animalId], references: [id], onDelete: Cascade) // Zwierzę
+  status      AdoptionStatus  @default(OCZEKUJACA) 
 
-  status      AdoptionStatus  @default(OCZEKUJACA) // Status adopcji
+  message     String?         
+  employeeNote String?       
 
-  message     String?         // Wiadomość od adoptującego
-  employeeNote String?        // Notatka pracownika schroniska
+  processedById Int? 
+  processedBy User?            @relation(fields: [processedById], references: [id], name: "processedBy") 
 
-  processedById Int? // ID pracownika, który przetworzył adopcję
-  processedBy User?            @relation(fields: [processedById], references: [id], name: "processedBy") // Pracownik, który przetworzył adopcję
-
-  createdAt   DateTime        @default(now()) // Data utworzenia
-  updatedAt   DateTime        @updatedAt // Data aktualizacji
+  createdAt   DateTime        @default(now()) 
+  updatedAt   DateTime        @updatedAt 
 }
 
+// Model Weterynarza
 model Vet {
   id Int @id @default(autoincrement())
   name String
@@ -171,21 +266,24 @@ model Vet {
   records MedicalRecord[]
 }
 
+// Enum typ rekordu medycznego
 enum MedicalRecordType {
-  WIZYTA // Wizyta kontrolna systematyczna
-  BADANIE // Badanie specjalistyczne
-  OPERACJA // Operacja chirurgiczna
-  SZCZEPIENIE // Szczepienie 
-  URAZ // Uraz w wyniku wypadku
-  INNE // Inne rekordy medyczne
+  WIZYTA 
+  BADANIE 
+  OPERACJA 
+  SZCZEPIENIE 
+  URAZ 
+  INNE 
 }
 
+// Enum status rekordu medycznego
 enum MedicalRecordStatus {
-  DO_REALIZACJI // Do realizacji
-  W_TRAKCIE // W trakcie
-  ZREALIZOWANA // Zrealizowana
+  DO_REALIZACJI 
+  W_TRAKCIE 
+  ZREALIZOWANA 
 }
 
+// Model Rekordu medycznego
 model MedicalRecord {
   id Int @id @default(autoincrement()) // ID rekordu medycznego
   animalId Int 
@@ -205,6 +303,7 @@ model MedicalRecord {
   updatedAt DateTime @updatedAt // Data aktualizacji
 }
 
+// Model Subskrybenta newslettera
 model NewsletterSubscriber {
   id               Int      @id @default(autoincrement())
   email            String   @unique
@@ -214,46 +313,3 @@ model NewsletterSubscriber {
   createdAt        DateTime @default(now())
 }
 
-model AnimalDailyCare {
-  id          Int      @id @default(autoincrement()) // ID wpisu dziennej opieki
-  animalId    Int      // ID zwierzęcia
-  date        DateTime // Dzień, którego dotyczy wpis
-
-  fed         Boolean  @default(false) // Czy podano jedzenie
-  watered     Boolean  @default(false) // Czy podano wodę
-  cleaned     Boolean  @default(false) // Czy posprzątano kojec
-
-  fedById     Int?     // Pracownik, który odznaczył jedzenie
-  wateredById Int?     // Pracownik, który odznaczył wodę
-  cleanedById Int?     // Pracownik, który odznaczył sprzątanie
-  fedAt       DateTime? // Kiedy odznaczono jedzenie
-  wateredAt   DateTime? // Kiedy odznaczono wodę
-  cleanedAt   DateTime? // Kiedy odznaczono sprzątanie
-
-  animal      Animal   @relation(fields: [animalId], references: [id], onDelete: Cascade)
-  fedBy       User?    @relation("AnimalDailyCareFedBy", fields: [fedById], references: [id], onDelete: SetNull)
-  wateredBy   User?    @relation("AnimalDailyCareWateredBy", fields: [wateredById], references: [id], onDelete: SetNull)
-  cleanedBy   User?    @relation("AnimalDailyCareCleanedBy", fields: [cleanedById], references: [id], onDelete: SetNull)
-
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  @@unique([animalId, date])
-  @@index([date])
-}
-
-model AnimalNeed {
-  id          Int                @id @default(autoincrement()) // ID potrzeby
-  animalId    Int                // ID zwierzęcia
-  category    AnimalNeedCategory @default(INNE) // Kategoria potrzeby
-  name        String             // Nazwa, np. "Karma hipoalergiczna"
-  description String?            // Dodatkowy opis lub instrukcja
-  isActive    Boolean            @default(true) // Czy potrzeba jest aktualna
-
-  animal      Animal             @relation(fields: [animalId], references: [id], onDelete: Cascade)
-
-  createdAt   DateTime           @default(now())
-  updatedAt   DateTime           @updatedAt
-
-  @@index([animalId])
-}

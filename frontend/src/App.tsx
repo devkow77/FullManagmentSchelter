@@ -37,6 +37,9 @@ import {
   AddVetPage,
   EditVetPage,
   AdminStatisticsPage,
+  AdminCagesPage,
+  AddCagePage,
+  WorkWeekPage,
 } from "./pages/admin";
 import { ProtectedRoute } from "./components/auth/ProtectedRoute";
 import {
@@ -46,6 +49,8 @@ import {
   AddMedicalRecordPage,
   EditMedicalRecordPage,
   DailyAnimalNeedsPage,
+  AnimalDemandsPage,
+  AddDemandPage,
 } from "./pages/worker";
 
 const queryClient = new QueryClient();
@@ -207,6 +212,14 @@ const router = createBrowserRouter([
         element: <AdminVetsPage />,
       },
       {
+        path: "/admin/klatki",
+        element: <AdminCagesPage />,
+      },
+      {
+        path: "/admin/klatki/dodaj",
+        element: <AddCagePage />,
+      },
+      {
         path: "/admin/weterynarze/dodaj",
         element: <AddVetPage />,
       },
@@ -217,6 +230,10 @@ const router = createBrowserRouter([
       {
         path: "/admin/statystyki",
         element: <AdminStatisticsPage />,
+      },
+      {
+        path: "/admin/tydzien-pracy",
+        element: <WorkWeekPage />,
       },
     ],
   },
@@ -252,6 +269,14 @@ const router = createBrowserRouter([
       {
         path: "/pracownik/codzienne-obowiazki",
         element: <DailyAnimalNeedsPage />,
+      },
+      {
+        path: "/pracownik/zapotrzebowania-zwierzat",
+        element: <AnimalDemandsPage />,
+      },
+      {
+        path: "/pracownik/zapotrzebowania-zwierzat/dodaj",
+        element: <AddDemandPage />,
       },
     ],
   },

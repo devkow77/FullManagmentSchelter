@@ -17,7 +17,7 @@ const AnimalCard = ({ animal }: { animal: Animal }) => {
       to={`/zwierzeta/${animal.id}`}
       className="space-y-2 transition-colors duration-200 hover:text-green-900"
     >
-      <div className="relative grid aspect-video place-items-center overflow-hidden rounded-xl bg-black/10">
+      <div className="relative grid aspect-video place-items-center overflow-hidden rounded-xl bg-gray-100">
         {animal.imageUrl[0] ? (
           <img
             src={animal.imageUrl[0]}
@@ -25,7 +25,7 @@ const AnimalCard = ({ animal }: { animal: Animal }) => {
             className="absolute size-full object-cover"
           />
         ) : (
-          <ImageOff className="absolute size-10 object-cover text-black opacity-20 md:size-20" />
+          <ImageOff className="absolute size-10 object-cover text-gray-300 md:size-20" />
         )}
         <FavouriteAnimalButton animalId={animal.id} animalName={animal.name} />
       </div>

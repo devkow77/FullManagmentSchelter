@@ -7,7 +7,7 @@ import { useForm } from "react-hook-form";
 import { useQueryClient } from "@tanstack/react-query";
 import { Button, Container, Label, Textarea } from "@/components/ui";
 import axios from "axios";
-import { ImageOff } from "lucide-react";
+import { ImageOff, UserRound } from "lucide-react";
 import { toast } from "sonner";
 import {
   styleAdoptionStatus,
@@ -209,7 +209,7 @@ const EditAdoptionPage = () => {
                       className="absolute h-full w-full rounded-full object-cover"
                     />
                   ) : (
-                    <ImageOff className="absolute size-15 object-cover text-black opacity-20 md:size-20" />
+                    <UserRound className="size-15 text-black opacity-20 md:size-20" />
                   )}
                 </div>
               </div>

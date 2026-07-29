@@ -227,7 +227,6 @@ const AnimalsPage = () => {
               </span>
             )}
           </div>
-
           <div
             className={`grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 lg:gap-6 ${
               isFiltering ? "opacity-60 transition-opacity" : ""
@@ -252,6 +251,7 @@ const AnimalsPage = () => {
   );
 };
 
+// UI podczas ładowania zwierzat
 const LoadingAnimals = () => {
   return Array.from({ length: PAGE_SIZE }).map((_, index) => (
     <div key={index} className="space-y-2">
@@ -264,6 +264,7 @@ const LoadingAnimals = () => {
   ));
 };
 
+// UI podczas braku zwierzat
 const EmptyAnimals = () => {
   return (
     <section
@@ -281,6 +282,7 @@ const EmptyAnimals = () => {
   );
 };
 
+// UI podczas wystąpienia błędu
 const ErrorAnimals = () => {
   return (
     <section className="flex flex-col items-center justify-center gap-4 rounded-xl border border-red-200 bg-red-50 px-6 py-12 text-center">

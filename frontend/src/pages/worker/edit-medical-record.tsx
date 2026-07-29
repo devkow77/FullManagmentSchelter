@@ -9,19 +9,13 @@ import {
   Input,
   Label,
   Textarea,
-  Combobox,
-  ComboboxChips,
-  ComboboxChipsInput,
-  ComboboxContent,
-  ComboboxEmpty,
-  ComboboxItem,
-  ComboboxList,
 } from "@/components/ui";
 import { useEffect, useMemo, useState } from "react";
 import axios from "axios";
 import { toast } from "sonner";
 import { formatAnimalType } from "@/lib/utils";
 import type { LabelValueType } from "@/types/common";
+import { SingleValueSelector } from "@/components/shared";
 import {
   medicalRecordSchema,
   type MedicalRecordFormData,
@@ -30,54 +24,6 @@ import {
   medicalRecordTypeOptions,
   medicalRecordStatusOptions,
 } from "@/constants/medical-record.constants";
-
-type OptionSelectorProps = {
-  options: LabelValueType[];
-  placeholder: string;
-  value: string | null;
-  onValueChange: (value: string | null) => void;
-  hasError?: boolean;
-};
-
-const OptionSelector = ({
-  options,
-  placeholder,
-  value,
-  onValueChange,
-  hasError,
-}: OptionSelectorProps) => {
-  const labels = options.map((option) => option.label);
-  const selectedLabel =
-    options.find((option) => option.value === value)?.label ?? null;
-
-  return (
-    <Combobox
-      items={labels}
-      value={selectedLabel}
-      onValueChange={(label) => {
-        const option = options.find((item) => item.label === label);
-        onValueChange(option?.value ?? null);
-      }}
-    >
-      <ComboboxChips className={hasError ? "bg-red-600/20" : undefined}>
-        <ComboboxChipsInput
-          placeholder={placeholder}
-          className="placeholder:text-muted-foreground py-1 text-sm lg:text-base"
-        />
-      </ComboboxChips>
-      <ComboboxContent>
-        <ComboboxEmpty>Brak dostępnych opcji</ComboboxEmpty>
-        <ComboboxList>
-          {options.map((option) => (
-            <ComboboxItem key={option.value} value={option.label}>
-              {option.label}
-            </ComboboxItem>
-          ))}
-        </ComboboxList>
-      </ComboboxContent>
-    </Combobox>
-  );
-};
 
 type Vet = {
   id: number;
@@ -218,8 +164,8 @@ const EditMedicalRecordPage = () => {
                 name="vetId"
                 control={control}
                 render={({ field }) => (
-                  <OptionSelector
-                    options={vetOptions}
+                  <SingleValueSelector
+                    items={vetOptions}
                     placeholder={
                       isLoading ? "Ładowanie klinik..." : "Wybierz klinikę"
                     }
@@ -227,7 +173,7 @@ const EditMedicalRecordPage = () => {
                     onValueChange={(value) =>
                       field.onChange(value ? Number(value) : 0)
                     }
-                    hasError={!!errors.vetId}
+                    className={errors.vetId ? "bg-red-600/20" : undefined}
                   />
                 )}
               />
@@ -244,8 +190,8 @@ const EditMedicalRecordPage = () => {
                 name="animalId"
                 control={control}
                 render={({ field }) => (
-                  <OptionSelector
-                    options={animalOptions}
+                  <SingleValueSelector
+                    items={animalOptions}
                     placeholder={
                       isLoading ? "Ładowanie zwierząt..." : "Wybierz zwierzę"
                     }
@@ -253,7 +199,7 @@ const EditMedicalRecordPage = () => {
                     onValueChange={(value) =>
                       field.onChange(value ? Number(value) : 0)
                     }
-                    hasError={!!errors.animalId}
+                    className={errors.animalId ? "bg-red-600/20" : undefined}
                   />
                 )}
               />
@@ -270,12 +216,12 @@ const EditMedicalRecordPage = () => {
                 name="type"
                 control={control}
                 render={({ field }) => (
-                  <OptionSelector
-                    options={typeOptions}
+                  <SingleValueSelector
+                    items={typeOptions}
                     placeholder="Wybierz typ raportu"
                     value={field.value}
                     onValueChange={(value) => field.onChange(value ?? "WIZYTA")}
-                    hasError={!!errors.type}
+                    className={errors.type ? "bg-red-600/20" : undefined}
                   />
                 )}
               />
@@ -292,14 +238,14 @@ const EditMedicalRecordPage = () => {
                 name="status"
                 control={control}
                 render={({ field }) => (
-                  <OptionSelector
-                    options={statusOptions}
+                  <SingleValueSelector
+                    items={statusOptions}
                     placeholder="Wybierz status"
                     value={field.value}
                     onValueChange={(value) =>
                       field.onChange(value ?? "DO_REALIZACJI")
                     }
-                    hasError={!!errors.status}
+                    className={errors.status ? "bg-red-600/20" : undefined}
                   />
                 )}
               />

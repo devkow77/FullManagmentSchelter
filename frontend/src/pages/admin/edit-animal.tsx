@@ -2,7 +2,7 @@
 
 import { toast } from "sonner";
 import { useNavigate, useParams } from "react-router";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm, Controller } from "react-hook-form";
 import { Button, Container, Input, Label, Textarea } from "@/components/ui";
@@ -10,8 +10,12 @@ import axios from "axios";
 import { Plus, Star, Trash } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { SingleValueSelector } from "@/components/shared";
-import { animalSchema, type AnimalFormData } from "@/schemas/animal.schema";
-import type { Animal } from "@/types/animal";
+import {
+  animalSchema,
+  type AnimalFormData,
+  getMinNextVisitDate,
+} from "@/schemas/animal.schema";
+import type { Animal, Cage } from "@/types/animal";
 import {
   animalTypeValues,
   animalGenderValues,
@@ -19,6 +23,20 @@ import {
   animalStatusValues,
   animalHealthStatusValues,
 } from "@/constants/animal.constants";
+import { useQuery } from "@tanstack/react-query";
+
+const getCagesForEdit = async (includeCageId?: number | null) => {
+  const res = await axios.get<Cage[]>("/api/cages", {
+    params: {
+      available: true,
+      ...(includeCageId ? { includeCageId } : {}),
+    },
+    withCredentials: true,
+  });
+  return res.data;
+};
+
+const formatCageNumber = (number: number) => String(number).padStart(2, "0");
 
 const EditAnimalPage = () => {
   const { id } = useParams();
@@ -44,10 +62,10 @@ const EditAnimalPage = () => {
       description: "",
       status: "ZNALEZIONY",
       healthStatus: "ZDROWY",
-      nextVisitDate: new Date().toISOString().split("T")[0],
+      nextVisitDate: "",
       foundAt: new Date().toISOString().split("T")[0],
       foundLocation: "",
-      cageNumber: "",
+      cageId: 0,
       isSterilized: false,
       isVaccinated: false,
       isChildFriendly: false,
@@ -70,6 +88,39 @@ const EditAnimalPage = () => {
   const [primaryImageIndex, setPrimaryImageIndex] = useState(0);
 
   const existingImages = watch("imageUrl") || [];
+  const selectedCageId = watch("cageId");
+  const [loadedCageId, setLoadedCageId] = useState<number | null>(null);
+  const [selectedZone, setSelectedZone] = useState<string | null>(null);
+
+  const { data: cages = [] } = useQuery({
+    queryKey: ["cages", "available", loadedCageId],
+    queryFn: () => getCagesForEdit(loadedCageId),
+  });
+
+  const freeZones = useMemo(
+    () => [...new Set(cages.map((cage) => cage.zone))].sort(),
+    [cages],
+  );
+
+  const cagesInSelectedZone = useMemo(
+    () =>
+      selectedZone
+        ? cages
+            .filter((cage) => cage.zone === selectedZone)
+            .sort((a, b) => a.number - b.number)
+        : [],
+    [cages, selectedZone],
+  );
+
+  const cageNumberItems = useMemo(
+    () => cagesInSelectedZone.map((cage) => formatCageNumber(cage.number)),
+    [cagesInSelectedZone],
+  );
+
+  const selectedCageNumber = useMemo(() => {
+    const cage = cagesInSelectedZone.find((item) => item.id === selectedCageId);
+    return cage ? formatCageNumber(cage.number) : null;
+  }, [cagesInSelectedZone, selectedCageId]);
 
   const previewImages = [
     ...existingImages,
@@ -104,7 +155,7 @@ const EditAnimalPage = () => {
             ? new Date(data.foundAt).toISOString().split("T")[0]
             : "",
           foundLocation: data.foundLocation,
-          cageNumber: data.cageNumber,
+          cageId: data.cageId ?? 0,
           isSterilized: data.isSterilized,
           isVaccinated: data.isVaccinated,
           isChildFriendly: data.isChildFriendly,
@@ -117,6 +168,8 @@ const EditAnimalPage = () => {
           poorlyToleratesShelter: data.poorlyToleratesShelter,
           imageUrl: data.imageUrl || [],
         });
+        setLoadedCageId(data.cageId ?? null);
+        setSelectedZone(data.cage?.zone ?? null);
         setPrimaryImageIndex(0);
       } catch (err) {
         console.error("Błąd podczas pobierania:", err);
@@ -513,18 +566,51 @@ const EditAnimalPage = () => {
                 )}
               </div>
 
-              {/* NUMER KLATKI */}
+              {/* STREFA I WOLNA KLATKA */}
               <div className="space-y-2">
-                <Label htmlFor="cageNumber">Numer klatki</Label>
-                <Input
-                  id="cageNumber"
-                  {...register("cageNumber")}
-                  placeholder="np. A-12"
-                  className={errors.cageNumber && "bg-red-600/20"}
+                <Label>Strefa</Label>
+                <SingleValueSelector
+                  items={freeZones}
+                  placeholder="Wybierz strefę"
+                  value={selectedZone}
+                  onValueChange={(zone) => {
+                    setSelectedZone(zone);
+                    const stillValid = cages.some(
+                      (cage) =>
+                        cage.id === selectedCageId && cage.zone === zone,
+                    );
+                    if (!stillValid) setValue("cageId", 0);
+                  }}
                 />
-                {errors.cageNumber && (
+              </div>
+
+              <div className="space-y-2">
+                <Label>Wolna klatka</Label>
+                <Controller
+                  name="cageId"
+                  control={control}
+                  render={({ field }) => (
+                    <SingleValueSelector
+                      items={cageNumberItems}
+                      placeholder={
+                        selectedZone
+                          ? "Wybierz wolną klatkę"
+                          : "Najpierw wybierz strefę"
+                      }
+                      value={selectedCageNumber}
+                      onValueChange={(numberLabel) => {
+                        const cage = cagesInSelectedZone.find(
+                          (item) =>
+                            formatCageNumber(item.number) === numberLabel,
+                        );
+                        field.onChange(cage?.id ?? 0);
+                      }}
+                    />
+                  )}
+                />
+                {errors.cageId && (
                   <p className="text-xs font-medium text-red-600 lg:text-sm">
-                    {errors.cageNumber.message}
+                    {errors.cageId.message}
                   </p>
                 )}
               </div>
@@ -652,6 +738,7 @@ const EditAnimalPage = () => {
                 <Input
                   id="nextVisitDate"
                   type="date"
+                  min={getMinNextVisitDate()}
                   className={errors.nextVisitDate && "bg-red-600/20"}
                   {...register("nextVisitDate")}
                 />

@@ -1,13 +1,17 @@
 import { StatusCodes } from 'http-status-codes';
 import prisma from '../prisma';
 import { type Request, type Response } from 'express';
-import { editAdoptionStatusSchema } from '../validators/adoption.validator';
+import {
+  createAdoptionSchema,
+  editAdoptionStatusSchema,
+} from '../validators/adoption.validator';
 import {
   adoptionDetailInclude,
   adoptionListInclude,
 } from '../selects/adoption.select';
-import { AdoptionStatus } from '../generated/prisma/enums';
+import { AdoptionStatus, AnimalStatus } from '../generated/prisma/enums';
 import type { Prisma } from '../generated/prisma/client';
+import type { AuthRequest } from '../middlewares/auth.middleware';
 
 const DEFAULT_ADOPTIONS_PAGE_SIZE = 10;
 
@@ -17,6 +21,78 @@ const parseCsvParam = (value: unknown) => {
     .split(',')
     .map((item) => item.trim())
     .filter(Boolean);
+};
+
+// 0. Utwórz nową adopcję
+export const createAdoption = async (req: AuthRequest, res: Response) => {
+  const parsedBody = createAdoptionSchema.safeParse(req.body);
+
+  if (!parsedBody.success) {
+    return res.status(StatusCodes.BAD_REQUEST).json({
+      msg: 'Nieprawidłowy format danych!',
+    });
+  }
+
+  if (!req.userId) {
+    return res.status(StatusCodes.UNAUTHORIZED).json({
+      msg: 'Brak autoryzacji użytkownika!',
+    });
+  }
+
+  const { animalId, message } = parsedBody.data;
+
+  try {
+    const animal = await prisma.animal.findUnique({
+      where: { id: animalId },
+      select: { id: true, status: true },
+    });
+
+    if (!animal) {
+      return res.status(StatusCodes.NOT_FOUND).json({
+        msg: 'Zwierzę o podanym ID nie zostało znalezione!',
+      });
+    }
+
+    if (animal.status !== AnimalStatus.SZUKA_DOMU) {
+      return res.status(StatusCodes.BAD_REQUEST).json({
+        msg: 'Dla tego zwierzęcia nie można utworzyć adopcji!',
+      });
+    }
+
+    const existingAdoption = await prisma.adoption.findFirst({
+      where: {
+        userId: req.userId,
+        animalId,
+        status: {
+          in: [AdoptionStatus.OCZEKUJACA, AdoptionStatus.ZAAKCEPTOWANA],
+        },
+      },
+      select: { id: true },
+    });
+
+    if (existingAdoption) {
+      return res.status(StatusCodes.CONFLICT).json({
+        msg: 'Masz już aktywny wniosek adopcyjny dla tego zwierzęcia!',
+      });
+    }
+
+    const adoption = await prisma.adoption.create({
+      data: {
+        userId: req.userId,
+        animalId,
+        message,
+      },
+    });
+
+    return res.status(StatusCodes.CREATED).json({
+      msg: 'Wniosek adopcyjny został utworzony!',
+      id: adoption.id,
+    });
+  } catch {
+    return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
+      msg: 'Wewnętrzny błąd serwera!',
+    });
+  }
 };
 
 // 1. Pobierz wszystkie adopcje (z opcjonalną paginacją i filtrami)

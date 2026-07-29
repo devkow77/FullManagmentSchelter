@@ -1,15 +1,21 @@
 import Container from "./Container";
+import ConfirmDeleteDialog from "./confirm-delete-dialog";
 import DeleteAnimalDialog from "./delete-animal-dialog";
 import DeleteUserDialog from "./delete-user-dialog";
 import DeleteVetDialog from "./delete-vet-dialog";
+import DeleteCageDialog from "./delete-cage-dialog";
 import DeleteMedicalRecordDialog from "./delete-medical-record-dialog";
+import DeleteAnimalNeedDialog from "./delete-animal-need-dialog";
 
 export {
   Container,
+  ConfirmDeleteDialog,
   DeleteAnimalDialog,
   DeleteUserDialog,
   DeleteVetDialog,
+  DeleteCageDialog,
   DeleteMedicalRecordDialog,
+  DeleteAnimalNeedDialog,
 };
 
 export {

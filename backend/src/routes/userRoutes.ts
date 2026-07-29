@@ -5,6 +5,7 @@ import {
   getUniqueUser,
   getUsers,
   getWorkers,
+  getWorkerStats,
   updatePassword,
   updateUniqueUser,
 } from '../controllers/userControllers';
@@ -25,10 +26,21 @@ router.get(
 router.get(
   '/workers',
   authenticateUser,
-  authorizeRoles(Role.ADMINISTRATOR),
+  authorizeRoles(Role.PRACOWNIK, Role.ADMINISTRATOR),
   getWorkers,
 );
-router.get('/:id', authenticateUser, getUniqueUser);
+router.get(
+  '/workers/stats',
+  authenticateUser,
+  authorizeRoles(Role.ADMINISTRATOR),
+  getWorkerStats,
+);
+router.get(
+  '/:id',
+  authenticateUser,
+  authorizeRoles(Role.PRACOWNIK, Role.ADMINISTRATOR),
+  getUniqueUser,
+);
 router.post(
   '/',
   authenticateUser,

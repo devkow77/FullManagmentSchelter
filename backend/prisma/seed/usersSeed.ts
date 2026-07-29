@@ -29,6 +29,18 @@ const usersSeed = async () => {
         role: Role.PRACOWNIK,
       },
       {
+        fullName: 'Pracownik Anna',
+        email: 'pracownik3@gmail.com',
+        password: hashedPassword,
+        role: Role.PRACOWNIK,
+      },
+      {
+        fullName: 'Pracownik Piotr',
+        email: 'pracownik4@gmail.com',
+        password: hashedPassword,
+        role: Role.PRACOWNIK,
+      },
+      {
         fullName: 'Michał Kowalski',
         email: 'michal@gmail.com',
         password: hashedPassword,

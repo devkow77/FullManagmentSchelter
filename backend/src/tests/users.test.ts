@@ -75,16 +75,33 @@ describe('Zarządzanie użytkownikami - Testy integracyjne', () => {
       ).toBe(true);
     });
 
-    it('Zwraca błąd 403 dla pracownika', async () => {
+    it('Zwraca pracowników także dla pracownika', async () => {
       const res = await workerAgent.get('/api/users/workers');
 
-      expect(res.status).toBe(StatusCodes.FORBIDDEN);
-      expect(res.body.msg).toBe('Brak uprawnień!');
+      expect(res.status).toBe(StatusCodes.OK);
+      expect(Array.isArray(res.body)).toBe(true);
+      expect(
+        res.body.every((user: { role: string }) => user.role !== 'UZYTKOWNIK'),
+      ).toBe(true);
     });
   });
 
   describe('GET /api/users/:id', () => {
-    it('Zwraca dane istniejącego użytkownika', async () => {
+    it('Zwraca dane istniejącego użytkownika dla administratora', async () => {
+      const existingUser = await prisma.user.findUnique({
+        where: { email: 'michal@gmail.com' },
+      });
+
+      expect(existingUser).not.toBeNull();
+
+      const res = await adminAgent.get(`/api/users/${existingUser!.id}`);
+
+      expect(res.status).toBe(StatusCodes.OK);
+      expect(res.body.email).toBe('michal@gmail.com');
+      expect(res.body.fullName).toBe('Michał');
+    });
+
+    it('Zwraca błąd 403 dla zwykłego użytkownika', async () => {
       const existingUser = await prisma.user.findUnique({
         where: { email: 'michal@gmail.com' },
       });
@@ -93,9 +110,8 @@ describe('Zarządzanie użytkownikami - Testy integracyjne', () => {
 
       const res = await userAgent.get(`/api/users/${existingUser!.id}`);
 
-      expect(res.status).toBe(StatusCodes.OK);
-      expect(res.body.email).toBe('michal@gmail.com');
-      expect(res.body.fullName).toBe('Michał');
+      expect(res.status).toBe(StatusCodes.FORBIDDEN);
+      expect(res.body.msg).toBe('Brak uprawnień!');
     });
 
     it('Zwraca błąd 400 dla nieprawidłowego ID', async () => {

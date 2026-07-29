@@ -29,7 +29,7 @@ interface LoginResponse {
 }
 
 type LoginFormProps = {
-    on2FARequired: (tempToken: string) => void;
+  on2FARequired: (tempToken: string) => void;
 };
 
 const LoginForm = ({ on2FARequired }: LoginFormProps) => {
@@ -49,14 +49,14 @@ const LoginForm = ({ on2FARequired }: LoginFormProps) => {
       const res = await axios.post<LoginResponse>("/api/auth/login", data, {
         withCredentials: true,
       });
-      
+
       if (res.data.requires2FA) {
         on2FARequired(res.data.tempToken);
         return;
       }
 
       setUser(res.data.user);
-      navigate("/"); 
+      navigate("/");
     } catch (err: unknown) {
       if (err instanceof AxiosError) {
         toast.error(err.response?.data.msg);
@@ -67,51 +67,51 @@ const LoginForm = ({ on2FARequired }: LoginFormProps) => {
   };
 
   return (
-          <form onSubmit={handleSubmit(onSubmit)}>
-            {/* Email */}
-            <Label>Email</Label>
-            <Input
-              {...register("email")}
-              className="mt-2 mb-4"
-              placeholder="Podaj swój email..."
-            />
-            {errors.email && (
-              <p className="-mt-2 mb-4 text-xs font-medium text-red-600 lg:text-sm">
-                {errors.email.message}
-              </p>
-            )}
+    <form onSubmit={handleSubmit(onSubmit)}>
+      {/* Email */}
+      <Label>Email</Label>
+      <Input
+        {...register("email")}
+        className={`mt-2 mb-4 ${errors.email ? "bg-red-600/20" : ""}`}
+        placeholder="Podaj swój email..."
+      />
+      {errors.email && (
+        <p className="-mt-2 mb-4 text-xs font-medium text-red-600 lg:text-sm">
+          {errors.email.message}
+        </p>
+      )}
 
-            {/* Password */}
-            <Label>Hasło</Label>
-            <Input
-              type="password"
-              {...register("password")}
-              className="mt-2 mb-4"
-              placeholder="Podaj swoje hasło..."
-            />
-            {errors.password && (
-              <p className="-mt-2 mb-4 text-xs font-medium text-red-600 lg:text-sm">
-                {errors.password.message}
-              </p>
-            )}
+      {/* Password */}
+      <Label>Hasło</Label>
+      <Input
+        type="password"
+        {...register("password")}
+        className={`mt-2 mb-4 ${errors.password ? "bg-red-600/20" : ""}`}
+        placeholder="Podaj swoje hasło..."
+      />
+      {errors.password && (
+        <p className="-mt-2 mb-4 text-xs font-medium text-red-600 lg:text-sm">
+          {errors.password.message}
+        </p>
+      )}
 
-            <div className="flex flex-wrap items-center justify-between gap-4">
-              <Button
-                type="submit"
-                disabled={isSubmitting}
-                className="cursor-pointer bg-green-600"
-              >
-                {isSubmitting ? "Logowanie..." : "Zaloguj się"}
-              </Button>
+      <div className="flex flex-wrap items-center justify-between gap-4">
+        <Button
+          type="submit"
+          disabled={isSubmitting}
+          className="cursor-pointer bg-green-600"
+        >
+          {isSubmitting ? "Logowanie..." : "Zaloguj się"}
+        </Button>
 
-              <p className="text-sm lg:text-base">
-                Nie masz konta?{" "}
-                <Link to="/rejestracja" className="font-semibold">
-                  Zarejestruj się
-                </Link>
-              </p>
-            </div>
-          </form>
+        <p className="text-sm lg:text-base">
+          Nie masz konta?{" "}
+          <Link to="/rejestracja" className="font-semibold">
+            Zarejestruj się
+          </Link>
+        </p>
+      </div>
+    </form>
   );
 };
 

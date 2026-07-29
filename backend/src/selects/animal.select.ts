@@ -1,3 +1,14 @@
+export const formatCageLabel = (cage: {
+  zone: string;
+  number: number;
+}): string => `${cage.zone}-${String(cage.number).padStart(2, '0')}`;
+
+export const cageSelect = {
+  id: true,
+  zone: true,
+  number: true,
+} as const;
+
 export const animalBooleanTraitSelect = {
   isSterilized: true,
   isVaccinated: true,
@@ -11,6 +22,7 @@ export const animalBooleanTraitSelect = {
   poorlyToleratesShelter: true,
 } as const;
 
+// WSZYSTKIE DANE ZWIERZA
 export const animalSelect = {
   id: true,
   name: true,
@@ -20,7 +32,8 @@ export const animalSelect = {
   traits: true,
   dateOfBirth: true,
   description: true,
-  cageNumber: true,
+  cageId: true,
+  cage: { select: cageSelect },
   ...animalBooleanTraitSelect,
   status: true,
   healthStatus: true,
@@ -39,7 +52,8 @@ export const animalListSelect = {
   size: true,
   description: true,
   dateOfBirth: true,
-  cageNumber: true,
+  cageId: true,
+  cage: { select: cageSelect },
   status: true,
   healthStatus: true,
   imageUrl: true,

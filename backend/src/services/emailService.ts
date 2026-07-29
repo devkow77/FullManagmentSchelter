@@ -167,10 +167,12 @@ export const notifySubscribersAboutNewAnimal = async (animal: Animal) => {
   );
 };
 
-export const triggerNewAnimalNotification = (animal: Animal) => {
+export const triggerNewAnimalNotification = (
+  animal: Pick<Animal, 'status' | 'name' | 'type' | 'gender' | 'size' | 'description' | 'imageUrl'>,
+) => {
   if (animal.status !== AnimalStatus.SZUKA_DOMU) return;
 
-  void notifySubscribersAboutNewAnimal(animal).catch((err) => {
+  void notifySubscribersAboutNewAnimal(animal as Animal).catch((err) => {
     console.error('Błąd wysyłki newslettera o nowym zwierzęciu:', err);
   });
 };

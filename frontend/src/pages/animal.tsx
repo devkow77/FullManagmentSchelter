@@ -16,6 +16,7 @@ import {
 import type { AnimalHealthStatus, AnimalStatus } from "@/types/animal";
 import { Link } from "react-router";
 import { AnimalCard } from "@/components/shared";
+import { useAuth } from "@/context/AuthContext";
 
 interface Animal {
   id: number;
@@ -42,6 +43,7 @@ interface Animal {
   poorlyToleratesShelter: boolean;
 }
 
+// Cechy zwierzęcia
 const ANIMAL_TRAIT_ITEMS = [
   { key: "isSterilized", label: "Sterylizacja/Kastracja" },
   { key: "isVaccinated", label: "Szczepienia" },
@@ -55,32 +57,42 @@ const ANIMAL_TRAIT_ITEMS = [
   { key: "poorlyToleratesShelter", label: "Źle nosi pobyt w schronisku" },
 ] as const;
 
+// Ilosc dni do upływu aby zwierzę mogło być adoptowane
 const DAYS_UNTIL_AVAILABLE = 7;
 
+// Funkcja obliczająca dni do adoptacji zwierzęcia
 const getDaysUntilAvailable = (foundAt: string | Date) => {
+  // Data znalezienia zwierzęcia
   const foundDate = new Date(foundAt);
   foundDate.setHours(0, 0, 0, 0);
 
+  // Data, od której zwierzę może być adoptowane
   const availableDate = new Date(foundDate);
   availableDate.setDate(availableDate.getDate() + DAYS_UNTIL_AVAILABLE);
 
+  // Dzisiaj
   const today = new Date();
   today.setHours(0, 0, 0, 0);
 
+  // Różnica między datą, od której zwierzę może być adoptowane a dzisiejszą datą
   const diffMs = availableDate.getTime() - today.getTime();
+
   return Math.max(0, Math.ceil(diffMs / (1000 * 60 * 60 * 24)));
 };
 
+// Funkcja formatująca dni do adoptacji zwierzęcia
 const formatDaysLeft = (days: number) => {
   if (days === 1) return "1 dzień";
   return `${days} dni`;
 };
 
+// Funkcja pobierająca dane zwierzęcia
 const getAnimal = async (id: string) => {
   const res = await axios.get<Animal>(`/api/animals/${id}`);
   return res.data;
 };
 
+// Funkcja pobierająca innych zwierzat
 const getOtherAnimals = async (excludeId: string) => {
   const res = await axios.get<Animal[]>(
     `/api/animals?limit=6&status=SZUKA_DOMU`,
@@ -89,6 +101,7 @@ const getOtherAnimals = async (excludeId: string) => {
   return res.data.filter((animal) => animal.id !== Number(excludeId));
 };
 
+// Funkcja renderująca ikonę cechy zwierzęcia
 const TraitIcon = ({ active }: { active: boolean }) =>
   active ? (
     <Check className="text-green-600" />
@@ -98,12 +111,13 @@ const TraitIcon = ({ active }: { active: boolean }) =>
 
 const AnimalPage = () => {
   const { id } = useParams();
+  const { user } = useAuth();
 
   const { data } = useQuery({
     queryKey: ["animal", id],
     queryFn: () =>
       Promise.all([getAnimal(id as string), getOtherAnimals(id as string)]),
-    enabled: Boolean(id),
+    enabled: Boolean(id), // uruchamia query tylko jeśli id nie jest undefined
   });
 
   const animal = data?.[0];
@@ -112,15 +126,22 @@ const AnimalPage = () => {
   const canAdopt = animal?.status === "SZUKA_DOMU";
   const isFound = animal?.status === "ZNALEZIONY";
   const daysUntilAvailable =
-    isFound && animal?.foundAt
-      ? getDaysUntilAvailable(animal.foundAt)
-      : null;
+    isFound && animal?.foundAt ? getDaysUntilAvailable(animal.foundAt) : null;
+
+  const canSubmitAdoption = user?.role === "UZYTKOWNIK";
+  const adoptionBlockMessage = !user
+    ? "Tylko zalogowani użytkownicy mogą adoptować."
+    : user.role === "ADMINISTRATOR"
+      ? "Administrator nie może adoptować zwierząt."
+      : user.role === "PRACOWNIK"
+        ? "Pracownik nie może adoptować."
+        : null;
 
   return (
     <main>
       <Container className="space-y-12 md:space-y-16">
-        <section id="post" className="space-y-6 gap-x-8 lg:flex lg:space-y-8">
-          <div className="relative mx-auto grid aspect-square max-h-100 flex-1 place-items-center overflow-hidden rounded-full bg-black/10">
+        <section id="animal" className="space-y-6 gap-x-8 lg:flex lg:space-y-8">
+          <div className="relative mx-auto grid aspect-square max-h-100 flex-1 place-items-center overflow-hidden rounded-full bg-gray-100">
             {animal?.imageUrl[0] ? (
               <img
                 src={animal.imageUrl[0]}
@@ -128,7 +149,7 @@ const AnimalPage = () => {
                 className="absolute size-full object-cover object-center"
               />
             ) : (
-              <ImageOff className="absolute size-10 object-cover text-black opacity-20 md:size-20" />
+              <ImageOff className="absolute size-10 object-cover text-gray-300 sm:size-20" />
             )}
           </div>
           <div className="flex-2 space-y-4">
@@ -173,16 +194,29 @@ const AnimalPage = () => {
             <div className="flex flex-wrap items-center justify-between gap-2">
               <div className="space-y-1">
                 {canAdopt ? (
-                  <Button variant="success" asChild>
-                    <Link to={`/`}>Zgłoś wniosek o adopcję</Link>
-                  </Button>
+                  canSubmitAdoption ? (
+                    <Button variant="success" asChild>
+                      <Link to={`/`}>Zgłoś wniosek o adopcję</Link>
+                    </Button>
+                  ) : (
+                    <>
+                      <Button variant="success" disabled>
+                        Zgłoś wniosek o adopcję
+                      </Button>
+                      {adoptionBlockMessage && (
+                        <p className="text-muted-foreground text-xs leading-5 md:text-sm md:leading-6">
+                          {adoptionBlockMessage}
+                        </p>
+                      )}
+                    </>
+                  )
                 ) : (
                   <Button variant="success" disabled>
                     Zgłoś wniosek o adopcję
                   </Button>
                 )}
                 {isFound && daysUntilAvailable !== null && (
-                  <p className="text-xs leading-5 text-muted-foreground md:text-sm md:leading-6">
+                  <p className="text-muted-foreground text-xs leading-5 md:text-sm md:leading-6">
                     {daysUntilAvailable > 0
                       ? `Adopcja będzie możliwa za ${formatDaysLeft(daysUntilAvailable)} (tydzień od znalezienia).`
                       : "Adopcja będzie możliwa wkrótce — trwa aktualizacja statusu."}

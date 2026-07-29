@@ -2,18 +2,7 @@ import {
   Container,
   Input,
   Label,
-  Pagination,
-  PaginationContent,
-  PaginationItem,
-  PaginationPrevious,
-  Skeleton,
-  PaginationEllipsis,
-  PaginationLink,
-} from "@/components/ui";
-import DashboardNavbar from "@/components/layout/admin/DashboardNavbar";
-import { Button } from "@/components/ui";
-import { useState, useMemo } from "react";
-import {
+  Button,
   Table,
   TableBody,
   TableCaption,
@@ -22,14 +11,10 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-  DropdownMenu,
-  DropdownMenuTrigger,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  PaginationNext,
+  DeleteUserDialog,
 } from "@/components/ui";
-import { CircleAlert, MoreHorizontalIcon } from "lucide-react";
+import DashboardNavbar from "@/components/layout/admin/DashboardNavbar";
+import { useState, useMemo } from "react";
 import axios from "axios";
 import { Link, useNavigate } from "react-router";
 import {
@@ -39,8 +24,14 @@ import {
   styleEmptyField,
 } from "@/lib/utils";
 import { toast } from "sonner";
-import { DeleteUserDialog } from "@/components/ui";
-import { MultiValueSelector } from "@/components/shared";
+import {
+  MultiValueSelector,
+  UserAvatar,
+  TablePagination,
+  DashboardErrorState,
+  DashboardTableSkeleton,
+  TableRowActions,
+} from "@/components/shared";
 import {
   workerRoleOptions,
   genderOptions,
@@ -109,28 +100,6 @@ const getWorkersPage = async ({
     `/api/users/workers?${params.toString()}`,
   );
   return res.data;
-};
-
-const getPageItems = (current: number, total: number) => {
-  if (total <= 7) {
-    return Array.from({ length: total }, (_, i) => i + 1);
-  }
-
-  const pages: (number | "ellipsis")[] = [1];
-
-  if (current > 3) pages.push("ellipsis");
-
-  const start = Math.max(2, current - 1);
-  const end = Math.min(total - 1, current + 1);
-
-  for (let page = start; page <= end; page++) {
-    pages.push(page);
-  }
-
-  if (current < total - 2) pages.push("ellipsis");
-
-  pages.push(total);
-  return pages;
 };
 
 const AdminWorkersPage = () => {
@@ -232,8 +201,20 @@ const AdminWorkersPage = () => {
           </div>
           <DashboardNavbar />
         </section>
-        {isLoading && <LoadingWorkers />}
-        {error && <ErrorWorkers />}
+        {isLoading && (
+          <DashboardTableSkeleton
+            columns={8}
+            showAvatar
+            filters={11}
+            rows={8}
+          />
+        )}
+        {error && (
+          <DashboardErrorState
+            title="Nie udało się załadować pracowników"
+            description="Wystąpił problem podczas pobierania listy pracowników. Sprawdź połączenie z internetem i spróbuj ponownie."
+          />
+        )}
         {!isLoading && !error && (
           <section id="table">
             <div className="top-0 z-2 flex flex-wrap items-center gap-4 bg-white py-4 sm:sticky">
@@ -245,7 +226,6 @@ const AdminWorkersPage = () => {
                     handleFilterChange(setSearchQuery, e.target.value)
                   }
                   placeholder="Szukaj po imieniu..."
-                  className="h-7.5 placeholder:text-sm"
                 />
               </div>
 
@@ -327,15 +307,10 @@ const AdminWorkersPage = () => {
                       }
                     >
                       <TableCell className="flex items-center gap-x-4 font-medium">
-                        {worker.imageUrl ? (
-                          <img
-                            src={worker.imageUrl}
-                            className="size-12 rounded-full object-cover"
-                            alt={worker.fullName}
-                          />
-                        ) : (
-                          <div className="size-12 rounded-full bg-gray-200" />
-                        )}
+                        <UserAvatar
+                          src={worker.imageUrl}
+                          alt={worker.fullName}
+                        />
                         {worker.fullName}
                       </TableCell>
                       <TableCell>
@@ -365,41 +340,15 @@ const AdminWorkersPage = () => {
                         className="text-right"
                         onClick={(e) => e.stopPropagation()}
                       >
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button
-                              variant="transparent"
-                              size="icon"
-                              className="size-8"
-                            >
-                              <MoreHorizontalIcon />
-                              <span className="sr-only">Open menu</span>
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuItem
-                              asChild
-                              className="cursor-pointer"
-                            >
-                              <Link
-                                to={`/admin/uzytkownicy/${worker.id}/edycja`}
-                                state={{ returnTo: "/admin/pracownicy" }}
-                              >
-                                Edytuj dane
-                              </Link>
-                            </DropdownMenuItem>
-                            <DropdownMenuSeparator />
-                            <div
-                              onSelect={(e) => e.preventDefault()}
-                              className="hover:bg-accent rounded-sm"
-                            >
-                              <DeleteUserDialog
-                                userId={worker.id}
-                                onConfirm={handleDeleteWorker}
-                              />
-                            </div>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
+                        <TableRowActions
+                          editTo={`/admin/uzytkownicy/${worker.id}/edycja`}
+                          deleteSlot={
+                            <DeleteUserDialog
+                              userId={worker.id}
+                              onConfirm={handleDeleteWorker}
+                            />
+                          }
+                        />
                       </TableCell>
                     </TableRow>
                   ))
@@ -417,62 +366,11 @@ const AdminWorkersPage = () => {
               <TableFooter>
                 <TableRow>
                   <TableCell colSpan={9}>
-                    <Pagination>
-                      <PaginationContent>
-                        <PaginationItem>
-                          <PaginationPrevious
-                            href="#"
-                            aria-disabled={page <= 1}
-                            className={
-                              page <= 1
-                                ? "pointer-events-none opacity-50"
-                                : undefined
-                            }
-                            onClick={(e) => {
-                              e.preventDefault();
-                              goToPage(page - 1);
-                            }}
-                          />
-                        </PaginationItem>
-
-                        {getPageItems(page, totalPages).map((item, index) =>
-                          item === "ellipsis" ? (
-                            <PaginationItem key={`ellipsis-${index}`}>
-                              <PaginationEllipsis />
-                            </PaginationItem>
-                          ) : (
-                            <PaginationItem key={item}>
-                              <PaginationLink
-                                href="#"
-                                isActive={item === page}
-                                onClick={(e) => {
-                                  e.preventDefault();
-                                  goToPage(item);
-                                }}
-                              >
-                                {item}
-                              </PaginationLink>
-                            </PaginationItem>
-                          ),
-                        )}
-
-                        <PaginationItem>
-                          <PaginationNext
-                            href="#"
-                            aria-disabled={page >= totalPages}
-                            className={
-                              page >= totalPages
-                                ? "pointer-events-none opacity-50"
-                                : undefined
-                            }
-                            onClick={(e) => {
-                              e.preventDefault();
-                              goToPage(page + 1);
-                            }}
-                          />
-                        </PaginationItem>
-                      </PaginationContent>
-                    </Pagination>
+                    <TablePagination
+                      page={page}
+                      totalPages={totalPages}
+                      onPageChange={goToPage}
+                    />
                   </TableCell>
                 </TableRow>
                 <TableRow>
@@ -485,76 +383,6 @@ const AdminWorkersPage = () => {
         )}
       </Container>
     </main>
-  );
-};
-
-// Nie udało się załadować pracowników UI
-const ErrorWorkers = () => {
-  return (
-    <section
-      id="error"
-      className="flex flex-col items-center justify-center gap-4 rounded-xl border border-red-200 bg-red-50 px-6 py-12 text-center"
-    >
-      <CircleAlert className="size-12 text-red-600" />
-      <div className="space-y-2">
-        <h2 className="text-xl font-semibold text-red-900">
-          Nie udało się załadować pracowników
-        </h2>
-        <p className="max-w-md text-sm text-red-800 md:text-base">
-          Wystąpił problem podczas pobierania listy pracowników. Sprawdź
-          połączenie z internetem i spróbuj ponownie.
-        </p>
-      </div>
-    </section>
-  );
-};
-
-// Ładowanie pracowników UI
-const LoadingWorkers = () => {
-  return (
-    <section id="table" className="space-y-4">
-      <div className="flex flex-wrap items-center gap-4 py-4">
-        <Skeleton className="h-9 w-48" />
-        {Array.from({ length: 7 }).map((_, index) => (
-          <Skeleton key={index} className="h-9 w-28" />
-        ))}
-        <Skeleton className="h-9 w-36" />
-        <Skeleton className="h-9 w-32" />
-        <Skeleton className="h-9 w-36" />
-      </div>
-
-      <Table>
-        <TableHeader>
-          <TableRow>
-            {Array.from({ length: 8 }).map((_, index) => (
-              <TableHead key={index}>
-                <Skeleton className="h-4 w-20" />
-              </TableHead>
-            ))}
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {Array.from({ length: 8 }).map((_, rowIndex) => (
-            <TableRow key={rowIndex}>
-              <TableCell>
-                <div className="flex items-center gap-x-4">
-                  <Skeleton className="size-12 rounded-full" />
-                  <Skeleton className="h-4 w-24" />
-                </div>
-              </TableCell>
-              {Array.from({ length: 6 }).map((_, cellIndex) => (
-                <TableCell key={cellIndex}>
-                  <Skeleton className="h-4 w-16" />
-                </TableCell>
-              ))}
-              <TableCell className="text-right">
-                <Skeleton className="ml-auto size-8 rounded-md" />
-              </TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
-    </section>
   );
 };
 

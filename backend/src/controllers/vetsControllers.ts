@@ -23,10 +23,7 @@ export const getVets = async (req: Request, res: Response) => {
 
     if (typeof search === 'string' && search.trim().length > 0) {
       const term = search.trim();
-      where.OR = [
-        { name: { contains: term, mode: 'insensitive' } },
-        { clinic: { contains: term, mode: 'insensitive' } },
-      ];
+      where.name = { contains: term, mode: 'insensitive' };
     }
 
     const clinicVals = parseCsvParam(clinic);

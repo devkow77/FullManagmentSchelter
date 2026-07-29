@@ -1,5 +1,5 @@
 import { toast } from "sonner";
-import { useNavigate, useParams, Link } from "react-router";
+import { useNavigate, useParams } from "react-router";
 import { useEffect, useMemo, useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
@@ -17,13 +17,7 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-  DropdownMenu,
-  DropdownMenuTrigger,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
 } from "@/components/ui";
-import { MoreHorizontalIcon } from "lucide-react";
 import axios from "axios";
 import { vetSchema, type VetFormData } from "@/schemas/vet.schema";
 import type { Vet } from "@/types/vet";
@@ -35,7 +29,7 @@ import {
   formatMedicalRecordType,
   formatAnimalType,
 } from "@/lib/utils";
-import { MultiValueSelector } from "@/components/shared";
+import { MultiValueSelector, TableRowActions } from "@/components/shared";
 import {
   medicalRecordAnimalTypeOptions,
   medicalRecordTypeOptions,
@@ -323,37 +317,27 @@ const EditVetPage = () => {
                       className="text-right"
                       onClick={(e) => e.stopPropagation()}
                     >
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="transparent" size="icon">
-                            <MoreHorizontalIcon />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem>
-                            <Link
-                              to={`/pracownik/raporty-medyczne/${medicalRecord.id}/edycja`}
-                            >
-                              Szczegóły
-                            </Link>
-                          </DropdownMenuItem>
-                          <DropdownMenuSeparator />
-                          <div className="hover:bg-accent rounded-sm">
-                            <DeleteMedicalRecordDialog
-                              medicalRecordId={medicalRecord.id}
-                              onConfirm={(recordId) =>
-                                handleDeleteMedicalRecord(recordId)
-                              }
-                            />
-                          </div>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
+                      <TableRowActions
+                        editTo={`/pracownik/raporty-medyczne/${medicalRecord.id}/edycja`}
+                        editLabel="Szczegóły"
+                        deleteSlot={
+                          <DeleteMedicalRecordDialog
+                            medicalRecordId={medicalRecord.id}
+                            onConfirm={(recordId) =>
+                              handleDeleteMedicalRecord(recordId)
+                            }
+                          />
+                        }
+                      />
                     </TableCell>
                   </TableRow>
                 ))
               ) : (
                 <TableRow>
-                  <TableCell colSpan={7} className="text-center">
+                  <TableCell
+                    colSpan={7}
+                    className="py-5 text-center font-medium"
+                  >
                     Brak raportów spełniających wybrane filtry.
                   </TableCell>
                 </TableRow>

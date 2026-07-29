@@ -8,6 +8,7 @@ export interface AuthRequest extends Request {
   userRole?: Role;
 }
 
+// FUNKCJA SPRAWDZAJACA CZY UZYTKOWNIK JEST ZALOGOWANY
 export const authenticateUser = (
   req: AuthRequest,
   res: Response,
@@ -38,6 +39,7 @@ export const authenticateUser = (
   }
 };
 
+// FUNKCJA SPRAWDZAJACA CZY UZYTKOWNIK MA PRAWIDLOWE UPRAWNIENIA
 export const authorizeRoles = (...roles: Role[]) => {
   return (req: AuthRequest, res: Response, next: NextFunction) => {
     if (!req.userRole || !roles.includes(req.userRole)) {
