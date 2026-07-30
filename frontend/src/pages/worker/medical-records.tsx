@@ -1,5 +1,4 @@
 import {
-  Container,
   DeleteMedicalRecordDialog,
   Table,
   TableBody,
@@ -14,7 +13,6 @@ import {
   Label,
 } from "@/components/ui";
 import { useState, useMemo } from "react";
-import DashboardNavbar from "@/components/layout/admin/DashboardNavbar";
 import axios from "axios";
 import {
   styleMedicalRecordStatus,
@@ -29,6 +27,8 @@ import {
   DashboardErrorState,
   DashboardTableSkeleton,
   TableRowActions,
+  DashboardPage,
+  FilterToolbar,
 } from "@/components/shared";
 import type { MedicalRecord } from "@/types/medical-record";
 import {
@@ -170,33 +170,22 @@ const MedicalRecordsPage = () => {
   };
 
   return (
-    <main>
-      <Container className="mb-6 space-y-12 md:mb-10 md:space-y-16">
-        <section id="info" className="space-y-6">
-          <div className="space-y-2">
-            <h1 className="text-3xl font-bold text-green-900 md:text-5xl">
-              Raporty medyczne
-            </h1>
-            <p className="text-sm leading-6 font-medium md:text-base md:leading-7">
-              W tym panelu znajdują się wszystkie raporty medyczne zwierząt w
-              schronisku.
-            </p>
-          </div>
-          <DashboardNavbar />
-        </section>
-
-        {isLoading && (
-          <DashboardTableSkeleton columns={8} filters={6} rows={8} />
-        )}
-        {error && (
-          <DashboardErrorState
-            title="Nie udało się załadować raportów medycznych"
-            description="Wystąpił problem podczas pobierania listy raportów. Sprawdź połączenie z internetem i spróbuj ponownie."
-          />
-        )}
-        {!isLoading && !error && (
-          <section id="table">
-            <div className="top-0 z-2 flex flex-wrap items-center gap-4 bg-white py-4 sm:sticky">
+    <DashboardPage
+      title="Raporty medyczne"
+      description="W tym panelu znajdują się wszystkie raporty medyczne zwierząt w schronisku."
+    >
+      {isLoading && (
+        <DashboardTableSkeleton columns={8} filters={6} rows={8} />
+      )}
+      {error && (
+        <DashboardErrorState
+          title="Nie udało się załadować raportów medycznych"
+          description="Wystąpił problem podczas pobierania listy raportów. Sprawdź połączenie z internetem i spróbuj ponownie."
+        />
+      )}
+      {!isLoading && !error && (
+        <section id="table">
+          <FilterToolbar>
               <div className="flex flex-row gap-x-2">
                 <Label>Wyszukaj</Label>
                 <Input
@@ -242,7 +231,7 @@ const MedicalRecordsPage = () => {
               <Button variant="success" asChild>
                 <Link to="/pracownik/raporty-medyczne/dodaj">Dodaj raport</Link>
               </Button>
-            </div>
+          </FilterToolbar>
 
             <Table className={isFetching ? "opacity-60" : undefined}>
               <TableCaption>
@@ -359,10 +348,9 @@ const MedicalRecordsPage = () => {
                 </TableRow>
               </TableFooter>
             </Table>
-          </section>
-        )}
-      </Container>
-    </main>
+        </section>
+      )}
+    </DashboardPage>
   );
 };
 

@@ -14,6 +14,8 @@ import TablePagination from "./TablePagination";
 import DashboardErrorState from "./DashboardErrorState";
 import DashboardTableSkeleton from "./DashboardTableSkeleton";
 import TableRowActions from "./TableRowActions";
+import DashboardPage from "./DashboardPage";
+import FilterToolbar from "./FilterToolbar";
 
 export {
   ShortFaqList,
@@ -32,4 +34,6 @@ export {
   DashboardErrorState,
   DashboardTableSkeleton,
   TableRowActions,
+  DashboardPage,
+  FilterToolbar,
 };

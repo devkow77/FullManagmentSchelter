@@ -1,5 +1,4 @@
 import {
-  Container,
   Button,
   Input,
   Label,
@@ -23,7 +22,6 @@ import {
 import { Link } from "react-router";
 import axios from "axios";
 import { toast } from "sonner";
-import DashboardNavbar from "@/components/layout/admin/DashboardNavbar";
 import {
   AnimalAvatar,
   MultiValueSelector,
@@ -31,6 +29,8 @@ import {
   DashboardErrorState,
   DashboardTableSkeleton,
   TableRowActions,
+  DashboardPage,
+  FilterToolbar,
 } from "@/components/shared";
 import type { Worker } from "@/types/user";
 
@@ -187,39 +187,29 @@ const AnimalDemandsPage = () => {
   };
 
   return (
-    <main>
-      <Container className="mb-6 space-y-12 md:mb-10 md:space-y-16">
-        <section id="info" className="space-y-6 lg:space-y-8">
-          <div className="space-y-2">
-            <h1 className="text-3xl font-bold text-green-900 md:text-5xl">
-              Zapotrzebowania zwierząt
-            </h1>
-            <p className="text-sm leading-6 font-medium md:text-base md:leading-7">
-              Lista aktywnych zapotrzebowań zgłoszonych przez pracowników.
-            </p>
-          </div>
-          <DashboardNavbar />
-        </section>
+    <DashboardPage
+      title="Zapotrzebowania zwierząt"
+      description="Lista aktywnych zapotrzebowań zgłoszonych przez pracowników."
+    >
+      {isPending && (
+        <DashboardTableSkeleton
+          columns={6}
+          showAvatar
+          showActions={false}
+          rows={PAGE_SIZE}
+          tableClassName="table-fixed"
+        />
+      )}
+      {isError && (
+        <DashboardErrorState
+          title="Nie udało się załadować zapotrzebowań"
+          description="Wystąpił problem podczas pobierania listy. Sprawdź połączenie z internetem i spróbuj ponownie."
+        />
+      )}
 
-        {isPending && (
-          <DashboardTableSkeleton
-            columns={6}
-            showAvatar
-            showActions={false}
-            rows={PAGE_SIZE}
-            tableClassName="table-fixed"
-          />
-        )}
-        {isError && (
-          <DashboardErrorState
-            title="Nie udało się załadować zapotrzebowań"
-            description="Wystąpił problem podczas pobierania listy. Sprawdź połączenie z internetem i spróbuj ponownie."
-          />
-        )}
-
-        {!isPending && !isError && (
-          <section id="table" className="space-y-0">
-            <div className="sticky top-0 z-10 flex flex-wrap items-center gap-4 bg-white py-4">
+      {!isPending && !isError && (
+        <section id="table" className="space-y-0">
+          <FilterToolbar>
               <div className="flex flex-row items-center gap-x-2">
                 <Label htmlFor="search-input">Wyszukaj</Label>
                 <Input
@@ -250,7 +240,7 @@ const AnimalDemandsPage = () => {
                   Dodaj zapotrzebowanie
                 </Link>
               </Button>
-            </div>
+          </FilterToolbar>
 
             <Table className={isFetching ? "opacity-60" : undefined}>
               <TableCaption>Aktywne zapotrzebowania</TableCaption>
@@ -336,10 +326,9 @@ const AnimalDemandsPage = () => {
                 </TableRow>
               </TableFooter>
             </Table>
-          </section>
-        )}
-      </Container>
-    </main>
+        </section>
+      )}
+    </DashboardPage>
   );
 };
 

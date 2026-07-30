@@ -1,4 +1,10 @@
-import { GoogleMap, MarkerF, useJsApiLoader } from "@react-google-maps/api";
+import { useState } from "react";
+import {
+  GoogleMap,
+  InfoWindowF,
+  MarkerF,
+  useJsApiLoader,
+} from "@react-google-maps/api";
 
 const center = { lat: 50.0417, lng: 22.0047 };
 
@@ -13,6 +19,8 @@ const mapOptions = {
 };
 
 const GoogleMaps = () => {
+  const [isInfoOpen, setIsInfoOpen] = useState(false);
+
   const { isLoaded, loadError } = useJsApiLoader({
     id: "google-map-script",
     googleMapsApiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY,
@@ -41,8 +49,23 @@ const GoogleMaps = () => {
         center={center}
         zoom={15}
         options={mapOptions}
+        onClick={() => setIsInfoOpen(false)}
       >
-        <MarkerF position={center} title="Fundacja Schronisko" />
+        <MarkerF
+          position={center}
+          title="Fundacja Schronisko"
+          onClick={() => setIsInfoOpen(true)}
+        />
+        {isInfoOpen && (
+          <InfoWindowF
+            position={center}
+            onCloseClick={() => setIsInfoOpen(false)}
+          >
+            <p className="text-sm font-medium text-gray-900">
+              Tutaj znajduje się schronisko
+            </p>
+          </InfoWindowF>
+        )}
       </GoogleMap>
     </div>
   );

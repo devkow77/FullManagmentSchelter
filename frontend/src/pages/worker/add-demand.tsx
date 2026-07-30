@@ -2,13 +2,13 @@
 
 import { useNavigate } from "react-router";
 import { useForm, Controller } from "react-hook-form";
-import { Button, Container, Input, Label, Textarea } from "@/components/ui";
+import { Button, Input, Label, Textarea } from "@/components/ui";
 import { useEffect, useMemo, useState } from "react";
 import axios from "axios";
 import { toast } from "sonner";
 import { formatAnimalType } from "@/lib/utils";
 import type { LabelValueType } from "@/types/common";
-import { SingleValueSelector } from "@/components/shared";
+import { SingleValueSelector, DashboardPage } from "@/components/shared";
 import { useAuth } from "@/context/AuthContext";
 
 type Animal = {
@@ -92,18 +92,12 @@ const AddDemandPage = () => {
   };
 
   return (
-    <main>
-      <Container className="mb-6 space-y-12 md:mb-10 md:space-y-16">
-        <div className="space-y-2">
-          <h1 className="text-3xl font-bold text-green-900 md:text-5xl">
-            Dodaj zapotrzebowanie
-          </h1>
-          <p className="text-sm leading-6 font-medium md:text-base md:leading-7">
-            Wprowadź wszystkie dane zapotrzebowania poniżej. Pamiętaj, aby
-            zapisać po zakończeniu.
-          </p>
-        </div>
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+    <DashboardPage
+      title="Dodaj zapotrzebowanie"
+      description="Wprowadź wszystkie dane zapotrzebowania poniżej. Pamiętaj, aby zapisać po zakończeniu."
+      showNavbar={false}
+    >
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div className="space-y-2">
               <Label>Zgłaszający</Label>
@@ -221,8 +215,7 @@ const AddDemandPage = () => {
             {isSubmitting ? "Dodawanie..." : "Dodaj zapotrzebowanie"}
           </Button>
         </form>
-      </Container>
-    </main>
+    </DashboardPage>
   );
 };
 

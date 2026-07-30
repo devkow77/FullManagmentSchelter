@@ -1,5 +1,4 @@
 import {
-  Container,
   DeleteAnimalDialog,
   Input,
   Label,
@@ -22,7 +21,6 @@ import {
   keepPreviousData,
 } from "@tanstack/react-query";
 import { Link, useNavigate } from "react-router";
-import DashboardNavbar from "@/components/layout/admin/DashboardNavbar";
 import axios from "axios";
 import {
   formatAnimalStatus,
@@ -43,6 +41,8 @@ import {
   DashboardErrorState,
   DashboardTableSkeleton,
   TableRowActions,
+  DashboardPage,
+  FilterToolbar,
 } from "@/components/shared";
 
 import {
@@ -227,221 +227,207 @@ const AdminAnimalsPage = () => {
   };
 
   return (
-    <main>
-      <Container className="mb-6 space-y-12 md:mb-10 md:space-y-16">
-        <section id="info" className="space-y-6">
-          <div className="space-y-2">
-            <h1 className="text-3xl font-bold text-green-900 md:text-5xl">
-              Zarządzaj zwierzętami
-            </h1>
-            <p className="text-sm leading-6 font-medium md:text-base md:leading-7">
-              W tym panelu znajdują się wszystkie zwierzęta w schronisku.
-            </p>
-          </div>
-          <DashboardNavbar />
-        </section>
-        {isLoading && (
-          <DashboardTableSkeleton
-            columns={9}
-            showAvatar
-            filters={11}
-          />
-        )}
-        {error && (
-          <DashboardErrorState
-            title="Nie udało się załadować zwierząt"
-            description="Wystąpił problem podczas pobierania listy zwierząt. Sprawdź połączenie z internetem i spróbuj ponownie."
-          />
-        )}
+    <DashboardPage
+      title="Zarządzaj zwierzętami"
+      description="W tym panelu znajdują się wszystkie zwierzęta w schronisku."
+    >
+      {isLoading && (
+        <DashboardTableSkeleton columns={9} showAvatar filters={11} />
+      )}
+      {error && (
+        <DashboardErrorState
+          title="Nie udało się załadować zwierząt"
+          description="Wystąpił problem podczas pobierania listy zwierząt. Sprawdź połączenie z internetem i spróbuj ponownie."
+        />
+      )}
 
-        {!isLoading && !error && (
-          <section id="table">
-            <div className="sticky top-0 z-10 grid grid-cols-2 items-center gap-4 bg-white py-4 md:flex md:flex-wrap">
-              <div className="col-span-2 flex flex-row items-center gap-x-2">
-                <Label htmlFor="search-input">Wyszukaj</Label>
-                <Input
-                  id="search-input"
-                  value={searchQuery}
-                  onChange={(e) =>
-                    handleFilterChange(setSearchQuery, e.target.value)
-                  }
-                  placeholder="Szukaj po imieniu..."
-                />
-              </div>
-
-              <MultiValueSelector
-                items={animalTypeOptions}
-                placeholder="Gatunek"
-                value={selectedAnimals}
-                onValueChange={(value) =>
-                  handleFilterChange(setSelectedAnimals, value)
+      {!isLoading && !error && (
+        <section id="table">
+          <FilterToolbar className="grid grid-cols-2 items-center md:flex md:flex-wrap">
+            <div className="col-span-2 flex flex-row items-center gap-x-2">
+              <Label htmlFor="search-input">Wyszukaj</Label>
+              <Input
+                id="search-input"
+                value={searchQuery}
+                onChange={(e) =>
+                  handleFilterChange(setSearchQuery, e.target.value)
                 }
+                placeholder="Szukaj po imieniu..."
               />
-              <MultiValueSelector
-                items={animalGenderOptions}
-                placeholder="Płeć"
-                value={selectedGender}
-                onValueChange={(value) =>
-                  handleFilterChange(setSelectedGender, value)
-                }
-              />
-              <MultiValueSelector
-                items={animalStatusOptions}
-                placeholder="Status"
-                value={selectedStatutes}
-                onValueChange={(value) =>
-                  handleFilterChange(setSelectedStatutes, value)
-                }
-              />
-              <MultiValueSelector
-                items={animalHealthStatusOptions}
-                placeholder="Stan zdrowia"
-                value={selectedHealthStatus}
-                onValueChange={(value) =>
-                  handleFilterChange(setSelectedHealthStatus, value)
-                }
-              />
-              <MultiValueSelector
-                items={animalSizeOptions}
-                placeholder="Rozmiar"
-                value={selectedSize}
-                onValueChange={(value) =>
-                  handleFilterChange(setSelectedSize, value)
-                }
-              />
-              <MultiValueSelector
-                items={animalTraitOptions}
-                placeholder="Cechy"
-                value={selectedTraits}
-                onValueChange={(value) =>
-                  handleFilterChange(setSelectedTraits, value)
-                }
-              />
-
-              <AgeSlider
-                value={ageRange}
-                onChange={(value) => handleFilterChange(setAgeRange, value)}
-              />
-
-              <Button onClick={resetFilters} variant="destructive">
-                Resetuj filtry
-              </Button>
-
-              <Button variant="success" asChild>
-                <Link to="/admin/zwierzeta/dodaj">Dodaj zwierzę</Link>
-              </Button>
             </div>
-            <Table className={isFetching ? "opacity-60" : undefined}>
-              <TableCaption>Lista zwierząt w schronisku</TableCaption>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Imię</TableHead>
-                  <TableHead>Gatunek</TableHead>
-                  <TableHead>Płeć</TableHead>
-                  <TableHead>Status adopcji</TableHead>
-                  <TableHead>Stan zdrowia</TableHead>
-                  <TableHead>Zapotrzebowanie</TableHead>
-                  <TableHead>Data następnej wizyty</TableHead>
-                  <TableHead>Wiek</TableHead>
-                  <TableHead className="text-right">Opcje</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {animals.length ? (
-                  animals.map((animal) => (
-                    <TableRow
-                      key={animal.id}
-                      className="cursor-pointer"
-                      onClick={() =>
-                        navigate(`/admin/zwierzeta/${animal.id}/edycja`)
-                      }
-                    >
-                      <TableCell className="align-middle font-medium">
-                        <div className="flex items-center gap-x-4">
-                          <AnimalAvatar
-                            type={animal.type}
-                            src={animal.imageUrl[0]}
-                            alt={animal.name}
-                          />
-                          {animal.name}
-                        </div>
-                      </TableCell>
-                      <TableCell>{formatAnimalType[animal.type]}</TableCell>
-                      <TableCell>{formatAnimalGender(animal.gender)}</TableCell>
-                      <TableCell>
-                        <span
-                          className={`${styleAnimalStatus(animal.status)} rounded-2xl px-4 py-2 text-xs`}
-                        >
-                          {formatAnimalStatus[animal.status]}
-                        </span>
-                      </TableCell>
-                      <TableCell>
-                        <span
-                          className={`${styleAnimalHealthStatus(animal.healthStatus)} rounded-2xl px-4 py-2 text-xs`}
-                        >
-                          {formatAnimalHealthStatus[animal.healthStatus]}
-                        </span>
-                      </TableCell>
-                      <TableCell className={styleAnimalNeed(animal.needsCount)}>
-                        {formatNeedsCount(animal.needsCount)}
-                      </TableCell>
-                      <TableCell
-                        className={styleEmptyField(animal.nextVisitDate)}
-                      >
-                        {animal.nextVisitDate
-                          ? `${new Date(animal.nextVisitDate).toLocaleDateString()} r.`
-                          : "Brak"}
-                      </TableCell>
 
-                      <TableCell>{calculateAge(animal.dateOfBirth)}</TableCell>
-                      <TableCell
-                        className="text-right"
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        <TableRowActions
-                          editTo={`/admin/zwierzeta/${animal.id}/edycja`}
-                          deleteSlot={
-                            <DeleteAnimalDialog
-                              animalId={animal.id}
-                              onConfirm={handleDeleteAnimal}
-                            />
-                          }
+            <MultiValueSelector
+              items={animalTypeOptions}
+              placeholder="Gatunek"
+              value={selectedAnimals}
+              onValueChange={(value) =>
+                handleFilterChange(setSelectedAnimals, value)
+              }
+            />
+            <MultiValueSelector
+              items={animalGenderOptions}
+              placeholder="Płeć"
+              value={selectedGender}
+              onValueChange={(value) =>
+                handleFilterChange(setSelectedGender, value)
+              }
+            />
+            <MultiValueSelector
+              items={animalStatusOptions}
+              placeholder="Status"
+              value={selectedStatutes}
+              onValueChange={(value) =>
+                handleFilterChange(setSelectedStatutes, value)
+              }
+            />
+            <MultiValueSelector
+              items={animalHealthStatusOptions}
+              placeholder="Stan zdrowia"
+              value={selectedHealthStatus}
+              onValueChange={(value) =>
+                handleFilterChange(setSelectedHealthStatus, value)
+              }
+            />
+            <MultiValueSelector
+              items={animalSizeOptions}
+              placeholder="Rozmiar"
+              value={selectedSize}
+              onValueChange={(value) =>
+                handleFilterChange(setSelectedSize, value)
+              }
+            />
+            <MultiValueSelector
+              items={animalTraitOptions}
+              placeholder="Cechy"
+              value={selectedTraits}
+              onValueChange={(value) =>
+                handleFilterChange(setSelectedTraits, value)
+              }
+            />
+
+            <AgeSlider
+              value={ageRange}
+              onChange={(value) => handleFilterChange(setAgeRange, value)}
+            />
+
+            <Button onClick={resetFilters} variant="destructive">
+              Resetuj filtry
+            </Button>
+
+            <Button variant="success" asChild>
+              <Link to="/admin/zwierzeta/dodaj">Dodaj zwierzę</Link>
+            </Button>
+          </FilterToolbar>
+          <Table className={isFetching ? "opacity-60" : undefined}>
+            <TableCaption>Lista zwierząt w schronisku</TableCaption>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Imię</TableHead>
+                <TableHead>Gatunek</TableHead>
+                <TableHead>Płeć</TableHead>
+                <TableHead>Status adopcji</TableHead>
+                <TableHead>Stan zdrowia</TableHead>
+                <TableHead>Zapotrzebowanie</TableHead>
+                <TableHead>Data następnej wizyty</TableHead>
+                <TableHead>Wiek</TableHead>
+                <TableHead className="text-right">Opcje</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {animals.length ? (
+                animals.map((animal) => (
+                  <TableRow
+                    key={animal.id}
+                    className="cursor-pointer"
+                    onClick={() =>
+                      navigate(`/admin/zwierzeta/${animal.id}/edycja`)
+                    }
+                  >
+                    <TableCell className="align-middle font-medium">
+                      <div className="flex items-center gap-x-4">
+                        <AnimalAvatar
+                          type={animal.type}
+                          src={animal.imageUrl[0]}
+                          alt={animal.name}
                         />
-                      </TableCell>
-                    </TableRow>
-                  ))
-                ) : (
-                  <TableRow>
+                        {animal.name}
+                      </div>
+                    </TableCell>
+                    <TableCell>{formatAnimalType[animal.type]}</TableCell>
+                    <TableCell>{formatAnimalGender(animal.gender)}</TableCell>
+                    <TableCell>
+                      <span
+                        className={`${styleAnimalStatus(animal.status)} rounded-2xl px-4 py-2 text-xs`}
+                      >
+                        {formatAnimalStatus[animal.status]}
+                      </span>
+                    </TableCell>
+                    <TableCell>
+                      <span
+                        className={`${styleAnimalHealthStatus(animal.healthStatus)} rounded-2xl px-4 py-2 text-xs`}
+                      >
+                        {formatAnimalHealthStatus[animal.healthStatus]}
+                      </span>
+                    </TableCell>
+                    <TableCell className={styleAnimalNeed(animal.needsCount)}>
+                      {formatNeedsCount(animal.needsCount)}
+                    </TableCell>
                     <TableCell
-                      colSpan={9}
-                      className="py-5 text-center font-medium"
+                      className={styleEmptyField(animal.nextVisitDate)}
                     >
-                      Brak zwierząt o podanych filtrach.
+                      {animal.nextVisitDate
+                        ? `${new Date(animal.nextVisitDate).toLocaleDateString()} r.`
+                        : "Brak"}
+                    </TableCell>
+
+                    <TableCell>{calculateAge(animal.dateOfBirth)}</TableCell>
+                    <TableCell
+                      className="text-right"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <TableRowActions
+                        editTo={`/admin/zwierzeta/${animal.id}/edycja`}
+                        deleteSlot={
+                          <DeleteAnimalDialog
+                            animalId={animal.id}
+                            onConfirm={handleDeleteAnimal}
+                          />
+                        }
+                      />
                     </TableCell>
                   </TableRow>
-                )}
-              </TableBody>
-              <TableFooter>
+                ))
+              ) : (
                 <TableRow>
-                  <TableCell colSpan={9}>
-                    <TablePagination
-                      page={page}
-                      totalPages={totalPages}
-                      onPageChange={goToPage}
-                    />
+                  <TableCell
+                    colSpan={9}
+                    className="py-5 text-center font-medium"
+                  >
+                    Brak zwierząt o podanych filtrach.
                   </TableCell>
                 </TableRow>
+              )}
+            </TableBody>
+            <TableFooter>
+              <TableRow>
+                <TableCell colSpan={9}>
+                  <TablePagination
+                    page={page}
+                    totalPages={totalPages}
+                    onPageChange={goToPage}
+                  />
+                </TableCell>
+              </TableRow>
 
-                <TableRow>
-                  <TableCell colSpan={8}>Suma zwierząt</TableCell>
-                  <TableCell className="text-right">{total}</TableCell>
-                </TableRow>
-              </TableFooter>
-            </Table>
-          </section>
-        )}
-      </Container>
-    </main>
+              <TableRow>
+                <TableCell colSpan={8}>Suma zwierząt</TableCell>
+                <TableCell className="text-right">{total}</TableCell>
+              </TableRow>
+            </TableFooter>
+          </Table>
+        </section>
+      )}
+    </DashboardPage>
   );
 };
 

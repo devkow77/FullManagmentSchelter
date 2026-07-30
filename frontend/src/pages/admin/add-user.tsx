@@ -5,11 +5,11 @@ import { useNavigate } from "react-router";
 import { useEffect, useRef, useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm, Controller } from "react-hook-form";
-import { Button, Container, Input, Label } from "@/components/ui";
+import { Button, Input, Label } from "@/components/ui";
 import axios from "axios";
 import { Plus, Trash } from "lucide-react";
 import { supabase } from "@/lib/supabase";
-import { SingleValueSelector } from "@/components/shared";
+import { SingleValueSelector, DashboardPage } from "@/components/shared";
 import { addUserSchema, type AddUserFormData } from "@/schemas/user.schema";
 import {
   addUserRoleValues,
@@ -130,19 +130,12 @@ const AddUserPage = () => {
   };
 
   return (
-    <main>
-      <Container className="mb-6 space-y-12 md:mb-10 md:space-y-16">
-        <div className="space-y-2">
-          <h1 className="text-3xl font-bold text-green-900 md:text-5xl">
-            Dodaj użytkownika
-          </h1>
-
-          <p className="text-sm leading-6 font-medium md:text-base md:leading-7">
-            Wprowadź wszystkie dane użytkownika poniżej.
-          </p>
-        </div>
-
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+    <DashboardPage
+      title="Dodaj użytkownika"
+      description="Wprowadź wszystkie dane użytkownika poniżej."
+      showNavbar={false}
+    >
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
           <div className="space-y-6">
             <Label>Zdjęcie (maksymalnie 1)</Label>
 
@@ -286,8 +279,7 @@ const AddUserPage = () => {
             {isSubmitting ? "Dodawanie..." : "Dodaj nowego użytkownika"}
           </Button>
         </form>
-      </Container>
-    </main>
+    </DashboardPage>
   );
 };
 

@@ -5,9 +5,9 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm, Controller } from "react-hook-form";
 import { z } from "zod";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Button, Container, Input, Label } from "@/components/ui";
+import { Button, Input, Label } from "@/components/ui";
 import axios from "axios";
-import { SingleValueSelector } from "@/components/shared";
+import { SingleValueSelector, DashboardPage } from "@/components/shared";
 
 const cageSchema = z.object({
   zone: z
@@ -125,20 +125,12 @@ const AddCagePage = () => {
   };
 
   return (
-    <main>
-      <Container className="mb-6 space-y-12 md:mb-10 md:space-y-16">
-        <section id="info" className="space-y-6">
-          <div className="space-y-2">
-            <h1 className="text-3xl font-bold text-green-900 md:text-5xl">
-              Dodaj klatkę
-            </h1>
-            <p className="text-sm leading-6 font-medium md:text-base md:leading-7">
-              Utwórz nową klatkę, podając strefę i numer.
-            </p>
-          </div>
-        </section>
-
-        <section id="form" className="space-y-6">
+    <DashboardPage
+      title="Dodaj klatkę"
+      description="Utwórz nową klatkę, podając strefę i numer."
+      showNavbar={false}
+    >
+      <section id="form" className="space-y-6">
           {cageOptions?.byZone && (
             <div className="max-w-xl space-y-1 text-sm leading-6 font-medium md:text-base md:leading-7">
               <p>Istniejące klatki w strefach:</p>
@@ -223,8 +215,7 @@ const AddCagePage = () => {
             </div>
           </form>
         </section>
-      </Container>
-    </main>
+    </DashboardPage>
   );
 };
 

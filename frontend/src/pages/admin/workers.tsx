@@ -1,5 +1,4 @@
 import {
-  Container,
   Input,
   Label,
   Button,
@@ -13,7 +12,6 @@ import {
   TableRow,
   DeleteUserDialog,
 } from "@/components/ui";
-import DashboardNavbar from "@/components/layout/admin/DashboardNavbar";
 import { useState, useMemo } from "react";
 import axios from "axios";
 import { Link, useNavigate } from "react-router";
@@ -31,6 +29,8 @@ import {
   DashboardErrorState,
   DashboardTableSkeleton,
   TableRowActions,
+  DashboardPage,
+  FilterToolbar,
 } from "@/components/shared";
 import {
   workerRoleOptions,
@@ -188,36 +188,27 @@ const AdminWorkersPage = () => {
   }, [workers]);
 
   return (
-    <main>
-      <Container className="mb-6 space-y-12 md:mb-10 md:space-y-16">
-        <section id="info" className="space-y-6">
-          <div className="space-y-2">
-            <h1 className="text-3xl font-bold text-green-900 md:text-5xl">
-              Zarządzaj pracownikami
-            </h1>
-            <p className="text-sm leading-6 font-medium md:text-base md:leading-7">
-              W tym panelu znajdują się wszyscy pracownicy schroniska.
-            </p>
-          </div>
-          <DashboardNavbar />
-        </section>
-        {isLoading && (
-          <DashboardTableSkeleton
-            columns={8}
-            showAvatar
-            filters={11}
-            rows={8}
-          />
-        )}
-        {error && (
-          <DashboardErrorState
-            title="Nie udało się załadować pracowników"
-            description="Wystąpił problem podczas pobierania listy pracowników. Sprawdź połączenie z internetem i spróbuj ponownie."
-          />
-        )}
-        {!isLoading && !error && (
-          <section id="table">
-            <div className="top-0 z-2 flex flex-wrap items-center gap-4 bg-white py-4 sm:sticky">
+    <DashboardPage
+      title="Zarządzaj pracownikami"
+      description="W tym panelu znajdują się wszyscy pracownicy schroniska."
+    >
+      {isLoading && (
+        <DashboardTableSkeleton
+          columns={8}
+          showAvatar
+          filters={11}
+          rows={8}
+        />
+      )}
+      {error && (
+        <DashboardErrorState
+          title="Nie udało się załadować pracowników"
+          description="Wystąpił problem podczas pobierania listy pracowników. Sprawdź połączenie z internetem i spróbuj ponownie."
+        />
+      )}
+      {!isLoading && !error && (
+        <section id="table">
+          <FilterToolbar>
               <div className="flex flex-row gap-x-2">
                 <Label>Wyszukaj</Label>
                 <Input
@@ -281,7 +272,7 @@ const AdminWorkersPage = () => {
               <Button variant="success" asChild>
                 <Link to="/admin/uzytkownicy/dodaj">Dodaj użytkownika</Link>
               </Button>
-            </div>
+          </FilterToolbar>
             <Table className={isFetching ? "opacity-60" : undefined}>
               <TableCaption>Lista pracowników schroniska</TableCaption>
               <TableHeader>
@@ -379,10 +370,9 @@ const AdminWorkersPage = () => {
                 </TableRow>
               </TableFooter>
             </Table>
-          </section>
-        )}
-      </Container>
-    </main>
+        </section>
+      )}
+    </DashboardPage>
   );
 };
 

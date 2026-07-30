@@ -21,14 +21,15 @@ import {
   TableRow,
 } from "@/components/ui";
 import axios from "axios";
-import { Trash, UserRound } from "lucide-react";
+import { Plus, Trash } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import {
   MultiValueSelector,
   SingleValueSelector,
   TableRowActions,
+  FilterToolbar,
 } from "@/components/shared";
-import { editUserSchema, type EditUserFormData } from "@/schemas/user.schema";
+import { editUserSchema, type EditUserFormData, getMaxDateOfBirth } from "@/schemas/user.schema";
 import { userRoleValues, userGenderValues } from "@/constants/user.constants";
 import { adoptionStatusOptions } from "@/constants/adoption.constants";
 import type { Adoption } from "@/types/adoption";
@@ -315,7 +316,7 @@ const EditUserPage = () => {
                     onClick={() => fileInputRef.current?.click()}
                     className="flex size-full cursor-pointer items-center justify-center text-gray-400"
                   >
-                    <UserRound className="size-10 text-gray-300 md:size-20" />
+                    <Plus size={26} />
                   </div>
                 )}
               </div>
@@ -452,6 +453,7 @@ const EditUserPage = () => {
               <Input
                 id="dateOfBirth"
                 type="date"
+                max={getMaxDateOfBirth()}
                 {...register("dateOfBirth")}
                 className={errors.dateOfBirth ? "bg-red-600/20" : ""}
               />
@@ -573,7 +575,7 @@ const EditUserPage = () => {
               </p>
             </div>
 
-            <div className="top-0 z-2 flex flex-wrap items-center gap-4 bg-white py-4 sm:sticky">
+            <FilterToolbar>
               <MultiValueSelector
                 items={adoptionStatusOptions}
                 placeholder="Status"
@@ -584,7 +586,7 @@ const EditUserPage = () => {
               <Button onClick={resetAdoptionFilters} variant="destructive">
                 Resetuj filtry
               </Button>
-            </div>
+            </FilterToolbar>
 
             <Table>
               <TableCaption>Adopcje użytkownika</TableCaption>

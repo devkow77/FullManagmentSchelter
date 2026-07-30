@@ -1,5 +1,4 @@
 import {
-  Container,
   Label,
   Button,
   Skeleton,
@@ -31,8 +30,9 @@ import {
   TablePagination,
   DashboardErrorState,
   DashboardTableSkeleton,
+  DashboardPage,
+  FilterToolbar,
 } from "@/components/shared";
-import DashboardNavbar from "@/components/layout/admin/DashboardNavbar";
 import { useAuth } from "@/context/AuthContext";
 import type { Worker } from "@/types/user";
 import type { AnimalType } from "@/types/animal";
@@ -382,211 +382,204 @@ const DailyAnimalNeedsPage = () => {
   };
 
   return (
-    <main>
-      <Container className="mb-6 space-y-12 md:mb-10 md:space-y-16">
-        <section id="info" className="space-y-6 lg:space-y-8">
-          <div className="space-y-2">
-            <h1 className="text-3xl font-bold text-green-900 md:text-5xl">
-              Codzienne obowiązki pracowników
-            </h1>
-            <p className="text-sm leading-6 font-medium md:text-base md:leading-7">
-              W tym panelu znajdują się codzienne obowiązki pracowników. <br />
-              Lista wykonanych zadań na dzień:{" "}
-              {new Date().toLocaleDateString("pl-PL")} r.
-            </p>
-          </div>
-          <DashboardNavbar />
+    <DashboardPage
+      title="Codzienne obowiązki pracowników"
+      description={
+        <>
+          W tym panelu znajdują się codzienne obowiązki pracowników. <br />
+          Lista wykonanych zadań na dzień:{" "}
+          {new Date().toLocaleDateString("pl-PL")} r.
+        </>
+      }
+    >
+      {isPending && (
+        <DashboardTableSkeleton
+          columns={7}
+          showAvatar
+          showActions={false}
+          filters={3}
+          rows={PAGE_SIZE}
+          tableClassName="table-fixed"
+        />
+      )}
+      {isError && (
+        <DashboardErrorState
+          title="Nie udało się załadować zwierząt"
+          description="Wystąpił problem podczas pobierania listy zwierząt. Sprawdź połączenie z internetem i spróbuj ponownie."
+        />
+      )}
+      {!isPending && !isError && (
+        <div id="table">
+          <FilterToolbar className="grid grid-cols-2 items-center md:flex md:flex-wrap">
+            <div className="col-span-2 flex flex-row items-center gap-x-2">
+              <Label htmlFor="care-status-filter">Status wykonania</Label>
+              <SingleValueSelector
+                items={[...CARE_STATUS_OPTIONS]}
+                placeholder="Wybierz"
+                value={careStatus}
+                onValueChange={(value) =>
+                  handleFilterChange(
+                    setCareStatus,
+                    value as CareStatusLabel | null,
+                  )
+                }
+              />
+            </div>
 
-          {isPending && (
-            <DashboardTableSkeleton
-              columns={7}
-              showAvatar
-              showActions={false}
-              filters={3}
-              rows={PAGE_SIZE}
-              tableClassName="table-fixed"
+            <MultiValueSelector
+              items={workerOptions}
+              placeholder="Pracownik"
+              value={selectedWorkers}
+              onValueChange={(value) =>
+                handleFilterChange(setSelectedWorkers, value)
+              }
             />
-          )}
-          {isError && (
-            <DashboardErrorState
-              title="Nie udało się załadować zwierząt"
-              description="Wystąpił problem podczas pobierania listy zwierząt. Sprawdź połączenie z internetem i spróbuj ponownie."
+
+            <MultiValueSelector
+              items={zoneOptions}
+              placeholder="Strefa"
+              value={selectedZones}
+              onValueChange={(value) =>
+                handleFilterChange(setSelectedZones, value)
+              }
             />
-          )}
-          {!isPending && !isError && (
-            <div id="table">
-              <div className="sticky top-0 z-10 grid grid-cols-2 items-center gap-4 bg-white py-4 md:flex md:flex-wrap">
-                <div className="col-span-2 flex flex-row items-center gap-x-2">
-                  <Label htmlFor="care-status-filter">Status wykonania</Label>
-                  <SingleValueSelector
-                    items={[...CARE_STATUS_OPTIONS]}
-                    placeholder="Wybierz"
-                    value={careStatus}
-                    onValueChange={(value) =>
-                      handleFilterChange(
-                        setCareStatus,
-                        value as CareStatusLabel | null,
-                      )
-                    }
-                  />
-                </div>
 
-                <MultiValueSelector
-                  items={workerOptions}
-                  placeholder="Pracownik"
-                  value={selectedWorkers}
-                  onValueChange={(value) =>
-                    handleFilterChange(setSelectedWorkers, value)
-                  }
-                />
+            <Button onClick={resetFilters} variant="destructive">
+              Resetuj filtry
+            </Button>
+            {isFiltering && (
+              <span className="flex items-center gap-2 text-sm text-green-900">
+                <Loader2 className="size-4 animate-spin" />
+                Filtrowanie...
+              </span>
+            )}
+          </FilterToolbar>
+          <Table className={isFiltering ? "opacity-60" : ""}>
+            <TableCaption>Lista zwierząt w schronisku</TableCaption>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Imię</TableHead>
+                <TableHead>Numer klatki</TableHead>
+                <TableHead>Przypisany pracownik</TableHead>
+                <TableHead>Jedzenie</TableHead>
+                <TableHead>Woda</TableHead>
+                <TableHead>Sprzątanie</TableHead>
+                <TableHead>Wykonał</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {animals.length ? (
+                animals.map((animal) => {
+                  const care = animal.todayCare ?? emptyCare();
 
-                <MultiValueSelector
-                  items={zoneOptions}
-                  placeholder="Strefa"
-                  value={selectedZones}
-                  onValueChange={(value) =>
-                    handleFilterChange(setSelectedZones, value)
-                  }
-                />
-
-                <Button onClick={resetFilters} variant="destructive">
-                  Resetuj filtry
-                </Button>
-                {isFiltering && (
-                  <span className="flex items-center gap-2 text-sm text-green-900">
-                    <Loader2 className="size-4 animate-spin" />
-                    Filtrowanie...
-                  </span>
-                )}
-              </div>
-              <Table className={isFiltering ? "opacity-60" : ""}>
-                <TableCaption>Lista zwierząt w schronisku</TableCaption>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Imię</TableHead>
-                    <TableHead>Numer klatki</TableHead>
-                    <TableHead>Przypisany pracownik</TableHead>
-                    <TableHead>Jedzenie</TableHead>
-                    <TableHead>Woda</TableHead>
-                    <TableHead>Sprzątanie</TableHead>
-                    <TableHead>Wykonał</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {animals.length ? (
-                    animals.map((animal) => {
-                      const care = animal.todayCare ?? emptyCare();
-
-                      return (
-                        <TableRow
-                          key={animal.id}
-                          className="cursor-pointer"
-                          onClick={() => navigate(`/zwierzeta/${animal.id}`)}
-                        >
-                          <TableCell className="font-medium">
-                            <div className="flex items-center gap-x-4">
-                              <AnimalAvatar
-                                type={animal.type}
-                                src={animal.imageUrl[0]}
-                                alt={animal.name}
-                              />
-                              {animal.name}
-                            </div>
-                          </TableCell>
-                          <TableCell>{animal.cageNumber ?? "—"}</TableCell>
-                          <TableCell className="whitespace-normal">
-                            {getAssignedWorkersLabel(animal.assignedWorkers)}
-                          </TableCell>
-                          <TableCell onClick={(e) => e.stopPropagation()}>
-                            <CareCheckbox
-                              checked={care.fed}
-                              disabled={
-                                !canEditCare ||
-                                pendingKeys.has(`${animal.id}-fed`)
-                              }
-                              ariaLabel={`Jedzenie — ${animal.name}`}
-                              onChange={(value) =>
-                                handleCareToggle(animal.id, "fed", value)
-                              }
-                            />
-                          </TableCell>
-                          <TableCell onClick={(e) => e.stopPropagation()}>
-                            <CareCheckbox
-                              checked={care.watered}
-                              disabled={
-                                !canEditCare ||
-                                pendingKeys.has(`${animal.id}-watered`)
-                              }
-                              ariaLabel={`Woda — ${animal.name}`}
-                              onChange={(value) =>
-                                handleCareToggle(animal.id, "watered", value)
-                              }
-                            />
-                          </TableCell>
-                          <TableCell onClick={(e) => e.stopPropagation()}>
-                            <CareCheckbox
-                              checked={care.cleaned}
-                              disabled={
-                                !canEditCare ||
-                                pendingKeys.has(`${animal.id}-cleaned`)
-                              }
-                              ariaLabel={`Sprzątanie — ${animal.name}`}
-                              onChange={(value) =>
-                                handleCareToggle(animal.id, "cleaned", value)
-                              }
-                            />
-                          </TableCell>
-                          <TableCell className="whitespace-normal">
-                            {getPerformersLabel(care)}
-                          </TableCell>
-                        </TableRow>
-                      );
-                    })
-                  ) : (
-                    <TableRow>
-                      <TableCell
-                        colSpan={7}
-                        className="py-5 text-center font-medium"
-                      >
-                        Brak zwierząt o podanych filtrach.
+                  return (
+                    <TableRow
+                      key={animal.id}
+                      className="cursor-pointer"
+                      onClick={() => navigate(`/zwierzeta/${animal.id}`)}
+                    >
+                      <TableCell className="font-medium">
+                        <div className="flex items-center gap-x-4">
+                          <AnimalAvatar
+                            type={animal.type}
+                            src={animal.imageUrl[0]}
+                            alt={animal.name}
+                          />
+                          {animal.name}
+                        </div>
+                      </TableCell>
+                      <TableCell>{animal.cageNumber ?? "—"}</TableCell>
+                      <TableCell className="whitespace-normal">
+                        {getAssignedWorkersLabel(animal.assignedWorkers)}
+                      </TableCell>
+                      <TableCell onClick={(e) => e.stopPropagation()}>
+                        <CareCheckbox
+                          checked={care.fed}
+                          disabled={
+                            !canEditCare ||
+                            pendingKeys.has(`${animal.id}-fed`)
+                          }
+                          ariaLabel={`Jedzenie — ${animal.name}`}
+                          onChange={(value) =>
+                            handleCareToggle(animal.id, "fed", value)
+                          }
+                        />
+                      </TableCell>
+                      <TableCell onClick={(e) => e.stopPropagation()}>
+                        <CareCheckbox
+                          checked={care.watered}
+                          disabled={
+                            !canEditCare ||
+                            pendingKeys.has(`${animal.id}-watered`)
+                          }
+                          ariaLabel={`Woda — ${animal.name}`}
+                          onChange={(value) =>
+                            handleCareToggle(animal.id, "watered", value)
+                          }
+                        />
+                      </TableCell>
+                      <TableCell onClick={(e) => e.stopPropagation()}>
+                        <CareCheckbox
+                          checked={care.cleaned}
+                          disabled={
+                            !canEditCare ||
+                            pendingKeys.has(`${animal.id}-cleaned`)
+                          }
+                          ariaLabel={`Sprzątanie — ${animal.name}`}
+                          onChange={(value) =>
+                            handleCareToggle(animal.id, "cleaned", value)
+                          }
+                        />
+                      </TableCell>
+                      <TableCell className="whitespace-normal">
+                        {getPerformersLabel(care)}
                       </TableCell>
                     </TableRow>
-                  )}
-                </TableBody>
-                <TableFooter>
-                  <TableRow>
-                    <TableCell colSpan={7}>
-                      <TablePagination
-                        page={page}
-                        totalPages={totalPages}
-                        onPageChange={goToPage}
-                      />
-                    </TableCell>
-                  </TableRow>
-                  <TableRow>
-                    <TableCell colSpan={6}>Suma zwierząt</TableCell>
-                    <TableCell className="text-right">{total}</TableCell>
-                  </TableRow>
-                </TableFooter>
-              </Table>
-            </div>
-          )}
+                  );
+                })
+              ) : (
+                <TableRow>
+                  <TableCell
+                    colSpan={7}
+                    className="py-5 text-center font-medium"
+                  >
+                    Brak zwierząt o podanych filtrach.
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+            <TableFooter>
+              <TableRow>
+                <TableCell colSpan={7}>
+                  <TablePagination
+                    page={page}
+                    totalPages={totalPages}
+                    onPageChange={goToPage}
+                  />
+                </TableCell>
+              </TableRow>
+              <TableRow>
+                <TableCell colSpan={6}>Suma zwierząt</TableCell>
+                <TableCell className="text-right">{total}</TableCell>
+              </TableRow>
+            </TableFooter>
+          </Table>
+        </div>
+      )}
 
-          {isWorkersProgressPending && <LoadingWorkersProgress />}
-          {isWorkersProgressError && (
-            <DashboardErrorState
-              title="Wystąpił błąd"
-              description="Wystąpił błąd podczas ładowania postępu pracowników. Spróbuj później ponownie."
-            />
-          )}
-          {!isWorkersProgressPending && !isWorkersProgressError && (
-            <WorkersProgressTable
-              workers={workersProgressData?.workers ?? []}
-            />
-          )}
-        </section>
-      </Container>
-    </main>
+      {isWorkersProgressPending && <LoadingWorkersProgress />}
+      {isWorkersProgressError && (
+        <DashboardErrorState
+          title="Wystąpił błąd"
+          description="Wystąpił błąd podczas ładowania postępu pracowników. Spróbuj później ponownie."
+        />
+      )}
+      {!isWorkersProgressPending && !isWorkersProgressError && (
+        <WorkersProgressTable
+          workers={workersProgressData?.workers ?? []}
+        />
+      )}
+    </DashboardPage>
   );
 };
 

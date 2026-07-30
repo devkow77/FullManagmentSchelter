@@ -9,11 +9,17 @@ export const createAdoptionSchema = z.object({
 });
 
 export const editAdoptionStatusSchema = z.object({
-    status: z.enum(["OCZEKUJACA", "ZAAKCEPTOWANA", "ODRZUCONA", "ANULOWANA", "ZAKONCZONA"]),
-    employeeNote: z
-      .string()
-      .max(500, "Notatka może mieć maksymalnie 500 znaków.")
-      .optional(),
-    message: z.string().optional(),
-  });
-  
+  status: z.enum([
+    "OCZEKUJACA",
+    "ZAAKCEPTOWANA",
+    "ODRZUCONA",
+    "ANULOWANA",
+    "ZAKONCZONA",
+  ]),
+  employeeNote: z
+    .string()
+    .trim()
+    .min(1, "Notatka pracownika jest wymagana.")
+    .max(500, "Notatka może mieć maksymalnie 500 znaków."),
+  message: z.string().optional(),
+});

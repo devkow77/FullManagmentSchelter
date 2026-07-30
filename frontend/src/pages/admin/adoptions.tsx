@@ -1,5 +1,4 @@
 import {
-  Container,
   Label,
   Button,
   Table,
@@ -12,7 +11,6 @@ import {
   TableRow,
 } from "@/components/ui";
 import { useState, useMemo } from "react";
-import DashboardNavbar from "@/components/layout/admin/DashboardNavbar";
 import axios from "axios";
 import { formatAdoptionStatus, styleAdoptionStatus } from "@/lib/utils";
 import type { Adoption } from "@/types/adoption";
@@ -22,6 +20,8 @@ import {
   DashboardErrorState,
   DashboardTableSkeleton,
   TableRowActions,
+  DashboardPage,
+  FilterToolbar,
 } from "@/components/shared";
 import { adoptionStatusOptions } from "@/constants/adoption.constants";
 import { useNavigate } from "react-router";
@@ -111,32 +111,22 @@ const AdminAdoptionsPage = () => {
   };
 
   return (
-    <main>
-      <Container className="mb-6 space-y-12 md:mb-10 md:space-y-16">
-        <section id="info" className="space-y-6">
-          <div className="space-y-2">
-            <h1 className="text-3xl font-bold text-green-900 md:text-5xl">
-              Zarządzaj adopcjami
-            </h1>
-            <p className="text-sm leading-6 font-medium md:text-base md:leading-7">
-              W tym panelu znajdują się wszystkie adopcje użytkowników.
-            </p>
-          </div>
-          <DashboardNavbar />
-        </section>
-
-        {isLoading && (
-          <DashboardTableSkeleton columns={6} filters={3} rows={8} />
-        )}
-        {error && (
-          <DashboardErrorState
-            title="Nie udało się załadować adopcji"
-            description="Wystąpił problem podczas pobierania listy adopcji. Sprawdź połączenie z internetem i spróbuj ponownie."
-          />
-        )}
-        {!isLoading && !error && (
-          <section id="table">
-            <div className="top-0 z-2 flex flex-wrap items-center gap-4 bg-white py-4 sm:sticky">
+    <DashboardPage
+      title="Zarządzaj adopcjami"
+      description="W tym panelu znajdują się wszystkie adopcje użytkowników."
+    >
+      {isLoading && (
+        <DashboardTableSkeleton columns={6} filters={3} rows={8} />
+      )}
+      {error && (
+        <DashboardErrorState
+          title="Nie udało się załadować adopcji"
+          description="Wystąpił problem podczas pobierania listy adopcji. Sprawdź połączenie z internetem i spróbuj ponownie."
+        />
+      )}
+      {!isLoading && !error && (
+        <section id="table">
+          <FilterToolbar>
               <div className="flex flex-row gap-x-2">
                 <Label>Wyszukaj po statusie</Label>
                 <MultiValueSelector
@@ -152,7 +142,7 @@ const AdminAdoptionsPage = () => {
               <Button onClick={resetFilters} variant="destructive">
                 Resetuj filtry
               </Button>
-            </div>
+          </FilterToolbar>
 
             <Table className={isFetching ? "opacity-60" : undefined}>
               <TableCaption>Lista adopcji w schronisku</TableCaption>
@@ -234,10 +224,9 @@ const AdminAdoptionsPage = () => {
                 </TableRow>
               </TableFooter>
             </Table>
-          </section>
-        )}
-      </Container>
-    </main>
+        </section>
+      )}
+    </DashboardPage>
   );
 };
 

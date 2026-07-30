@@ -5,12 +5,12 @@ import { useNavigate, useParams } from "react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm, Controller } from "react-hook-form";
-import { Button, Container, Input, Label, Textarea } from "@/components/ui";
+import { Button, Input, Label, Textarea } from "@/components/ui";
 import axios from "axios";
 import { Plus, Star, Trash } from "lucide-react";
 import { supabase } from "@/lib/supabase";
-import { SingleValueSelector } from "@/components/shared";
-import { animalSchema, type AnimalFormData, getMinNextVisitDate } from "@/schemas/animal.schema";
+import { SingleValueSelector, DashboardPage } from "@/components/shared";
+import { animalSchema, type AnimalFormData, getMinNextVisitDate, getMaxPastOrTodayDate } from "@/schemas/animal.schema";
 import {
   animalTypeValues,
   animalGenderValues,
@@ -260,18 +260,12 @@ const AddAnimalPage = () => {
   };
 
   return (
-    <main>
-      <Container className="mb-6 space-y-12 md:mb-10 md:space-y-16">
-        <div className="space-y-2">
-          <h1 className="text-3xl font-bold text-green-900 md:text-5xl">
-            Dodaj zwierzę
-          </h1>
-          <p className="text-sm leading-6 font-medium md:text-base md:leading-7">
-            Wprowadź wszystkie dane zwierzęcia poniżej. Pamiętaj, aby zapisać po
-            zakończeniu.
-          </p>
-        </div>
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+    <DashboardPage
+      title="Dodaj zwierzę"
+      description="Wprowadź wszystkie dane zwierzęcia poniżej. Pamiętaj, aby zapisać po zakończeniu."
+      showNavbar={false}
+    >
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
           <div className="space-y-6">
             <Label htmlFor="name">Zdjęcia (maksymalnie 5)</Label>
             <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
@@ -382,6 +376,7 @@ const AddAnimalPage = () => {
                 <Input
                   id="dateOfBirth"
                   type="date"
+                  max={getMaxPastOrTodayDate()}
                   {...register("dateOfBirth")}
                   placeholder="Podaj datę urodzenia..."
                   className={errors.dateOfBirth && "bg-red-600/20"}
@@ -651,6 +646,7 @@ const AddAnimalPage = () => {
                 <Input
                   id="foundAt"
                   type="date"
+                  max={getMaxPastOrTodayDate()}
                   {...register("foundAt")}
                   placeholder="Napisz datę znalezienia..."
                   className={errors.foundAt && "bg-red-600/20"}
@@ -706,8 +702,7 @@ const AddAnimalPage = () => {
             {isSubmitting ? "Dodawanie..." : "Dodaj nowe zwierzę"}
           </Button>
         </form>
-      </Container>
-    </main>
+    </DashboardPage>
   );
 };
 

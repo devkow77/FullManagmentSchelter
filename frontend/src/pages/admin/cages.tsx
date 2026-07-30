@@ -1,5 +1,4 @@
 import {
-  Container,
   DeleteCageDialog,
   Button,
   Table,
@@ -20,7 +19,6 @@ import {
   keepPreviousData,
 } from "@tanstack/react-query";
 import { Link } from "react-router";
-import DashboardNavbar from "@/components/layout/admin/DashboardNavbar";
 import axios from "axios";
 import {
   MultiValueSelector,
@@ -30,6 +28,8 @@ import {
   DashboardErrorState,
   DashboardTableSkeleton,
   TableRowActions,
+  DashboardPage,
+  FilterToolbar,
 } from "@/components/shared";
 import type { Cage } from "@/types/animal";
 import { formatCageLabel } from "@/lib/utils";
@@ -223,35 +223,26 @@ const AdminCagesPage = () => {
   };
 
   return (
-    <main>
-      <Container className="mb-6 space-y-12 md:mb-10 md:space-y-16">
-        <section id="info" className="space-y-6">
-          <div className="space-y-2">
-            <h1 className="text-3xl font-bold text-green-900 md:text-5xl">
-              Zarządzaj klatkami zwierząt
-            </h1>
-            <p className="text-sm leading-6 font-medium md:text-base md:leading-7">
-              W tym panelu znajdują się wszystkie klatki zwierząt w schronisku.
-            </p>
-          </div>
-          <DashboardNavbar />
-        </section>
-        {isLoading && (
-          <DashboardTableSkeleton
-            columns={5}
-            filters={3}
-            rows={PAGE_SIZE}
-          />
-        )}
-        {error && (
-          <DashboardErrorState
-            title="Nie udało się załadować klatek"
-            description="Wystąpił problem podczas pobierania listy klatek. Sprawdź połączenie z internetem i spróbuj ponownie."
-          />
-        )}
-        {!isLoading && !error && (
-          <section id="table">
-            <div className="sticky top-0 z-10 flex flex-wrap items-center gap-4 bg-white py-4">
+    <DashboardPage
+      title="Zarządzaj klatkami zwierząt"
+      description="W tym panelu znajdują się wszystkie klatki zwierząt w schronisku."
+    >
+      {isLoading && (
+        <DashboardTableSkeleton
+          columns={5}
+          filters={3}
+          rows={PAGE_SIZE}
+        />
+      )}
+      {error && (
+        <DashboardErrorState
+          title="Nie udało się załadować klatek"
+          description="Wystąpił problem podczas pobierania listy klatek. Sprawdź połączenie z internetem i spróbuj ponownie."
+        />
+      )}
+      {!isLoading && !error && (
+        <section id="table">
+          <FilterToolbar>
               <MultiValueSelector
                 items={zoneOptions}
                 placeholder="Strefa"
@@ -288,7 +279,7 @@ const AdminCagesPage = () => {
               <Button variant="success" asChild>
                 <Link to="/admin/klatki/dodaj">Dodaj klatkę</Link>
               </Button>
-            </div>
+          </FilterToolbar>
 
             <Table className={isFetching ? "opacity-60" : undefined}>
               <TableCaption>Lista klatek w schronisku</TableCaption>
@@ -376,10 +367,9 @@ const AdminCagesPage = () => {
                 </TableRow>
               </TableFooter>
             </Table>
-          </section>
-        )}
-      </Container>
-    </main>
+        </section>
+      )}
+    </DashboardPage>
   );
 };
 

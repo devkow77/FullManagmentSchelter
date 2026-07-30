@@ -5,7 +5,6 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm, Controller } from "react-hook-form";
 import {
   Button,
-  Container,
   Input,
   Label,
   Textarea,
@@ -15,7 +14,7 @@ import axios from "axios";
 import { toast } from "sonner";
 import { formatAnimalType } from "@/lib/utils";
 import type { LabelValueType } from "@/types/common";
-import { SingleValueSelector } from "@/components/shared";
+import { SingleValueSelector, DashboardPage } from "@/components/shared";
 import {
   medicalRecordSchema,
   type MedicalRecordFormData,
@@ -145,18 +144,12 @@ const EditMedicalRecordPage = () => {
   };
 
   return (
-    <main>
-      <Container className="mb-6 space-y-12 md:mb-10 md:space-y-16">
-        <div className="space-y-2">
-          <h1 className="text-3xl font-bold text-green-900 md:text-5xl">
-            Edytuj raport medyczny
-          </h1>
-          <p className="text-sm leading-6 font-medium md:text-base md:leading-7">
-            Zaktualizuj dane raportu medycznego poniżej. Pamiętaj, aby zapisać
-            po zakończeniu.
-          </p>
-        </div>
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+    <DashboardPage
+      title="Edytuj raport medyczny"
+      description="Zaktualizuj dane raportu medycznego poniżej. Pamiętaj, aby zapisać po zakończeniu."
+      showNavbar={false}
+    >
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div className="space-y-2">
               <Label>Klinika</Label>
@@ -313,8 +306,7 @@ const EditMedicalRecordPage = () => {
             {isSubmitting ? "Zapisywanie..." : "Zapisz zmiany"}
           </Button>
         </form>
-      </Container>
-    </main>
+    </DashboardPage>
   );
 };
 

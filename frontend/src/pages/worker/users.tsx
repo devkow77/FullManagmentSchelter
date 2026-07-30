@@ -1,5 +1,4 @@
 import {
-  Container,
   Input,
   Label,
   Button,
@@ -13,7 +12,6 @@ import {
   TableRow,
   DeleteUserDialog,
 } from "@/components/ui";
-import DashboardNavbar from "@/components/layout/admin/DashboardNavbar";
 import {
   UserAvatar,
   MultiValueSelector,
@@ -21,6 +19,8 @@ import {
   DashboardErrorState,
   DashboardTableSkeleton,
   TableRowActions,
+  DashboardPage,
+  FilterToolbar,
 } from "@/components/shared";
 import { useState, useMemo } from "react";
 import axios from "axios";
@@ -178,38 +178,31 @@ const WorkerUsersPage = () => {
   }, [users]);
 
   return (
-    <main>
-      <Container className="mb-6 space-y-12 md:mb-10 md:space-y-16">
-        <section id="info" className="space-y-6">
-          <div className="space-y-2">
-            <h1 className="text-3xl font-bold text-green-900 md:text-5xl">
-              {loggedUser?.role === "ADMINISTRATOR"
-                ? "Zarządzaj użytkownikami"
-                : "Przeglądaj użytkowników"}
-            </h1>
-            <p className="text-sm leading-6 font-medium md:text-base md:leading-7">
-              W tym panelu znajdują się wszyscy użytkownicy schroniska.
-            </p>
-          </div>
-          <DashboardNavbar />
-        </section>
-        {isLoading && (
-          <DashboardTableSkeleton
-            columns={8}
-            showAvatar
-            filters={6}
-            rows={8}
-          />
-        )}
-        {error && (
-          <DashboardErrorState
-            title="Nie udało się załadować użytkowników"
-            description="Wystąpił problem podczas pobierania listy użytkowników. Sprawdź połączenie z internetem i spróbuj ponownie."
-          />
-        )}
-        {!isLoading && !error && (
-          <section id="table">
-            <div className="top-0 z-2 flex flex-wrap items-center gap-4 bg-white py-4 sm:sticky">
+    <DashboardPage
+      title={
+        loggedUser?.role === "ADMINISTRATOR"
+          ? "Zarządzaj użytkownikami"
+          : "Przeglądaj użytkowników"
+      }
+      description="W tym panelu znajdują się wszyscy użytkownicy schroniska."
+    >
+      {isLoading && (
+        <DashboardTableSkeleton
+          columns={8}
+          showAvatar
+          filters={6}
+          rows={8}
+        />
+      )}
+      {error && (
+        <DashboardErrorState
+          title="Nie udało się załadować użytkowników"
+          description="Wystąpił problem podczas pobierania listy użytkowników. Sprawdź połączenie z internetem i spróbuj ponownie."
+        />
+      )}
+      {!isLoading && !error && (
+        <section id="table">
+          <FilterToolbar>
               <div className="flex flex-row gap-x-2">
                 <Label>Wyszukaj</Label>
                 <Input
@@ -266,7 +259,7 @@ const WorkerUsersPage = () => {
                   <Link to="/admin/uzytkownicy/dodaj">Dodaj użytkownika</Link>
                 </Button>
               ) : null}
-            </div>
+          </FilterToolbar>
 
             <Table className={isFetching ? "opacity-60" : undefined}>
               <TableCaption>Lista użytkowników schroniska</TableCaption>
@@ -358,10 +351,9 @@ const WorkerUsersPage = () => {
                 </TableRow>
               </TableFooter>
             </Table>
-          </section>
-        )}
-      </Container>
-    </main>
+        </section>
+      )}
+    </DashboardPage>
   );
 };
 

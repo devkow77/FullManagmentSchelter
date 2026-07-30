@@ -2,9 +2,10 @@ import { toast } from "sonner";
 import { useNavigate } from "react-router";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import { Button, Container, Input, Label } from "@/components/ui";
+import { Button, Input, Label } from "@/components/ui";
 import axios from "axios";
 import { vetSchema, type VetFormData } from "@/schemas/vet.schema";
+import { DashboardPage } from "@/components/shared";
 
 const AddVetPage = () => {
   const navigate = useNavigate();
@@ -43,18 +44,12 @@ const AddVetPage = () => {
   };
 
   return (
-    <main>
-      <Container className="mb-6 space-y-12 md:mb-10 md:space-y-16">
-        <div className="space-y-2">
-          <h1 className="text-3xl font-bold text-green-900 md:text-5xl">
-            Dodaj weterynarza
-          </h1>
-          <p className="text-sm leading-6 font-medium md:text-base md:leading-7">
-            Wprowadź dane weterynarza i kliniki poniżej.
-          </p>
-        </div>
-
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+    <DashboardPage
+      title="Dodaj weterynarza"
+      description="Wprowadź dane weterynarza i kliniki poniżej."
+      showNavbar={false}
+    >
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
           <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
             <div className="space-y-2">
               <Label htmlFor="name">Imię i nazwisko</Label>
@@ -111,8 +106,7 @@ const AddVetPage = () => {
             {isSubmitting ? "Dodawanie..." : "Dodaj weterynarza"}
           </Button>
         </form>
-      </Container>
-    </main>
+    </DashboardPage>
   );
 };
 

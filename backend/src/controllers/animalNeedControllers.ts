@@ -171,6 +171,22 @@ export const createAnimalNeed = async (req: Request, res: Response) => {
       });
     }
 
+    if (
+      !description ||
+      typeof description !== 'string' ||
+      description.trim().length < 20
+    ) {
+      return res.status(StatusCodes.BAD_REQUEST).json({
+        msg: 'Opis musi mieć co najmniej 20 znaków.',
+      });
+    }
+
+    if (description.trim().length > 200) {
+      return res.status(StatusCodes.BAD_REQUEST).json({
+        msg: 'Opis może mieć maksymalnie 200 znaków.',
+      });
+    }
+
     const animal = await prisma.animal.findUnique({ where: { id: Number(animalId) } });
     if (!animal) {
       return res.status(StatusCodes.NOT_FOUND).json({ msg: 'Nie znaleziono zwierzęcia.' });
@@ -184,7 +200,7 @@ export const createAnimalNeed = async (req: Request, res: Response) => {
         animalId: Number(animalId),
         category: finalCategory,
         name: name.trim(),
-        description: description?.trim() || null,
+        description: description.trim(),
         reportedById: req.userId ?? null,
       },
       include: needInclude,

@@ -541,6 +541,30 @@ export const createAnimal = async (req: Request, res: Response) => {
   }
 
   try {
+    const todayTime = new Date().getTime();
+    const data = parsedBody.data;
+
+    if (new Date(data.foundAt).getTime() > todayTime) {
+      return res
+        .status(StatusCodes.CONFLICT)
+        .json({ msg: 'Data znalezienia zwierzecia jest nieprawidlowa!' });
+    }
+
+    if (new Date(data.dateOfBirth).getTime() > todayTime) {
+      return res
+        .status(StatusCodes.CONFLICT)
+        .json({ msg: 'Data urodzenia zwierzecia jest nieprawidlowa!' });
+    }
+
+    if (
+      data.nextVisitDate &&
+      new Date(data.nextVisitDate).getTime() < todayTime
+    ) {
+      return res
+        .status(StatusCodes.CONFLICT)
+        .json({ msg: 'Data nastepnej wizyty jest nieprawidlowa!' });
+    }
+
     // -- Sprawdzamy czy klatka jest dostępna -- //
     const cageCheck = await assertCageAvailable(parsedBody.data.cageId);
     if (!cageCheck.ok) {

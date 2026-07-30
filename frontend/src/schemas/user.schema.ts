@@ -1,7 +1,6 @@
 import { z } from "zod";
 import {
   emptyStringToNull,
-  nullableDateSchema,
   phoneSchema,
 } from "@/schemas/common.schema";
 
@@ -12,14 +11,47 @@ export const GenderEnum = z.enum(["MEZCZYZNA", "KOBIETA"], {
   message: "Płeć nie może być pusta.",
 });
 
+const emailSchema = z
+  .string()
+  .regex(/^[^\s@]+@[^\s@]+\.[^\s@]+$/, "Niepoprawny adres email.");
+
+const startOfToday = () => {
+  const date = new Date();
+  date.setHours(0, 0, 0, 0);
+  return date;
+};
+
+export const getMaxDateOfBirth = () => {
+  const date = startOfToday();
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+};
+
+const dateOfBirthSchema = z.preprocess(
+  (val) => {
+    if (val === "" || val == null) return null;
+    return val;
+  },
+  z.coerce
+    .date({ message: "Niepoprawna data." })
+    .nullable()
+    .optional()
+    .refine((date) => {
+      if (!date) return true;
+      const value = new Date(date);
+      value.setHours(0, 0, 0, 0);
+      return value.getTime() <= startOfToday().getTime();
+    }, "Data urodzenia nie może być z przyszłości."),
+);
+
 export const editUserSchema = z.object({
   fullName: z
     .string()
     .min(3, "Imię i nazwisko musi mieć minimum 3 znaki.")
     .max(50, "Imię i nazwisko nie może mieć więcej niż 50 znaków."),
-  email: z
-    .string()
-    .regex(/^[^\s@]+@[^\s@]+\.[^\s@]+$/, "Niepoprawny adres email."),
+  email: emailSchema,
   gender: GenderEnum,
   role: RoleEnum,
   phoneNumber: z.preprocess(emptyStringToNull, phoneSchema.nullable()),
@@ -52,7 +84,7 @@ export const editUserSchema = z.object({
       .nullable()
       .optional(),
   ),
-  dateOfBirth: nullableDateSchema,
+  dateOfBirth: dateOfBirthSchema,
   hasChildren: z.boolean(),
   hasOtherAnimals: z.boolean(),
   isBanned: z.boolean(),
@@ -69,7 +101,7 @@ export const addUserSchema = z.object({
     .string()
     .min(3, "Imię i nazwisko musi mieć minimum 3 znaki.")
     .max(50, "Imię i nazwisko nie może mieć więcej niż 50 znaków."),
-  email: z.string().email("Niepoprawny adres email."),
+  email: emailSchema,
   password: z
     .string()
     .min(8, "Hasło musi mieć min. 8 znaków")

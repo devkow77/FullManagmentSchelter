@@ -1,5 +1,5 @@
-import { Button, Container } from "@/components/ui";
-import axios from "axios";
+import { Button, Container, Label, Textarea } from "@/components/ui";
+import axios, { AxiosError } from "axios";
 import { useParams } from "react-router";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Pagination } from "swiper/modules";
@@ -17,6 +17,14 @@ import type { AnimalHealthStatus, AnimalStatus } from "@/types/animal";
 import { Link } from "react-router";
 import { AnimalCard } from "@/components/shared";
 import { useAuth } from "@/context/AuthContext";
+import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { toast } from "sonner";
+import {
+  createAdoptionSchema,
+  type CreateAdoptionFormData,
+} from "@/schemas/adoption.schema";
 
 interface Animal {
   id: number;
@@ -112,6 +120,17 @@ const TraitIcon = ({ active }: { active: boolean }) =>
 const AnimalPage = () => {
   const { id } = useParams();
   const { user } = useAuth();
+  const [showAdoptionForm, setShowAdoptionForm] = useState(false);
+
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors, isSubmitting },
+  } = useForm<CreateAdoptionFormData>({
+    resolver: zodResolver(createAdoptionSchema),
+    defaultValues: { message: "" },
+  });
 
   const { data } = useQuery({
     queryKey: ["animal", id],
@@ -136,6 +155,32 @@ const AnimalPage = () => {
       : user.role === "PRACOWNIK"
         ? "Pracownik nie może adoptować."
         : null;
+
+  const onSubmitAdoption = async (formData: CreateAdoptionFormData) => {
+    if (!animal?.id) return;
+
+    try {
+      await axios.post(
+        "/api/adoptions",
+        {
+          animalId: animal.id,
+          message: formData.message?.trim() || undefined,
+        },
+        { withCredentials: true },
+      );
+      toast.success("Wniosek o adopcję został wysłany.");
+      reset({ message: "" });
+      setShowAdoptionForm(false);
+    } catch (err: unknown) {
+      if (err instanceof AxiosError) {
+        toast.error(
+          err.response?.data?.msg ?? "Nie udało się wysłać wniosku o adopcję.",
+        );
+      } else {
+        toast.error("Wystąpił nieoczekiwany błąd.");
+      }
+    }
+  };
 
   return (
     <main>
@@ -192,12 +237,63 @@ const AnimalPage = () => {
               {animal?.description}
             </p>
             <div className="flex flex-wrap items-center justify-between gap-2">
-              <div className="space-y-1">
+              <div className="w-full max-w-xl space-y-3">
                 {canAdopt ? (
                   canSubmitAdoption ? (
-                    <Button variant="success" asChild>
-                      <Link to={`/`}>Zgłoś wniosek o adopcję</Link>
-                    </Button>
+                    showAdoptionForm ? (
+                      <form
+                        onSubmit={handleSubmit(onSubmitAdoption)}
+                        className="space-y-3"
+                      >
+                        <div className="space-y-2">
+                          <Label htmlFor="adoptionMessage">
+                            Wiadomość do schroniska (opcjonalnie)
+                          </Label>
+                          <Textarea
+                            id="adoptionMessage"
+                            maxLength={500}
+                            placeholder="Napisz kilka słów o sobie i motywacji do adopcji..."
+                            className={`h-28 resize-none ${errors.message ? "bg-red-600/20" : ""}`}
+                            {...register("message")}
+                          />
+                          {errors.message && (
+                            <p className="text-xs font-medium text-red-600 md:text-sm">
+                              {errors.message.message}
+                            </p>
+                          )}
+                        </div>
+                        <div className="flex flex-wrap gap-2">
+                          <Button
+                            type="submit"
+                            variant="success"
+                            disabled={isSubmitting}
+                          >
+                            {isSubmitting
+                              ? "Wysyłanie..."
+                              : "Wyślij wniosek"}
+                          </Button>
+                          <Button
+                            type="button"
+                            variant="canceled"
+                            disabled={isSubmitting}
+                            onClick={() => {
+                              setShowAdoptionForm(false);
+                              reset({ message: "" });
+                            }}
+                          >
+                            Anuluj
+                          </Button>
+                        </div>
+                      </form>
+                    ) : (
+                      <Button
+                        variant="success"
+                        type="button"
+                        onClick={() => setShowAdoptionForm(true)}
+                      >
+                        Zgłoś wniosek o adopcję
+                      </Button>
+                    )
                   ) : (
                     <>
                       <Button variant="success" disabled>

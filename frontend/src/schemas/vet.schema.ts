@@ -13,7 +13,7 @@ export const vetSchema = z.object({
     .string()
     .trim()
     .min(3, "Nazwa kliniki musi mieć minimum 3 znaki.")
-    .max(500, "Nazwa kliniki może mieć maksymalnie 50 znaków."),
+    .max(500, "Nazwa kliniki może mieć maksymalnie 500 znaków."),
 });
 
 export type VetFormData = z.infer<typeof vetSchema>;

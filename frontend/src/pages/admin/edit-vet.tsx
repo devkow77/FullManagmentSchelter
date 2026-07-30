@@ -29,7 +29,7 @@ import {
   formatMedicalRecordType,
   formatAnimalType,
 } from "@/lib/utils";
-import { MultiValueSelector, TableRowActions } from "@/components/shared";
+import { MultiValueSelector, TableRowActions, FilterToolbar } from "@/components/shared";
 import {
   medicalRecordAnimalTypeOptions,
   medicalRecordTypeOptions,
@@ -230,7 +230,7 @@ const EditVetPage = () => {
             </p>
           </div>
 
-          <div className="top-0 z-2 flex flex-wrap items-center gap-4 bg-white py-4 sm:sticky">
+          <FilterToolbar>
             <MultiValueSelector
               items={medicalRecordAnimalTypeOptions}
               placeholder="Gatunek"
@@ -255,7 +255,7 @@ const EditVetPage = () => {
             <Button onClick={resetFilters} variant="destructive">
               Resetuj filtry
             </Button>
-          </div>
+          </FilterToolbar>
 
           <Table>
             <TableCaption>Raporty medyczne weterynarza</TableCaption>

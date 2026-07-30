@@ -33,10 +33,9 @@ export const animalSizeValues = AnimalSizeEnum.options;
 export const animalStatusValues = AnimalStatusEnum.options;
 export const animalHealthStatusValues = AnimalHealthStatusEnum.options;
 
-const startOfTomorrow = () => {
+const startOfToday = () => {
   const date = new Date();
   date.setHours(0, 0, 0, 0);
-  date.setDate(date.getDate() + 1);
   return date;
 };
 
@@ -48,17 +47,36 @@ const toLocalDateInputValue = (date: Date) => {
 };
 
 export const getMinNextVisitDate = () =>
-  toLocalDateInputValue(startOfTomorrow());
+  toLocalDateInputValue(startOfToday());
+
+export const getMaxPastOrTodayDate = () =>
+  toLocalDateInputValue(startOfToday());
+
+const isNotInFuture = (date: Date) => {
+  const value = new Date(date);
+  value.setHours(0, 0, 0, 0);
+  return value.getTime() <= startOfToday().getTime();
+};
+
+const isNotInPast = (date: Date) => {
+  const value = new Date(date);
+  value.setHours(0, 0, 0, 0);
+  return value.getTime() >= startOfToday().getTime();
+};
+
+const pastOrTodayDateSchema = requiredDateSchema.refine(
+  isNotInFuture,
+  "Data nie może być z przyszłości.",
+);
 
 const futureVisitDateSchema = z.preprocess(
   emptyStringToNull,
   z.union([
     z.null(),
-    z.coerce.date({ message: "Niepoprawna data." }).refine((date) => {
-      const value = new Date(date);
-      value.setHours(0, 0, 0, 0);
-      return value >= startOfTomorrow();
-    }, "Data następnej wizyty musi być późniejsza niż dziś."),
+    z.coerce.date({ message: "Niepoprawna data." }).refine(
+      isNotInPast,
+      "Data następnej wizyty nie może być wcześniejsza niż dziś.",
+    ),
   ]),
 );
 
@@ -71,7 +89,7 @@ export const animalSchema = z.object({
   gender: AnimalGenderEnum,
   size: AnimalSizeEnum,
   traits: z.string().min(3, "Cechy muszą posiadać minimum 3 znaki."),
-  dateOfBirth: requiredDateSchema,
+  dateOfBirth: pastOrTodayDateSchema,
   description: z
     .string()
     .min(20, "Opis musi mieć co najmniej 20 znaków.")
@@ -79,7 +97,7 @@ export const animalSchema = z.object({
   status: AnimalStatusEnum,
   healthStatus: AnimalHealthStatusEnum,
   nextVisitDate: futureVisitDateSchema,
-  foundAt: requiredDateSchema,
+  foundAt: pastOrTodayDateSchema,
   foundLocation: z
     .string()
     .min(3, "Miejsowość musi posiadać minimum 3 znaki.")

@@ -186,6 +186,15 @@ export const createRecord = async (req: Request, res: Response) => {
     });
   }
 
+  if (
+    typeof description !== 'string' ||
+    description.trim().length < 20
+  ) {
+    return res.status(StatusCodes.BAD_REQUEST).json({
+      msg: 'Opis musi mieć co najmniej 20 znaków!',
+    });
+  }
+
   if (!medicalRecordTypes.includes(type)) {
     return res.status(StatusCodes.BAD_REQUEST).json({
       msg: 'Nieprawidłowy typ raportu medycznego!',
@@ -278,6 +287,15 @@ export const updateRecord = async (req: Request, res: Response) => {
   ) {
     return res.status(StatusCodes.BAD_REQUEST).json({
       msg: 'Wszystkie wymagane pola muszą być wypełnione!',
+    });
+  }
+
+  if (
+    typeof description !== 'string' ||
+    description.trim().length < 20
+  ) {
+    return res.status(StatusCodes.BAD_REQUEST).json({
+      msg: 'Opis musi mieć co najmniej 20 znaków!',
     });
   }
 

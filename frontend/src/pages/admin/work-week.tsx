@@ -8,7 +8,6 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
   Button,
-  Container,
   Input,
   Label,
   Skeleton,
@@ -26,10 +25,13 @@ import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import DashboardNavbar from "@/components/layout/admin/DashboardNavbar";
-import { UserAvatar } from "@/components/shared";
+import {
+  UserAvatar,
+  SingleValueSelector,
+  MultiValueSelector,
+  DashboardPage,
+} from "@/components/shared";
 import axios from "axios";
-import { SingleValueSelector, MultiValueSelector } from "@/components/shared";
 import type { LabelValueType } from "@/types/common";
 import type { User } from "@/types/user";
 
@@ -76,7 +78,23 @@ const assignmentSchema = z
   .refine((data) => data.dateTo >= minAssignableDate, {
     message: "Nie można przypisywać stref do dni z przeszłości.",
     path: ["dateTo"],
-  });
+  })
+  .refine(
+    (data) => {
+      const from = new Date(`${data.dateFrom}T00:00:00`);
+      const to = new Date(`${data.dateTo}T00:00:00`);
+      if (Number.isNaN(from.getTime()) || Number.isNaN(to.getTime())) {
+        return true;
+      }
+      const dayCount =
+        Math.floor((to.getTime() - from.getTime()) / 86_400_000) + 1;
+      return dayCount <= 31;
+    },
+    {
+      message: "Zakres może obejmować maksymalnie 31 dni.",
+      path: ["dateTo"],
+    },
+  );
 
 type AssignmentFormInput = z.input<typeof assignmentSchema>;
 type AssignmentFormData = z.output<typeof assignmentSchema>;
@@ -391,21 +409,11 @@ const WorkWeekPage = () => {
   };
 
   return (
-    <main>
-      <Container className="mb-6 space-y-12 md:mb-10 md:space-y-16">
-        <section id="info" className="space-y-6">
-          <div className="space-y-2">
-            <h1 className="text-3xl font-bold text-green-900 md:text-5xl">
-              Zarządzaj tygodniem pracy
-            </h1>
-            <p className="text-sm leading-6 font-medium md:text-base md:leading-7">
-              Przypisz pracownikowi opiekę nad wybraną strefą w podanym zakresie
-              dat.
-            </p>
-          </div>
-          <DashboardNavbar />
-        </section>
-
+    <>
+      <DashboardPage
+        title="Zarządzaj tygodniem pracy"
+        description="Przypisz pracownikowi opiekę nad wybraną strefą w podanym zakresie dat."
+      >
         <section id="assign" className="space-y-6">
           <div className="space-y-2">
             <h2 className="text-2xl font-bold text-green-900 md:text-3xl">
@@ -701,7 +709,7 @@ const WorkWeekPage = () => {
             </Table>
           )}
         </section>
-      </Container>
+      </DashboardPage>
 
       <AlertDialog
         open={isConfirmOpen}
@@ -747,7 +755,7 @@ const WorkWeekPage = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </main>
+    </>
   );
 };
 

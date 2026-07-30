@@ -9,6 +9,7 @@ import { Button, Container, Label, Textarea } from "@/components/ui";
 import axios from "axios";
 import { ImageOff, UserRound } from "lucide-react";
 import { toast } from "sonner";
+import { DashboardPage } from "@/components/shared";
 import {
   styleAdoptionStatus,
   calculateAge,
@@ -174,38 +175,35 @@ const EditAdoptionPage = () => {
   const { user, animal, status } = adoption;
 
   return (
-    <main>
-      <Container className="mb-6 space-y-12 md:mb-10 md:space-y-16">
-        {/* HEADER */}
-        <div className="space-y-2">
+    <DashboardPage
+      title="Informacje o adopcji"
+      description={
+        <>
           <span
-            className={`inline-block h-fit rounded-2xl px-4 py-2 text-sm font-medium ${styleAdoptionStatus(status)}`}
+            className={`mb-2 inline-block h-fit rounded-2xl px-4 py-2 text-sm font-medium ${styleAdoptionStatus(status)}`}
           >
             {formatAdoptionStatus[status] ?? status}
           </span>
-
-          <h1 className="text-3xl font-bold text-green-900 md:text-5xl">
-            Informacje o adopcji
-          </h1>
-          <p className="text-sm leading-6 font-medium md:text-base md:leading-7">
-            {status === "OCZEKUJACA"
-              ? "Wprowadź zmiany w adopcji zwierzęcia poniżej."
-              : "Nie możesz edytować danych adopcji, ponieważ jest ona już zakończona."}
-          </p>
-        </div>
-
-        <form onSubmit={(e) => e.preventDefault()}>
-          <div className="grid grid-cols-1 items-start gap-6 md:grid-cols-2 lg:gap-8">
-            {/* OSOBA WNIOSKUJĄCA */}
-            <section className="space-y-4 lg:space-y-6">
-              {/* AVATAR */}
-              <div className="space-y-4">
-                <h2 className="font-semibold">Dane osoby wnioskującej</h2>
-                <div className="relative grid aspect-square w-60 place-items-center rounded-full bg-black/10">
-                  {user.imageUrl ? (
-                    <img
-                      src={user.imageUrl}
-                      alt={user.fullName}
+          <br />
+          {status === "OCZEKUJACA"
+            ? "Wprowadź zmiany w adopcji zwierzęcia poniżej."
+            : "Nie możesz edytować danych adopcji, ponieważ jest ona już zakończona."}
+        </>
+      }
+      showNavbar={false}
+    >
+      <form onSubmit={(e) => e.preventDefault()}>
+        <div className="grid grid-cols-1 items-start gap-6 md:grid-cols-2 lg:gap-8">
+          {/* OSOBA WNIOSKUJĄCA */}
+          <section className="space-y-4 lg:space-y-6">
+            {/* AVATAR */}
+            <div className="space-y-4">
+              <h2 className="font-semibold">Dane osoby wnioskującej</h2>
+              <div className="relative grid aspect-square w-60 place-items-center rounded-full bg-black/10">
+                {user.imageUrl ? (
+                  <img
+                    src={user.imageUrl}
+                    alt={user.fullName}
                       className="absolute h-full w-full rounded-full object-cover"
                     />
                   ) : (
@@ -403,8 +401,7 @@ const EditAdoptionPage = () => {
             </section>
           </div>
         </form>
-      </Container>
-    </main>
+    </DashboardPage>
   );
 };
 
