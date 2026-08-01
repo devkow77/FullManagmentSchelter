@@ -245,6 +245,7 @@ export const changeAdoptionStatus = async (req: Request, res: Response) => {
       },
       select: {
         status: true,
+        animalId: true,
       },
     });
 
@@ -254,11 +255,29 @@ export const changeAdoptionStatus = async (req: Request, res: Response) => {
       });
     }
 
-    await prisma.adoption.update({
-      where: {
-        id: numericId,
-      },
-      data: parsedBody.data,
+    const { status, employeeNote, message } = parsedBody.data;
+
+    await prisma.$transaction(async (tx) => {
+      await tx.adoption.update({
+        where: { id: numericId },
+        data: { status, employeeNote, message },
+      });
+
+      // Akceptacja wniosku → zwierzę przechodzi w proces adopcji
+      if (status === AdoptionStatus.ZAAKCEPTOWANA) {
+        await tx.animal.update({
+          where: { id: findAdoption.animalId },
+          data: { status: AnimalStatus.W_TRAKCIE_ADOPCJI },
+        });
+      }
+
+      // Zakończenie adopcji → zwierzę adoptowane, zwalnia klatkę
+      if (status === AdoptionStatus.ZAKONCZONA) {
+        await tx.animal.update({
+          where: { id: findAdoption.animalId },
+          data: { status: AnimalStatus.ADOPTOWANY, cageId: null },
+        });
+      }
     });
 
     return res.status(StatusCodes.OK).json({

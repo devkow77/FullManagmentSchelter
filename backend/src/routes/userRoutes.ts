@@ -35,6 +35,7 @@ router.get(
   authorizeRoles(Role.ADMINISTRATOR),
   getWorkerStats,
 );
+router.patch('/password', authenticateUser, updatePassword);
 router.get(
   '/:id',
   authenticateUser,
@@ -53,7 +54,6 @@ router.patch(
   authorizeRoles(Role.ADMINISTRATOR),
   updateUniqueUser,
 );
-router.patch('/password', authenticateUser, updatePassword);
 router.delete(
   '/:id',
   authenticateUser,

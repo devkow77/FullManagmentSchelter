@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import { StatusCodes } from 'http-status-codes';
 import { Role } from '../generated/prisma/enums';
+import prisma from '../prisma';
 
 export interface AuthRequest extends Request {
   userId?: number;
@@ -9,7 +10,7 @@ export interface AuthRequest extends Request {
 }
 
 // FUNKCJA SPRAWDZAJACA CZY UZYTKOWNIK JEST ZALOGOWANY
-export const authenticateUser = (
+export const authenticateUser = async (
   req: AuthRequest,
   res: Response,
   next: NextFunction,
@@ -27,6 +28,23 @@ export const authenticateUser = (
       userId: number;
       userRole: Role;
     };
+
+    const user = await prisma.user.findUnique({
+      where: { id: payload.userId },
+      select: { isBanned: true },
+    });
+
+    if (!user) {
+      return res.status(StatusCodes.UNAUTHORIZED).json({
+        msg: 'Token jest nieprawidłowy lub wygasł!',
+      });
+    }
+
+    if (user.isBanned) {
+      return res.status(StatusCodes.FORBIDDEN).json({
+        msg: 'Twoje konto zostało zablokowane!',
+      });
+    }
 
     req.userId = payload.userId;
     req.userRole = payload.userRole;

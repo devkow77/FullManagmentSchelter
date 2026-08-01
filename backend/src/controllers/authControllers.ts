@@ -80,6 +80,12 @@ export const loginToAccount = async (req: Request, res: Response) => {
         .json({ msg: 'Niepoprawny email lub hasło!' });
     }
 
+    if (existingUser.isBanned) {
+      return res
+        .status(StatusCodes.FORBIDDEN)
+        .json({ msg: 'Twoje konto zostało zablokowane!' });
+    }
+
     // Jeżeli użytkownik ma 2FA włączone
     if (existingUser.twoFactorEnabled){
       const tempToken = jwt.sign({userId: existingUser.id, twoFactorEnabled: true}, process.env.JWT_SECRET!, {expiresIn: '5m'});
@@ -310,6 +316,12 @@ export const loginWithTotp = async (req: Request, res: Response) => {
 
   if (!user || !user.twoFactorSecret) {
     return res.status(StatusCodes.BAD_REQUEST).json({ msg: '2FA nieaktywne' });
+  }
+
+  if (user.isBanned) {
+    return res
+      .status(StatusCodes.FORBIDDEN)
+      .json({ msg: 'Twoje konto zostało zablokowane!' });
   }
 
   const verified = speakeasy.totp.verify({

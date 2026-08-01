@@ -6,7 +6,12 @@ const usersSeed = async () => {
   const hashedPassword = await bcrypt.hash('Haslo12345.', 10);
   console.log('Seed użytkowników...');
 
-  await prisma.user.deleteMany();
+  await prisma.animalNeed.deleteMany({});
+  await prisma.animalDailyCare.deleteMany({});
+  await prisma.medicalRecord.deleteMany({});
+  await prisma.adoption.deleteMany({});
+  await prisma.dailyZoneAssignment.deleteMany({});
+  await prisma.user.deleteMany({});
 
   await prisma.user.createMany({
     data: [

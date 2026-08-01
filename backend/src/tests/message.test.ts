@@ -19,6 +19,7 @@ describe('POST /api/contact', () => {
   });
 
   it('Powinno pozwolić niezalogowanemu użytkownikowi wysłać wiadomość', async () => {
+    // Sprawdza wysyłkę wiadomości kontaktowej.
     const res = await request(app).post('/api/contact').send({
       fullName: 'Niezalogowany',
       email: 'niezalogowany@gmail.com',
@@ -30,7 +31,7 @@ describe('POST /api/contact', () => {
   });
 
   it('Powinno pozwolić użytkownikowi z rolą USER wysłać wiadomość', async () => {
-    // Logowanie jako USER
+    // Sprawdza wysyłkę wiadomości kontaktowej.
     const loginRes = await request(app).post('/api/auth/login').send({
       email: 'michal@gmail.com',
       password: 'Haslo12345.',
@@ -55,6 +56,7 @@ describe('POST /api/contact', () => {
   });
 
   it('Nie powinno pozwolić użytkownikowi z rolą WORKER wysłać wiadomość', async () => {
+    // Sprawdza wysyłkę wiadomości kontaktowej.
     const loginRes = await request(app).post('/api/auth/login').send({
       email: 'pracownik@gmail.com',
       password: 'Haslo12345.',
@@ -76,6 +78,7 @@ describe('POST /api/contact', () => {
   });
 
   it('Nie powinno pozwolić użytkownikowi z rolą ADMIN wysłać wiadomość', async () => {
+    // Sprawdza wysyłkę wiadomości kontaktowej.
     const loginRes = await request(app).post('/api/auth/login').send({
       email: 'admin@gmail.com',
       password: 'Haslo12345.',
@@ -97,6 +100,7 @@ describe('POST /api/contact', () => {
   });
 
   it('Powinno zwrócić BAD_REQUEST dla nieprawidłowych danych', async () => {
+    // Sprawdza walidację danych wejściowych (400).
     const res = await request(app).post('/api/contact').send({
       fullName: '',
       email: 'invalid-email',

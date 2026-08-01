@@ -20,6 +20,7 @@ describe('Newsletter API', () => {
   });
 
   it('Powinno zapisać nowy email do newslettera', async () => {
+    // Sprawdza poprawne utworzenie zasobu.
     const res = await request(app).post('/api/newsletter/subscribe').send({
       email: 'newsletter@test.com',
       consent: true,
@@ -30,6 +31,7 @@ describe('Newsletter API', () => {
   });
 
   it('Powinno zwrócić komunikat dla już zapisanego emaila', async () => {
+    // Sprawdza komunikat dla już istniejącej subskrypcji newslettera.
     const res = await request(app).post('/api/newsletter/subscribe').send({
       email: 'newsletter@test.com',
       consent: true,
@@ -40,6 +42,7 @@ describe('Newsletter API', () => {
   });
 
   it('Powinno zwrócić BAD_REQUEST bez zgody', async () => {
+    // Sprawdza wymóg zgody przy zapisie do newslettera.
     const res = await request(app).post('/api/newsletter/subscribe').send({
       email: 'brak-zgody@test.com',
       consent: false,
@@ -50,6 +53,7 @@ describe('Newsletter API', () => {
   });
 
   it('Powinno wypisać użytkownika z newslettera', async () => {
+    // Sprawdza wypisanie z newslettera po tokenie.
     const subscriber = await prisma.newsletterSubscriber.findUnique({
       where: { email: 'newsletter@test.com' },
     });
@@ -65,6 +69,7 @@ describe('Newsletter API', () => {
   });
 
   it('Powinno zwrócić NOT_FOUND dla nieprawidłowego tokenu', async () => {
+    // Sprawdza walidację danych wejściowych (400).
     const res = await request(app).get(
       '/api/newsletter/unsubscribe/nieistniejacy-token',
     );
