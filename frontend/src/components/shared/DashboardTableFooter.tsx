@@ -16,6 +16,7 @@ type DashboardTableFooterProps = {
 };
 
 const BREAKPOINTS = ["sm", "md", "lg", "xl"] as const;
+type Breakpoint = (typeof BREAKPOINTS)[number];
 
 const visibilityRank: Record<TableColumnVisibility, number> = {
   always: 0,
@@ -23,6 +24,21 @@ const visibilityRank: Record<TableColumnVisibility, number> = {
   md: 2,
   lg: 3,
   xl: 4,
+};
+
+/** Pełne stringi klas — Tailwind nie wykrywa klas składanych z `${bp}:…`. */
+const SHOW_FROM: Record<Breakpoint, string> = {
+  sm: "hidden sm:table-row",
+  md: "hidden md:table-row",
+  lg: "hidden lg:table-row",
+  xl: "hidden xl:table-row",
+};
+
+const HIDE_FROM: Record<Breakpoint, string> = {
+  sm: "sm:hidden",
+  md: "md:hidden",
+  lg: "lg:hidden",
+  xl: "xl:hidden",
 };
 
 const countVisible = (
@@ -47,7 +63,7 @@ const getSpanRows = (columns: TableColumnVisibility[]): SpanRow[] => {
   const rows: SpanRow[] = [
     {
       key: "base",
-      className: "sm:hidden",
+      className: HIDE_FROM.sm,
       colSpan: counts[0],
     },
   ];
@@ -66,8 +82,8 @@ const getSpanRows = (columns: TableColumnVisibility[]): SpanRow[] => {
     rows.push({
       key: `${startBp}-${end}`,
       className: hideBp
-        ? `hidden ${startBp}:table-row ${hideBp}:hidden`
-        : `hidden ${startBp}:table-row`,
+        ? `${SHOW_FROM[startBp]} ${HIDE_FROM[hideBp]}`
+        : SHOW_FROM[startBp],
       colSpan,
     });
 
