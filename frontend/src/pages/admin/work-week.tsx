@@ -36,6 +36,10 @@ import type { LabelValueType } from "@/types/common";
 import type { User } from "@/types/user";
 
 const zoneOverviewQueryKey = ["zone-assignments", "workers-overview"] as const;
+const weekCoverageStatusQueryKey = [
+  "zone-assignments",
+  "current-week-coverage-status",
+] as const;
 const workersQueryKey = ["users", "workers", "zone-assign"] as const;
 const cageOptionsQueryKey = ["cages", "options"] as const;
 
@@ -559,6 +563,9 @@ const WorkWeekPage = () => {
       setConflicts([]);
       setIsConfirmOpen(false);
       await queryClient.invalidateQueries({ queryKey: zoneOverviewQueryKey });
+      await queryClient.invalidateQueries({
+        queryKey: weekCoverageStatusQueryKey,
+      });
       await queryClient.refetchQueries({ queryKey: zoneOverviewQueryKey });
       reset({
         workerIds: [],

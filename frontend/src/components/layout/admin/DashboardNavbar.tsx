@@ -20,9 +20,20 @@ import axios from "axios";
 const dailyCareStatusQueryKey = ["animals", "daily-care-status"] as const;
 const animalNeedsStatusQueryKey = ["animals", "needs-status"] as const;
 const pendingAdoptionsQueryKey = ["adoptions", "pending-count"] as const;
+const pendingMedicalRecordsQueryKey = [
+  "medical-records",
+  "pending-count",
+] as const;
+const weekCoverageStatusQueryKey = [
+  "zone-assignments",
+  "current-week-coverage-status",
+] as const;
+
 const dailyTasksHref = "/pracownik/codzienne-obowiazki";
+const workWeekHref = "/admin/tydzien-pracy";
 const needsHref = "/pracownik/zapotrzebowania-zwierzat";
 const adoptionsHref = "/admin/adopcje";
+const medicalRecordsHref = "/pracownik/raporty-medyczne";
 
 const getDailyCareStatus = async () => {
   const res = await axios.get<{ allComplete: boolean }>(
@@ -32,9 +43,10 @@ const getDailyCareStatus = async () => {
 };
 
 const getAnimalNeedsStatus = async () => {
-  const res = await axios.get<{ hasActiveNeeds: boolean }>(
-    "/api/animals/needs/status",
-  );
+  const res = await axios.get<{
+    hasActiveNeeds: boolean;
+    activeNeedsCount: number;
+  }>("/api/animals/needs/status");
   return res.data;
 };
 
@@ -43,6 +55,20 @@ const getPendingAdoptionsCount = async () => {
     "/api/adoptions?page=1&limit=1&status=OCZEKUJACA",
   );
   return res.data.total;
+};
+
+const getPendingMedicalRecordsCount = async () => {
+  const res = await axios.get<{ total: number }>(
+    "/api/medical-records?page=1&limit=1&status=DO_REALIZACJI",
+  );
+  return res.data.total;
+};
+
+const getWeekCoverageStatus = async () => {
+  const res = await axios.get<{ allZonesCovered: boolean }>(
+    "/api/zone-assignments/current-week-coverage/status",
+  );
+  return res.data;
 };
 
 interface AdminOptions {
@@ -80,12 +106,12 @@ const adminOptions: AdminOptions[] = [
   },
   {
     icon: CalendarSync,
-    href: "/pracownik/codzienne-obowiazki",
+    href: dailyTasksHref,
     name: "Codzienne obowiązki pracowników",
   },
   {
     icon: CalendarDays,
-    href: "/admin/tydzien-pracy",
+    href: workWeekHref,
     name: "Zarządzaj tygodniem pracy",
   },
   {
@@ -95,7 +121,7 @@ const adminOptions: AdminOptions[] = [
   },
   {
     icon: ClipboardPlus,
-    href: "/pracownik/raporty-medyczne",
+    href: medicalRecordsHref,
     name: "Raporty medyczne",
   },
   {
@@ -118,16 +144,22 @@ const adminOptions: AdminOptions[] = [
 const getCardClassName = (
   href: string,
   pathname: string,
-  alertHrefs: Set<string>,
+  warningHrefs: Set<string>,
+  criticalHrefs: Set<string>,
 ) => {
   const isActive = pathname === href;
-  const isAlert = alertHrefs.has(href) && !isActive;
+  const isCritical = criticalHrefs.has(href) && !isActive;
+  const isWarning = warningHrefs.has(href) && !isActive;
 
   if (isActive) {
     return "rounded-full bg-green-100 border-2 border-green-300 text-green-800";
   }
 
-  if (isAlert) {
+  if (isCritical) {
+    return "rounded-2xl border-2 border-red-300 bg-red-100 text-red-800 duration-300 hover:bg-red-50 hover:shadow-lg";
+  }
+
+  if (isWarning) {
     return "rounded-2xl border-2 border-yellow-300 bg-yellow-100 text-yellow-800 duration-300 hover:bg-yellow-50 hover:shadow-lg";
   }
 
@@ -149,20 +181,47 @@ const DashboardNavbar = () => {
     refetchOnWindowFocus: true,
   });
 
+  const { data: weekCoverageStatus } = useQuery({
+    queryKey: weekCoverageStatusQueryKey,
+    queryFn: getWeekCoverageStatus,
+    refetchOnWindowFocus: true,
+  });
+
   const { data: pendingAdoptionsCount = 0 } = useQuery({
     queryKey: pendingAdoptionsQueryKey,
     queryFn: getPendingAdoptionsCount,
     refetchOnWindowFocus: true,
   });
 
-  const alertHrefs = new Set<string>();
+  const { data: pendingMedicalRecordsCount = 0 } = useQuery({
+    queryKey: pendingMedicalRecordsQueryKey,
+    queryFn: getPendingMedicalRecordsCount,
+    refetchOnWindowFocus: true,
+  });
+
+  const warningHrefs = new Set<string>();
+  const criticalHrefs = new Set<string>();
 
   if (dailyCareStatus?.allComplete === false) {
-    alertHrefs.add(dailyTasksHref);
+    criticalHrefs.add(dailyTasksHref);
   }
 
-  if (animalNeedsStatus?.hasActiveNeeds) {
-    alertHrefs.add(needsHref);
+  if (weekCoverageStatus?.allZonesCovered === false) {
+    criticalHrefs.add(workWeekHref);
+  }
+
+  if (pendingAdoptionsCount > 0) {
+    warningHrefs.add(adoptionsHref);
+  }
+
+  if (pendingMedicalRecordsCount > 0) {
+    warningHrefs.add(medicalRecordsHref);
+  }
+
+  const activeNeedsCount = animalNeedsStatus?.activeNeedsCount ?? 0;
+
+  if (activeNeedsCount > 0) {
+    warningHrefs.add(needsHref);
   }
 
   return (
@@ -170,11 +229,24 @@ const DashboardNavbar = () => {
       {adminOptions.map((option) => {
         const card = (
           <div
-            className={`${getCardClassName(option.href, location.pathname, alertHrefs)} relative grid aspect-square place-items-center p-2 text-center font-medium`}
+            className={`${getCardClassName(option.href, location.pathname, warningHrefs, criticalHrefs)} relative grid aspect-square place-items-center p-2 text-center font-medium`}
           >
             {option.href === adoptionsHref && pendingAdoptionsCount > 0 && (
               <span className="absolute -top-2 -right-2 grid size-10 place-items-center rounded-full bg-red-800 text-sm font-semibold text-white">
-                {pendingAdoptionsCount > 99 ? "99+" : pendingAdoptionsCount}
+                {pendingAdoptionsCount > 99 ? "+99" : pendingAdoptionsCount}
+              </span>
+            )}
+            {option.href === medicalRecordsHref &&
+              pendingMedicalRecordsCount > 0 && (
+                <span className="absolute -top-2 -right-2 grid size-10 place-items-center rounded-full bg-red-800 text-sm font-semibold text-white">
+                  {pendingMedicalRecordsCount > 99
+                    ? "+99"
+                    : pendingMedicalRecordsCount}
+                </span>
+              )}
+            {option.href === needsHref && activeNeedsCount > 0 && (
+              <span className="absolute -top-2 -right-2 grid size-10 place-items-center rounded-full bg-red-800 text-sm font-semibold text-white">
+                {activeNeedsCount > 99 ? "+99" : activeNeedsCount}
               </span>
             )}
             <div>

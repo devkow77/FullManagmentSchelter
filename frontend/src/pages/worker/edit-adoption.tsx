@@ -177,18 +177,17 @@ const EditAdoptionPage = () => {
   return (
     <DashboardPage
       title="Informacje o adopcji"
+      eyebrow={
+        <span
+          className={`inline-block h-fit rounded-2xl px-4 py-2 text-sm font-medium ${styleAdoptionStatus(status)}`}
+        >
+          {formatAdoptionStatus[status] ?? status}
+        </span>
+      }
       description={
-        <>
-          <span
-            className={`mb-2 inline-block h-fit rounded-2xl px-4 py-2 text-sm font-medium ${styleAdoptionStatus(status)}`}
-          >
-            {formatAdoptionStatus[status] ?? status}
-          </span>
-          <br />
-          {status === "OCZEKUJACA"
-            ? "Wprowadź zmiany w adopcji zwierzęcia poniżej."
-            : "Nie możesz edytować danych adopcji, ponieważ jest ona już zakończona."}
-        </>
+        status === "OCZEKUJACA"
+          ? "Wprowadź zmiany w adopcji zwierzęcia poniżej."
+          : "Nie możesz edytować danych adopcji, ponieważ jest ona już zakończona."
       }
       showNavbar={false}
     >

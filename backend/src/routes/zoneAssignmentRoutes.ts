@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import {
   assignZoneRange,
+  getCurrentWeekCoverageStatus,
   getWorkersZoneOverview,
 } from '../controllers/zoneAssignmentControllers';
 import {
@@ -10,6 +11,13 @@ import {
 import { Role } from '../generated/prisma/enums';
 
 const router = Router();
+
+router.get(
+  '/current-week-coverage/status',
+  authenticateUser,
+  authorizeRoles(Role.ADMINISTRATOR),
+  getCurrentWeekCoverageStatus,
+);
 
 router.get(
   '/workers-overview',

@@ -523,9 +523,10 @@ export const getAnimalNeedsStatus = async (_req: Request, res: Response) => {
     const activeNeedsCount = await prisma.animalNeed.count({
       where: { isActive: true },
     });
-    return res
-      .status(StatusCodes.OK)
-      .json({ hasActiveNeeds: activeNeedsCount > 0 });
+    return res.status(StatusCodes.OK).json({
+      hasActiveNeeds: activeNeedsCount > 0,
+      activeNeedsCount,
+    });
   } catch (err) {
     return res
       .status(StatusCodes.INTERNAL_SERVER_ERROR)

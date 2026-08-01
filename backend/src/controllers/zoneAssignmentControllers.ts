@@ -539,3 +539,68 @@ export const getWorkersZoneOverview = async (_req: Request, res: Response) => {
     });
   }
 };
+
+/** Czy w aktualnym tygodniu (pn–nd) każda strefa ma pokrycie na każdy dzień. */
+export const getCurrentWeekCoverageStatus = async (
+  _req: Request,
+  res: Response,
+) => {
+  try {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const weekStart = startOfWeekMonday(today);
+    const weekEnd = endOfWeekSunday(weekStart);
+
+    const [cages, assignments] = await Promise.all([
+      prisma.cage.findMany({
+        select: { zone: true },
+      }),
+      prisma.dailyZoneAssignment.findMany({
+        where: {
+          date: {
+            gte: weekStart,
+            lte: weekEnd,
+          },
+        },
+        select: {
+          date: true,
+          zone: true,
+        },
+      }),
+    ]);
+
+    const zones = [...new Set(cages.map((cage) => cage.zone))].sort((a, b) =>
+      a.localeCompare(b),
+    );
+
+    if (zones.length === 0) {
+      return res.status(StatusCodes.OK).json({ allZonesCovered: true });
+    }
+
+    const weekDays: string[] = [];
+    for (let i = 0; i < 7; i++) {
+      const day = new Date(weekStart);
+      day.setDate(weekStart.getDate() + i);
+      weekDays.push(toDateKey(day));
+    }
+
+    const covered = new Set(
+      assignments.map(
+        (assignment) =>
+          `${assignment.zone}|${toUtcDateKey(new Date(assignment.date))}`,
+      ),
+    );
+
+    const allZonesCovered = zones.every((zone) =>
+      weekDays.every((day) => covered.has(`${zone}|${day}`)),
+    );
+
+    return res.status(StatusCodes.OK).json({ allZonesCovered });
+  } catch (err) {
+    console.error('[getCurrentWeekCoverageStatus]', err);
+    return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
+      msg: 'Wewnętrzny błąd serwera!',
+    });
+  }
+};
