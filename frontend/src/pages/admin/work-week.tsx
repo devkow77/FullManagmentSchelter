@@ -20,7 +20,7 @@ import {
   TableRow,
 } from "@/components/ui";
 import { toast } from "sonner";
-import { useMemo, useState } from "react";
+import { useMemo, useState, type ReactNode } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -227,6 +227,185 @@ const ZoneCoverageCell = ({
     </div>
   );
 };
+
+const MobileWeekBlock = ({
+  title,
+  label,
+  isCurrent = false,
+  children,
+}: {
+  title: string;
+  label: string;
+  isCurrent?: boolean;
+  children: ReactNode;
+}) => (
+  <div
+    className={
+      isCurrent
+        ? "space-y-1 rounded-xl bg-green-50 px-3 py-2.5 text-green-900"
+        : "space-y-1 px-1 py-1"
+    }
+  >
+    <div className="text-xs font-semibold tracking-wide text-gray-500 uppercase">
+      {title}
+      <span
+        className={`mt-0.5 block text-[11px] font-normal tracking-normal normal-case ${
+          isCurrent ? "text-green-700" : "text-gray-500"
+        }`}
+      >
+        {label}
+      </span>
+    </div>
+    <div className={`text-sm ${isCurrent ? "font-medium" : ""}`}>
+      {children}
+    </div>
+  </div>
+);
+
+const WorkerAssignmentsMobile = ({
+  workers,
+  weeks,
+}: {
+  workers: WorkerZoneRow[];
+  weeks: WorkersZoneOverviewResponse["weeks"];
+}) => {
+  if (workers.length === 0) {
+    return (
+      <p className="py-4 text-center text-sm text-gray-500">
+        Brak pracowników do wyświetlenia.
+      </p>
+    );
+  }
+
+  return (
+    <div className="divide-y divide-gray-200 rounded-2xl border border-gray-200">
+      {workers.map((worker) => {
+        const weekSlots = [
+          {
+            key: "next",
+            title: "Przyszły tydzień",
+            label: weeks.next.label,
+            zones: worker.nextWeekZones,
+          },
+          {
+            key: "current",
+            title: "Aktualny tydzień",
+            label: weeks.current.label,
+            isCurrent: true,
+            zones: worker.currentWeekZones,
+          },
+          {
+            key: "previous",
+            title: "Poprzedni tydzień",
+            label: weeks.previous.label,
+            zones: worker.previousWeekZones,
+          },
+          {
+            key: "twoWeeksAgo",
+            title: "2 tygodnie temu",
+            label: weeks.twoWeeksAgo.label,
+            zones: worker.twoWeeksAgoZones,
+          },
+        ];
+
+        return (
+          <article key={worker.id} className="space-y-3 p-4">
+            <div className="flex items-center gap-x-3">
+              <UserAvatar src={worker.imageUrl} alt={worker.fullName} />
+              <p className="font-medium">{worker.fullName}</p>
+            </div>
+            <div className="space-y-2">
+              {weekSlots.map((slot) => (
+                <MobileWeekBlock
+                  key={slot.key}
+                  title={slot.title}
+                  label={slot.label}
+                  isCurrent={slot.isCurrent}
+                >
+                  <ZoneAssignmentsCell zones={slot.zones} />
+                </MobileWeekBlock>
+              ))}
+            </div>
+          </article>
+        );
+      })}
+    </div>
+  );
+};
+
+const ZoneCoverageMobile = ({
+  zones,
+  weeks,
+}: {
+  zones: ZoneCoverageRow[];
+  weeks: WorkersZoneOverviewResponse["weeks"];
+}) => {
+  if (zones.length === 0) {
+    return (
+      <p className="py-4 text-center text-sm text-gray-500">
+        Brak stref do wyświetlenia.
+      </p>
+    );
+  }
+
+  return (
+    <div className="divide-y divide-gray-200 rounded-2xl border border-gray-200">
+      {zones.map((zoneRow) => {
+        const weekSlots = [
+          {
+            key: "next",
+            title: "Przyszły tydzień",
+            label: weeks.next.label,
+            coverage: zoneRow.nextWeek,
+          },
+          {
+            key: "current",
+            title: "Aktualny tydzień",
+            label: weeks.current.label,
+            isCurrent: true,
+            coverage: zoneRow.currentWeek,
+            highlightGaps: true,
+          },
+          {
+            key: "previous",
+            title: "Poprzedni tydzień",
+            label: weeks.previous.label,
+            coverage: zoneRow.previousWeek,
+          },
+          {
+            key: "twoWeeksAgo",
+            title: "2 tygodnie temu",
+            label: weeks.twoWeeksAgo.label,
+            coverage: zoneRow.twoWeeksAgo,
+          },
+        ];
+
+        return (
+          <article key={zoneRow.zone} className="space-y-3 p-4">
+            <p className="text-lg font-bold text-green-900">
+              Strefa {zoneRow.zone}
+            </p>
+            <div className="space-y-2">
+              {weekSlots.map((slot) => (
+                <MobileWeekBlock
+                  key={slot.key}
+                  title={slot.title}
+                  label={slot.label}
+                  isCurrent={slot.isCurrent}
+                >
+                  <ZoneCoverageCell
+                    coverage={slot.coverage}
+                    highlightGaps={slot.highlightGaps}
+                  />
+                </MobileWeekBlock>
+              ))}
+            </div>
+          </article>
+        );
+      })}
+    </div>
+  );
+};
 const getWorkers = async () => {
   const res = await axios.get<User[]>("/api/users/workers", {
     withCredentials: true,
@@ -429,7 +608,7 @@ const WorkWeekPage = () => {
 
           <form
             onSubmit={handleSubmit(onSubmit)}
-            className="max-w-4xl space-y-6"
+            className="grid max-w-4xl gap-4 sm:grid-cols-2 xl:grid-cols-4"
           >
             <div className="space-y-2">
               <Label>Pracownicy</Label>
@@ -452,73 +631,71 @@ const WorkWeekPage = () => {
               )}
             </div>
 
-            <div className="flex flex-wrap items-center gap-4">
-              <div className="space-y-2">
-                <Label>Strefa</Label>
-                <Controller
-                  name="zone"
-                  control={control}
-                  render={({ field }) => (
-                    <SingleValueSelector
-                      items={zoneItems}
-                      placeholder="Wybierz strefę"
-                      value={field.value}
-                      onValueChange={(value) =>
-                        field.onChange(value?.toUpperCase() ?? "A")
-                      }
-                    />
-                  )}
-                />
-                {errors.zone && (
-                  <p className="text-xs font-medium text-red-600 lg:text-sm">
-                    {errors.zone.message}
-                  </p>
+            <div className="space-y-2">
+              <Label>Strefa</Label>
+              <Controller
+                name="zone"
+                control={control}
+                render={({ field }) => (
+                  <SingleValueSelector
+                    items={zoneItems}
+                    placeholder="Wybierz strefę"
+                    value={field.value}
+                    onValueChange={(value) =>
+                      field.onChange(value?.toUpperCase() ?? "A")
+                    }
+                  />
                 )}
-              </div>
+              />
+              {errors.zone && (
+                <p className="text-xs font-medium text-red-600 lg:text-sm">
+                  {errors.zone.message}
+                </p>
+              )}
+            </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="dateFrom">Od</Label>
-                <Input
-                  id="dateFrom"
-                  type="date"
-                  min={minDate}
-                  {...register("dateFrom")}
-                  className={errors.dateFrom ? "bg-red-600/20" : undefined}
-                />
-                {errors.dateFrom && (
-                  <p className="text-xs font-medium text-red-600 lg:text-sm">
-                    {errors.dateFrom.message}
-                  </p>
-                )}
-              </div>
+            <div className="space-y-2">
+              <Label htmlFor="dateFrom">Od</Label>
+              <Input
+                id="dateFrom"
+                type="date"
+                min={minDate}
+                {...register("dateFrom")}
+                className={errors.dateFrom ? "bg-red-600/20" : undefined}
+              />
+              {errors.dateFrom && (
+                <p className="text-xs font-medium text-red-600 lg:text-sm">
+                  {errors.dateFrom.message}
+                </p>
+              )}
+            </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="dateTo">Do</Label>
-                <Input
-                  id="dateTo"
-                  type="date"
-                  min={minDate}
-                  {...register("dateTo")}
-                  className={errors.dateTo ? "bg-red-600/20" : undefined}
-                />
-                {errors.dateTo && (
-                  <p className="text-xs font-medium text-red-600 lg:text-sm">
-                    {errors.dateTo.message}
-                  </p>
-                )}
-              </div>
+            <div className="space-y-2">
+              <Label htmlFor="dateTo">Do</Label>
+              <Input
+                id="dateTo"
+                type="date"
+                min={minDate}
+                {...register("dateTo")}
+                className={errors.dateTo ? "bg-red-600/20" : undefined}
+              />
+              {errors.dateTo && (
+                <p className="text-xs font-medium text-red-600 lg:text-sm">
+                  {errors.dateTo.message}
+                </p>
+              )}
+            </div>
 
-              <div className="flex items-end self-end pb-0.5">
-                <Button
-                  type="submit"
-                  variant="success"
-                  disabled={assignMutation.isPending}
-                >
-                  {assignMutation.isPending
-                    ? "Zapisywanie..."
-                    : "Przypisz strefę"}
-                </Button>
-              </div>
+            <div className="flex items-end self-end pb-0.5">
+              <Button
+                type="submit"
+                variant="success"
+                disabled={assignMutation.isPending}
+              >
+                {assignMutation.isPending
+                  ? "Zapisywanie..."
+                  : "Przypisz strefę"}
+              </Button>
             </div>
           </form>
         </section>
@@ -542,79 +719,95 @@ const WorkWeekPage = () => {
           )}
 
           {!isOverviewLoading && !isOverviewError && overview && (
-            <Table
-              className={
-                isOverviewFetching ? "table-fixed opacity-60" : "table-fixed"
-              }
-            >
-              <TableCaption>
-                Aktualny tydzień: {overview.weeks.current.label}
-              </TableCaption>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="w-[16%]">Pracownik</TableHead>
-                  <TableHead className={weekHeadClass}>
-                    Przyszły tydzień
-                    <span className="mt-1 block text-xs font-normal text-gray-500">
-                      {overview.weeks.next.label}
-                    </span>
-                  </TableHead>
-                  <TableHead className={currentWeekHeadClass}>
-                    Aktualny tydzień
-                    <span className="mt-1 block text-xs font-normal text-green-700">
-                      {overview.weeks.current.label}
-                    </span>
-                  </TableHead>
-                  <TableHead className={weekHeadClass}>
-                    Poprzedni tydzień
-                    <span className="mt-1 block text-xs font-normal text-gray-500">
-                      {overview.weeks.previous.label}
-                    </span>
-                  </TableHead>
-                  <TableHead className={weekHeadClass}>
-                    2 tygodnie temu
-                    <span className="mt-1 block text-xs font-normal text-gray-500">
-                      {overview.weeks.twoWeeksAgo.label}
-                    </span>
-                  </TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {overview.workers.length > 0 ? (
-                  overview.workers.map((worker) => (
-                    <TableRow key={worker.id}>
-                      <TableCell className="align-middle font-medium whitespace-normal">
-                        <div className="flex items-center gap-x-4">
-                          <UserAvatar
-                            src={worker.imageUrl}
-                            alt={worker.fullName}
-                          />
-                          {worker.fullName}
-                        </div>
-                      </TableCell>
-                      <TableCell className={weekCellClass}>
-                        <ZoneAssignmentsCell zones={worker.nextWeekZones} />
-                      </TableCell>
-                      <TableCell className={currentWeekCellClass}>
-                        <ZoneAssignmentsCell zones={worker.currentWeekZones} />
-                      </TableCell>
-                      <TableCell className={weekCellClass}>
-                        <ZoneAssignmentsCell zones={worker.previousWeekZones} />
-                      </TableCell>
-                      <TableCell className={weekCellClass}>
-                        <ZoneAssignmentsCell zones={worker.twoWeeksAgoZones} />
-                      </TableCell>
+            <div className={isOverviewFetching ? "opacity-60" : undefined}>
+              <div className="lg:hidden">
+                <WorkerAssignmentsMobile
+                  workers={overview.workers}
+                  weeks={overview.weeks}
+                />
+                <p className="text-muted-foreground mt-3 text-center text-sm">
+                  Aktualny tydzień: {overview.weeks.current.label}
+                </p>
+              </div>
+
+              <div className="hidden lg:block">
+                <Table className="table-fixed">
+                  <TableCaption>
+                    Aktualny tydzień: {overview.weeks.current.label}
+                  </TableCaption>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Pracownik</TableHead>
+                      <TableHead className={weekHeadClass}>
+                        Przyszły tydzień
+                        <span className="mt-1 block text-xs font-normal text-gray-500">
+                          {overview.weeks.next.label}
+                        </span>
+                      </TableHead>
+                      <TableHead className={currentWeekHeadClass}>
+                        Aktualny tydzień
+                        <span className="mt-1 block text-xs font-normal text-green-700">
+                          {overview.weeks.current.label}
+                        </span>
+                      </TableHead>
+                      <TableHead className={weekHeadClass}>
+                        Poprzedni tydzień
+                        <span className="mt-1 block text-xs font-normal text-gray-500">
+                          {overview.weeks.previous.label}
+                        </span>
+                      </TableHead>
+                      <TableHead className={weekHeadClass}>
+                        2 tygodnie temu
+                        <span className="mt-1 block text-xs font-normal text-gray-500">
+                          {overview.weeks.twoWeeksAgo.label}
+                        </span>
+                      </TableHead>
                     </TableRow>
-                  ))
-                ) : (
-                  <TableRow>
-                    <TableCell colSpan={5} className="text-center">
-                      Brak pracowników do wyświetlenia.
-                    </TableCell>
-                  </TableRow>
-                )}
-              </TableBody>
-            </Table>
+                  </TableHeader>
+                  <TableBody>
+                    {overview.workers.length > 0 ? (
+                      overview.workers.map((worker) => (
+                        <TableRow key={worker.id}>
+                          <TableCell className="align-middle font-medium whitespace-normal">
+                            <div className="flex items-center gap-x-4">
+                              <UserAvatar
+                                src={worker.imageUrl}
+                                alt={worker.fullName}
+                              />
+                              {worker.fullName}
+                            </div>
+                          </TableCell>
+                          <TableCell className={weekCellClass}>
+                            <ZoneAssignmentsCell zones={worker.nextWeekZones} />
+                          </TableCell>
+                          <TableCell className={currentWeekCellClass}>
+                            <ZoneAssignmentsCell
+                              zones={worker.currentWeekZones}
+                            />
+                          </TableCell>
+                          <TableCell className={weekCellClass}>
+                            <ZoneAssignmentsCell
+                              zones={worker.previousWeekZones}
+                            />
+                          </TableCell>
+                          <TableCell className={weekCellClass}>
+                            <ZoneAssignmentsCell
+                              zones={worker.twoWeeksAgoZones}
+                            />
+                          </TableCell>
+                        </TableRow>
+                      ))
+                    ) : (
+                      <TableRow>
+                        <TableCell colSpan={5} className="text-center">
+                          Brak pracowników do wyświetlenia.
+                        </TableCell>
+                      </TableRow>
+                    )}
+                  </TableBody>
+                </Table>
+              </div>
+            </div>
           )}
         </section>
 
@@ -637,76 +830,88 @@ const WorkWeekPage = () => {
           )}
 
           {!isOverviewLoading && !isOverviewError && overview && (
-            <Table
-              className={
-                isOverviewFetching ? "table-fixed opacity-60" : "table-fixed"
-              }
-            >
-              <TableCaption>
-                W aktualnym tygodniu dni bez opiekuna są oznaczone na czerwono.
-              </TableCaption>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="w-[16%]">Strefa</TableHead>
-                  <TableHead className={weekHeadClass}>
-                    Przyszły tydzień
-                    <span className="mt-1 block text-xs font-normal text-gray-500">
-                      {overview.weeks.next.label}
-                    </span>
-                  </TableHead>
-                  <TableHead className={currentWeekHeadClass}>
-                    Aktualny tydzień
-                    <span className="mt-1 block text-xs font-normal text-green-700">
-                      {overview.weeks.current.label}
-                    </span>
-                  </TableHead>
-                  <TableHead className={weekHeadClass}>
-                    Poprzedni tydzień
-                    <span className="mt-1 block text-xs font-normal text-gray-500">
-                      {overview.weeks.previous.label}
-                    </span>
-                  </TableHead>
-                  <TableHead className={weekHeadClass}>
-                    2 tygodnie temu
-                    <span className="mt-1 block text-xs font-normal text-gray-500">
-                      {overview.weeks.twoWeeksAgo.label}
-                    </span>
-                  </TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {(overview.zones ?? []).length > 0 ? (
-                  overview.zones.map((zoneRow) => (
-                    <TableRow key={zoneRow.zone}>
-                      <TableCell className="font-bold whitespace-normal text-green-900">
-                        {zoneRow.zone}
-                      </TableCell>
-                      <TableCell className={weekCellClass}>
-                        <ZoneCoverageCell coverage={zoneRow.nextWeek} />
-                      </TableCell>
-                      <TableCell className={currentWeekZoneCellClass}>
-                        <ZoneCoverageCell
-                          coverage={zoneRow.currentWeek}
-                          highlightGaps
-                        />
-                      </TableCell>
-                      <TableCell className={weekCellClass}>
-                        <ZoneCoverageCell coverage={zoneRow.previousWeek} />
-                      </TableCell>
-                      <TableCell className={weekCellClass}>
-                        <ZoneCoverageCell coverage={zoneRow.twoWeeksAgo} />
-                      </TableCell>
+            <div className={isOverviewFetching ? "opacity-60" : undefined}>
+              <div className="lg:hidden">
+                <ZoneCoverageMobile
+                  zones={overview.zones ?? []}
+                  weeks={overview.weeks}
+                />
+                <p className="text-muted-foreground mt-3 text-center text-sm">
+                  W aktualnym tygodniu dni bez opiekuna są oznaczone na
+                  czerwono.
+                </p>
+              </div>
+
+              <div className="hidden lg:block">
+                <Table className="table-fixed">
+                  <TableCaption>
+                    W aktualnym tygodniu dni bez opiekuna są oznaczone na
+                    czerwono.
+                  </TableCaption>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="w-[16%]">Strefa</TableHead>
+                      <TableHead className={weekHeadClass}>
+                        Przyszły tydzień
+                        <span className="mt-1 block text-xs font-normal text-gray-500">
+                          {overview.weeks.next.label}
+                        </span>
+                      </TableHead>
+                      <TableHead className={currentWeekHeadClass}>
+                        Aktualny tydzień
+                        <span className="mt-1 block text-xs font-normal text-green-700">
+                          {overview.weeks.current.label}
+                        </span>
+                      </TableHead>
+                      <TableHead className={weekHeadClass}>
+                        Poprzedni tydzień
+                        <span className="mt-1 block text-xs font-normal text-gray-500">
+                          {overview.weeks.previous.label}
+                        </span>
+                      </TableHead>
+                      <TableHead className={weekHeadClass}>
+                        2 tygodnie temu
+                        <span className="mt-1 block text-xs font-normal text-gray-500">
+                          {overview.weeks.twoWeeksAgo.label}
+                        </span>
+                      </TableHead>
                     </TableRow>
-                  ))
-                ) : (
-                  <TableRow>
-                    <TableCell colSpan={5} className="text-center">
-                      Brak stref do wyświetlenia.
-                    </TableCell>
-                  </TableRow>
-                )}
-              </TableBody>
-            </Table>
+                  </TableHeader>
+                  <TableBody>
+                    {(overview.zones ?? []).length > 0 ? (
+                      overview.zones.map((zoneRow) => (
+                        <TableRow key={zoneRow.zone}>
+                          <TableCell className="font-bold whitespace-normal text-green-900">
+                            {zoneRow.zone}
+                          </TableCell>
+                          <TableCell className={weekCellClass}>
+                            <ZoneCoverageCell coverage={zoneRow.nextWeek} />
+                          </TableCell>
+                          <TableCell className={currentWeekZoneCellClass}>
+                            <ZoneCoverageCell
+                              coverage={zoneRow.currentWeek}
+                              highlightGaps
+                            />
+                          </TableCell>
+                          <TableCell className={weekCellClass}>
+                            <ZoneCoverageCell coverage={zoneRow.previousWeek} />
+                          </TableCell>
+                          <TableCell className={weekCellClass}>
+                            <ZoneCoverageCell coverage={zoneRow.twoWeeksAgo} />
+                          </TableCell>
+                        </TableRow>
+                      ))
+                    ) : (
+                      <TableRow>
+                        <TableCell colSpan={5} className="text-center">
+                          Brak stref do wyświetlenia.
+                        </TableCell>
+                      </TableRow>
+                    )}
+                  </TableBody>
+                </Table>
+              </div>
+            </div>
           )}
         </section>
       </DashboardPage>

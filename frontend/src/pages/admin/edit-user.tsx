@@ -597,7 +597,7 @@ const EditUserPage = () => {
                   <TableHead>Data złożenia</TableHead>
                   <TableHead>Wiadomość użytkownika</TableHead>
                   <TableHead>Wiadomość pracownika</TableHead>
-                  <TableHead className="text-right">Opcje</TableHead>
+                  <TableHead className="w-0 text-right">Opcje</TableHead>
                 </TableRow>
               </TableHeader>
 

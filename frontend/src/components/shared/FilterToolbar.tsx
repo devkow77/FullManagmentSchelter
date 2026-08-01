@@ -10,7 +10,7 @@ const FilterToolbar = ({ children, className }: FilterToolbarProps) => {
   return (
     <div
       className={cn(
-        "sticky top-0 z-10 flex flex-wrap items-center gap-4 bg-white py-4",
+        "top-0 z-10 flex flex-wrap items-center gap-4 bg-white py-4",
         className,
       )}
     >

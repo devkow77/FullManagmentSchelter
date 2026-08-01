@@ -291,15 +291,20 @@ export const updateUniqueAnimal = async (req: Request, res: Response) => {
         .json({ msg: 'Data nastepnej wizyty jest nieprawidlowa!' });
     }
 
-    // -- Sprawdzamy czy klatka jest dostępna -- //
-    const cageCheck = await assertCageAvailable(data.cageId, numericId);
-    if (!cageCheck.ok) {
-      return res.status(cageCheck.status).json({ msg: cageCheck.msg });
+    // -- Adoptowane zwierzę opuszcza klatkę -- //
+    const isAdopted = data.status === AnimalStatus.ADOPTOWANY;
+    const updateData = isAdopted ? { ...data, cageId: null } : data;
+
+    if (!isAdopted) {
+      const cageCheck = await assertCageAvailable(data.cageId, numericId);
+      if (!cageCheck.ok) {
+        return res.status(cageCheck.status).json({ msg: cageCheck.msg });
+      }
     }
 
     const updatedAnimal = await prisma.animal.update({
       where: { id: numericId },
-      data,
+      data: updateData,
       select: animalSelect,
     });
 
@@ -565,15 +570,20 @@ export const createAnimal = async (req: Request, res: Response) => {
         .json({ msg: 'Data nastepnej wizyty jest nieprawidlowa!' });
     }
 
-    // -- Sprawdzamy czy klatka jest dostępna -- //
-    const cageCheck = await assertCageAvailable(parsedBody.data.cageId);
-    if (!cageCheck.ok) {
-      return res.status(cageCheck.status).json({ msg: cageCheck.msg });
+    const isAdopted = data.status === AnimalStatus.ADOPTOWANY;
+    const createData = isAdopted ? { ...data, cageId: null } : data;
+
+    // -- Adoptowane zwierzę nie zajmuje klatki -- //
+    if (!isAdopted) {
+      const cageCheck = await assertCageAvailable(data.cageId);
+      if (!cageCheck.ok) {
+        return res.status(cageCheck.status).json({ msg: cageCheck.msg });
+      }
     }
 
     // -- Tworzymy nowe zwierze -- //
     const newAnimal = await prisma.animal.create({
-      data: parsedBody.data,
+      data: createData,
       select: animalSelect,
     });
 

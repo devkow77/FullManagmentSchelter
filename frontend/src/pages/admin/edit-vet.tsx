@@ -267,7 +267,7 @@ const EditVetPage = () => {
                 <TableHead>Status</TableHead>
                 <TableHead>Data wizyty</TableHead>
                 <TableHead>Koszt</TableHead>
-                <TableHead className="text-right">Opcje</TableHead>
+                <TableHead className="w-0 text-right">Opcje</TableHead>
               </TableRow>
             </TableHeader>
 

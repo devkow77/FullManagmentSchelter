@@ -193,12 +193,7 @@ const AdminWorkersPage = () => {
       description="W tym panelu znajdują się wszyscy pracownicy schroniska."
     >
       {isLoading && (
-        <DashboardTableSkeleton
-          columns={8}
-          showAvatar
-          filters={11}
-          rows={8}
-        />
+        <DashboardTableSkeleton columns={8} showAvatar filters={11} rows={8} />
       )}
       {error && (
         <DashboardErrorState
@@ -208,168 +203,181 @@ const AdminWorkersPage = () => {
       )}
       {!isLoading && !error && (
         <section id="table">
-          <FilterToolbar>
-              <div className="flex flex-row gap-x-2">
-                <Label>Wyszukaj</Label>
-                <Input
-                  value={searchQuery}
-                  onChange={(e) =>
-                    handleFilterChange(setSearchQuery, e.target.value)
-                  }
-                  placeholder="Szukaj po imieniu..."
-                />
-              </div>
-
-              <MultiValueSelector
-                items={workerRoleOptions}
-                placeholder="Rola pracownika"
-                value={selectedRoles}
-                onValueChange={(value) =>
-                  handleFilterChange(setSelectedRoles, value)
+          <FilterToolbar className="grid grid-cols-2 items-center md:sticky md:flex md:flex-wrap">
+            <div className="col-span-2 flex flex-row gap-x-2 sm:col-span-1">
+              <Label>Wyszukaj</Label>
+              <Input
+                value={searchQuery}
+                onChange={(e) =>
+                  handleFilterChange(setSearchQuery, e.target.value)
                 }
+                placeholder="Szukaj po imieniu..."
               />
+            </div>
 
-              <MultiValueSelector
-                items={genderOptions}
-                placeholder="Płeć"
-                value={selectedGender}
-                onValueChange={(value) =>
-                  handleFilterChange(setSelectedGender, value)
-                }
-              />
+            <MultiValueSelector
+              items={workerRoleOptions}
+              placeholder="Rola pracownika"
+              value={selectedRoles}
+              onValueChange={(value) =>
+                handleFilterChange(setSelectedRoles, value)
+              }
+            />
 
-              <MultiValueSelector
-                items={workerCities}
-                placeholder="Miasto"
-                value={selectedCity}
-                onValueChange={(value) =>
-                  handleFilterChange(setSelectedCity, value)
-                }
-              />
+            <MultiValueSelector
+              items={genderOptions}
+              placeholder="Płeć"
+              value={selectedGender}
+              onValueChange={(value) =>
+                handleFilterChange(setSelectedGender, value)
+              }
+            />
 
-              <MultiValueSelector
-                items={booleanFilterOptions}
-                placeholder="Czy ma dzieci"
-                value={selectedHasChildren}
-                onValueChange={(value) =>
-                  handleFilterChange(setSelectedHasChildren, value)
-                }
-              />
+            <MultiValueSelector
+              items={workerCities}
+              placeholder="Miasto"
+              value={selectedCity}
+              onValueChange={(value) =>
+                handleFilterChange(setSelectedCity, value)
+              }
+            />
 
-              <MultiValueSelector
-                items={booleanFilterOptions}
-                placeholder="Wypełniony formularz"
-                value={selectedIsFormFilled}
-                onValueChange={(value) =>
-                  handleFilterChange(setSelectedIsFormFilled, value)
-                }
-              />
+            <MultiValueSelector
+              items={booleanFilterOptions}
+              placeholder="Czy ma dzieci"
+              value={selectedHasChildren}
+              onValueChange={(value) =>
+                handleFilterChange(setSelectedHasChildren, value)
+              }
+            />
 
-              <Button onClick={resetFilters} variant="destructive">
-                Resetuj filtry
-              </Button>
+            <MultiValueSelector
+              items={booleanFilterOptions}
+              placeholder="Wypełniony formularz"
+              value={selectedIsFormFilled}
+              onValueChange={(value) =>
+                handleFilterChange(setSelectedIsFormFilled, value)
+              }
+            />
 
-              <Button variant="success" asChild>
-                <Link to="/admin/uzytkownicy/dodaj">Dodaj użytkownika</Link>
-              </Button>
+            <Button onClick={resetFilters} variant="destructive">
+              Resetuj filtry
+            </Button>
+
+            <Button
+              variant="success"
+              asChild
+              className="col-span-2 sm:col-span-1"
+            >
+              <Link to="/admin/uzytkownicy/dodaj">Dodaj użytkownika</Link>
+            </Button>
           </FilterToolbar>
-            <Table className={isFetching ? "opacity-60" : undefined}>
-              <TableCaption>Lista pracowników schroniska</TableCaption>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Imię i nazwisko</TableHead>
-                  <TableHead>Rola</TableHead>
-                  <TableHead>Płeć</TableHead>
-                  <TableHead>Miejsce zamieszkania</TableHead>
-                  <TableHead>Posiada dzieci</TableHead>
-                  <TableHead>Wypełniony formularz</TableHead>
-                  <TableHead>Zatrudniony od</TableHead>
-                  <TableHead className="text-right">Opcje</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {workers.length ? (
-                  workers.map((worker) => (
-                    <TableRow
-                      key={worker.id}
-                      className="cursor-pointer"
-                      onClick={() =>
-                        navigate(`/admin/uzytkownicy/${worker.id}/edycja`)
-                      }
-                    >
-                      <TableCell className="flex items-center gap-x-4 font-medium">
-                        <UserAvatar
-                          src={worker.imageUrl}
-                          alt={worker.fullName}
-                        />
-                        {worker.fullName}
-                      </TableCell>
-                      <TableCell>
-                        <span
-                          className={`${styleUserRole(
-                            worker.role,
-                          )} rounded-2xl px-4 py-2 text-xs`}
-                        >
-                          {formatUserRole[worker.role]}
-                        </span>
-                      </TableCell>
-                      <TableCell>{formatUserGender(worker.gender)}</TableCell>
-                      <TableCell className={styleEmptyField(worker.city)}>
-                        {worker.city ?? "Brak"}
-                      </TableCell>
-                      <TableCell>
-                        {worker.hasChildren ? "Tak" : "Nie"}
-                      </TableCell>
-                      <TableCell>
-                        {worker.isFormFilled ? "Tak" : "Nie"}
-                      </TableCell>
-                      <TableCell>
-                        {new Date(worker.createdAt).toLocaleDateString("pl-PL")}{" "}
-                        r.
-                      </TableCell>
-                      <TableCell
-                        className="text-right"
-                        onClick={(e) => e.stopPropagation()}
+          <Table className={isFetching ? "opacity-60" : undefined}>
+            <TableCaption>Lista pracowników schroniska</TableCaption>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Imię i nazwisko</TableHead>
+                <TableHead className="hidden sm:table-cell">Rola</TableHead>
+                <TableHead className="hidden xl:table-cell">Płeć</TableHead>
+                <TableHead className="hidden sm:table-cell">
+                  Miejsce zamieszkania
+                </TableHead>
+                <TableHead className="hidden xl:table-cell">
+                  Posiada dzieci
+                </TableHead>
+                <TableHead className="hidden xl:table-cell">
+                  Wypełniony formularz
+                </TableHead>
+                <TableHead className="hidden lg:table-cell">
+                  Zatrudniony od
+                </TableHead>
+                <TableHead className="w-0 text-right">Opcje</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {workers.length ? (
+                workers.map((worker) => (
+                  <TableRow
+                    key={worker.id}
+                    className="cursor-pointer"
+                    onClick={() =>
+                      navigate(`/admin/uzytkownicy/${worker.id}/edycja`)
+                    }
+                  >
+                    <TableCell className="flex items-center gap-x-4 font-medium">
+                      <UserAvatar src={worker.imageUrl} alt={worker.fullName} />
+                      {worker.fullName}
+                    </TableCell>
+                    <TableCell className="hidden sm:table-cell">
+                      <span
+                        className={`${styleUserRole(
+                          worker.role,
+                        )} rounded-2xl px-4 py-2 text-xs`}
                       >
-                        <TableRowActions
-                          editTo={`/admin/uzytkownicy/${worker.id}/edycja`}
-                          deleteSlot={
-                            <DeleteUserDialog
-                              userId={worker.id}
-                              onConfirm={handleDeleteWorker}
-                            />
-                          }
-                        />
-                      </TableCell>
-                    </TableRow>
-                  ))
-                ) : (
-                  <TableRow>
+                        {formatUserRole[worker.role]}
+                      </span>
+                    </TableCell>
+                    <TableCell className="hidden xl:table-cell">
+                      {formatUserGender(worker.gender)}
+                    </TableCell>
                     <TableCell
-                      colSpan={8}
-                      className="py-5 text-center font-medium"
+                      className={`${styleEmptyField(worker.city)} hidden sm:table-cell`}
                     >
-                      Brak pracowników o podanych filtrach.
+                      {worker.city ?? "Brak"}
+                    </TableCell>
+                    <TableCell className="hidden xl:table-cell">
+                      {worker.hasChildren ? "Tak" : "Nie"}
+                    </TableCell>
+                    <TableCell className="hidden xl:table-cell">
+                      {worker.isFormFilled ? "Tak" : "Nie"}
+                    </TableCell>
+                    <TableCell className="hidden lg:table-cell">
+                      {new Date(worker.createdAt).toLocaleDateString("pl-PL")}{" "}
+                      r.
+                    </TableCell>
+                    <TableCell
+                      className="text-right"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <TableRowActions
+                        editTo={`/admin/uzytkownicy/${worker.id}/edycja`}
+                        deleteSlot={
+                          <DeleteUserDialog
+                            userId={worker.id}
+                            onConfirm={handleDeleteWorker}
+                          />
+                        }
+                      />
                     </TableCell>
                   </TableRow>
-                )}
-              </TableBody>
-              <TableFooter>
+                ))
+              ) : (
                 <TableRow>
-                  <TableCell colSpan={9}>
-                    <TablePagination
-                      page={page}
-                      totalPages={totalPages}
-                      onPageChange={goToPage}
-                    />
+                  <TableCell
+                    colSpan={8}
+                    className="py-5 text-center font-medium"
+                  >
+                    Brak pracowników o podanych filtrach.
                   </TableCell>
                 </TableRow>
-                <TableRow>
-                  <TableCell colSpan={7}>Suma pracowników</TableCell>
-                  <TableCell className="text-right">{workers.length}</TableCell>
-                </TableRow>
-              </TableFooter>
-            </Table>
+              )}
+            </TableBody>
+            <TableFooter>
+              <TableRow>
+                <TableCell colSpan={9}>
+                  <TablePagination
+                    page={page}
+                    totalPages={totalPages}
+                    onPageChange={goToPage}
+                  />
+                </TableCell>
+              </TableRow>
+              <TableRow>
+                <TableCell colSpan={7}>Suma pracowników</TableCell>
+                <TableCell className="text-right">{workers.length}</TableCell>
+              </TableRow>
+            </TableFooter>
+          </Table>
         </section>
       )}
     </DashboardPage>

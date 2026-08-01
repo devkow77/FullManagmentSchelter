@@ -27,29 +27,31 @@ const TableRowActions = ({
   if (!hasEdit && !hasDelete) return null;
 
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button variant="transparent" size="icon">
-          <MoreHorizontalIcon />
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="end">
-        {hasEdit && (
-          <DropdownMenuItem asChild className="cursor-pointer">
-            <Link to={editTo!}>{editLabel}</Link>
-          </DropdownMenuItem>
-        )}
-        {hasEdit && hasDelete && <DropdownMenuSeparator />}
-        {hasDelete && (
-          <div
-            onSelect={(e) => e.preventDefault()}
-            className="hover:bg-accent rounded-sm"
-          >
-            {deleteSlot}
-          </div>
-        )}
-      </DropdownMenuContent>
-    </DropdownMenu>
+    <div className="flex justify-end">
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button variant="transparent" size="icon">
+            <MoreHorizontalIcon />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end">
+          {hasEdit && (
+            <DropdownMenuItem asChild className="cursor-pointer">
+              <Link to={editTo!}>{editLabel}</Link>
+            </DropdownMenuItem>
+          )}
+          {hasEdit && hasDelete && <DropdownMenuSeparator />}
+          {hasDelete && (
+            <div
+              onSelect={(e) => e.preventDefault()}
+              className="hover:bg-accent rounded-sm"
+            >
+              {deleteSlot}
+            </div>
+          )}
+        </DropdownMenuContent>
+      </DropdownMenu>
+    </div>
   );
 };
 

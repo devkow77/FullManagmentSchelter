@@ -187,12 +187,7 @@ const WorkerUsersPage = () => {
       description="W tym panelu znajdują się wszyscy użytkownicy schroniska."
     >
       {isLoading && (
-        <DashboardTableSkeleton
-          columns={8}
-          showAvatar
-          filters={6}
-          rows={8}
-        />
+        <DashboardTableSkeleton columns={8} showAvatar filters={6} rows={8} />
       )}
       {error && (
         <DashboardErrorState
@@ -202,155 +197,178 @@ const WorkerUsersPage = () => {
       )}
       {!isLoading && !error && (
         <section id="table">
-          <FilterToolbar>
-              <div className="flex flex-row gap-x-2">
-                <Label>Wyszukaj</Label>
-                <Input
-                  value={searchQuery}
-                  onChange={(e) =>
-                    handleFilterChange(setSearchQuery, e.target.value)
-                  }
-                  placeholder="Szukaj po imieniu..."
-                />
-              </div>
-
-              <MultiValueSelector
-                items={genderOptions}
-                placeholder="Płeć"
-                value={selectedGender}
-                onValueChange={(value) =>
-                  handleFilterChange(setSelectedGender, value)
+          <FilterToolbar className="grid grid-cols-2 items-center md:sticky md:flex md:flex-wrap">
+            <div className="col-span-2 flex flex-row gap-x-2 sm:col-span-1">
+              <Label>Wyszukaj</Label>
+              <Input
+                value={searchQuery}
+                onChange={(e) =>
+                  handleFilterChange(setSearchQuery, e.target.value)
                 }
+                placeholder="Szukaj po imieniu..."
               />
+            </div>
 
-              <MultiValueSelector
-                items={userCities}
-                placeholder="Miasto"
-                value={selectedCity}
-                onValueChange={(value) =>
-                  handleFilterChange(setSelectedCity, value)
-                }
-              />
+            <MultiValueSelector
+              items={genderOptions}
+              placeholder="Płeć"
+              value={selectedGender}
+              onValueChange={(value) =>
+                handleFilterChange(setSelectedGender, value)
+              }
+            />
 
-              <MultiValueSelector
-                items={booleanFilterOptions}
-                placeholder="Konto zablokowane"
-                value={selectedIsBanned}
-                onValueChange={(value) =>
-                  handleFilterChange(setSelectedIsBanned, value)
-                }
-              />
+            <MultiValueSelector
+              items={userCities}
+              placeholder="Miasto"
+              value={selectedCity}
+              onValueChange={(value) =>
+                handleFilterChange(setSelectedCity, value)
+              }
+            />
 
-              <MultiValueSelector
-                items={booleanFilterOptions}
-                placeholder="Wypełniony formularz"
-                value={selectedIsFormFilled}
-                onValueChange={(value) =>
-                  handleFilterChange(setSelectedIsFormFilled, value)
-                }
-              />
+            <MultiValueSelector
+              items={booleanFilterOptions}
+              placeholder="Konto zablokowane"
+              value={selectedIsBanned}
+              onValueChange={(value) =>
+                handleFilterChange(setSelectedIsBanned, value)
+              }
+            />
 
-              <Button onClick={resetFilters} variant="destructive">
-                Resetuj filtry
+            <MultiValueSelector
+              items={booleanFilterOptions}
+              placeholder="Wypełniony formularz"
+              value={selectedIsFormFilled}
+              onValueChange={(value) =>
+                handleFilterChange(setSelectedIsFormFilled, value)
+              }
+            />
+
+            <Button
+              onClick={resetFilters}
+              variant="destructive"
+              className="col-span-2 sm:col-span-1"
+            >
+              Resetuj filtry
+            </Button>
+
+            {isAdmin ? (
+              <Button
+                variant="success"
+                asChild
+                className="col-span-2 sm:col-span-1"
+              >
+                <Link to="/admin/uzytkownicy/dodaj">Dodaj użytkownika</Link>
               </Button>
-
-              {isAdmin ? (
-                <Button variant="success" asChild>
-                  <Link to="/admin/uzytkownicy/dodaj">Dodaj użytkownika</Link>
-                </Button>
-              ) : null}
+            ) : null}
           </FilterToolbar>
 
-            <Table className={isFetching ? "opacity-60" : undefined}>
-              <TableCaption>Lista użytkowników schroniska</TableCaption>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Imię i nazwisko</TableHead>
-                  <TableHead>Email</TableHead>
-                  <TableHead>Płeć</TableHead>
-                  <TableHead>Miejsce zamieszkania</TableHead>
-                  <TableHead>Konto zablokowane</TableHead>
-                  <TableHead>Wypełniony formularz</TableHead>
-                  <TableHead>Zarejestrowany od</TableHead>
-                  {isAdmin ? (
-                    <TableHead className="text-right">Opcje</TableHead>
-                  ) : null}
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {users.length ? (
-                  users.map((user) => (
-                    <TableRow
-                      key={user.id}
-                      className="cursor-pointer"
-                      onClick={() =>
-                        navigate(`/admin/uzytkownicy/${user.id}/edycja`)
-                      }
-                    >
-                      <TableCell className="flex items-center gap-x-4 font-medium">
-                        <UserAvatar src={user.imageUrl} alt={user.fullName} />
-                        {user.fullName}
-                      </TableCell>
-                      <TableCell>{user.email}</TableCell>
-                      <TableCell>{formatUserGender(user.gender)}</TableCell>
-                      <TableCell className={styleEmptyField(user.city)}>
-                        {user.city ?? "Brak"}
-                      </TableCell>
-                      <TableCell>{user.isBanned ? "Tak" : "Nie"}</TableCell>
-                      <TableCell>
-                        {user.isFormFilled ? "Tak" : "Nie"}
-                      </TableCell>
-                      <TableCell>
-                        {new Date(user.createdAt).toLocaleDateString("pl-PL")}{" "}
-                        r.
-                      </TableCell>
-                      {isAdmin ? (
-                        <TableCell
-                          className="text-right"
-                          onClick={(e) => e.stopPropagation()}
-                        >
-                          <TableRowActions
-                            editTo={`/admin/uzytkownicy/${user.id}/edycja`}
-                            deleteSlot={
-                              <DeleteUserDialog
-                                userId={user.id}
-                                onConfirm={handleDeleteUser}
-                              />
-                            }
-                          />
-                        </TableCell>
-                      ) : null}
-                    </TableRow>
-                  ))
-                ) : (
-                  <TableRow>
-                    <TableCell
-                      colSpan={isAdmin ? 8 : 7}
-                      className="py-5 text-center font-medium"
-                    >
-                      Brak użytkowników o podanych filtrach.
+          <Table className={isFetching ? "opacity-60" : undefined}>
+            <TableCaption>Lista użytkowników schroniska</TableCaption>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Imię i nazwisko</TableHead>
+                <TableHead className="hidden sm:table-cell">Email</TableHead>
+                <TableHead className="hidden xl:table-cell">Płeć</TableHead>
+                <TableHead className="hidden md:table-cell">
+                  Miejsce zamieszkania
+                </TableHead>
+                <TableHead className="hidden lg:table-cell">
+                  Konto zablokowane
+                </TableHead>
+                <TableHead className="hidden xl:table-cell">
+                  Wypełniony formularz
+                </TableHead>
+                <TableHead className="hidden xl:table-cell">
+                  Zarejestrowany od
+                </TableHead>
+                {isAdmin ? (
+                  <TableHead className="w-0 text-right">Opcje</TableHead>
+                ) : null}
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {users.length ? (
+                users.map((user) => (
+                  <TableRow
+                    key={user.id}
+                    className="cursor-pointer"
+                    onClick={() =>
+                      navigate(`/admin/uzytkownicy/${user.id}/edycja`)
+                    }
+                  >
+                    <TableCell className="flex items-center gap-x-4 font-medium">
+                      <UserAvatar src={user.imageUrl} alt={user.fullName} />
+                      {user.fullName}
                     </TableCell>
+                    <TableCell className="hidden sm:table-cell">
+                      {user.email}
+                    </TableCell>
+                    <TableCell className="hidden xl:table-cell">
+                      {formatUserGender(user.gender)}
+                    </TableCell>
+                    <TableCell
+                      className={`${styleEmptyField(user.city)} hidden md:table-cell`}
+                    >
+                      {user.city ?? "Brak"}
+                    </TableCell>
+                    <TableCell className="hidden lg:table-cell">
+                      {user.isBanned ? "Tak" : "Nie"}
+                    </TableCell>
+                    <TableCell className="hidden xl:table-cell">
+                      {user.isFormFilled ? "Tak" : "Nie"}
+                    </TableCell>
+                    <TableCell className="hidden xl:table-cell">
+                      {new Date(user.createdAt).toLocaleDateString("pl-PL")} r.
+                    </TableCell>
+                    {isAdmin ? (
+                      <TableCell
+                        className="text-right"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <TableRowActions
+                          editTo={`/admin/uzytkownicy/${user.id}/edycja`}
+                          deleteSlot={
+                            <DeleteUserDialog
+                              userId={user.id}
+                              onConfirm={handleDeleteUser}
+                            />
+                          }
+                        />
+                      </TableCell>
+                    ) : null}
                   </TableRow>
-                )}
-              </TableBody>
-              <TableFooter>
+                ))
+              ) : (
                 <TableRow>
-                  <TableCell colSpan={isAdmin ? 8 : 7}>
-                    <TablePagination
-                      page={page}
-                      totalPages={totalPages}
-                      onPageChange={goToPage}
-                    />
+                  <TableCell
+                    colSpan={isAdmin ? 8 : 7}
+                    className="py-5 text-center font-medium"
+                  >
+                    Brak użytkowników o podanych filtrach.
                   </TableCell>
                 </TableRow>
-                <TableRow>
-                  <TableCell colSpan={isAdmin ? 7 : 6}>
-                    Suma użytkowników
-                  </TableCell>
-                  <TableCell className="text-right">{users.length}</TableCell>
-                </TableRow>
-              </TableFooter>
-            </Table>
+              )}
+            </TableBody>
+            <TableFooter>
+              <TableRow>
+                <TableCell colSpan={isAdmin ? 8 : 7}>
+                  <TablePagination
+                    page={page}
+                    totalPages={totalPages}
+                    onPageChange={goToPage}
+                  />
+                </TableCell>
+              </TableRow>
+              <TableRow>
+                <TableCell colSpan={isAdmin ? 7 : 6}>
+                  Suma użytkowników
+                </TableCell>
+                <TableCell className="text-right">{users.length}</TableCell>
+              </TableRow>
+            </TableFooter>
+          </Table>
         </section>
       )}
     </DashboardPage>

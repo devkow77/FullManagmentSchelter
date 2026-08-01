@@ -228,11 +228,7 @@ const AdminCagesPage = () => {
       description="W tym panelu znajdują się wszystkie klatki zwierząt w schronisku."
     >
       {isLoading && (
-        <DashboardTableSkeleton
-          columns={5}
-          filters={3}
-          rows={PAGE_SIZE}
-        />
+        <DashboardTableSkeleton columns={4} filters={3} rows={PAGE_SIZE} />
       )}
       {error && (
         <DashboardErrorState
@@ -242,131 +238,133 @@ const AdminCagesPage = () => {
       )}
       {!isLoading && !error && (
         <section id="table">
-          <FilterToolbar>
-              <MultiValueSelector
-                items={zoneOptions}
-                placeholder="Strefa"
-                value={selectedZones}
-                onValueChange={(value) =>
-                  handleFilterChange(setSelectedZones, value)
-                }
-              />
-              <MultiValueSelector
-                items={numberOptions}
-                placeholder="Numer klatki"
-                value={selectedNumbers}
-                onValueChange={(value) =>
-                  handleFilterChange(setSelectedNumbers, value)
-                }
-              />
+          <FilterToolbar className="grid grid-cols-2 items-center md:sticky md:flex md:flex-wrap">
+            <MultiValueSelector
+              items={zoneOptions}
+              placeholder="Strefa"
+              value={selectedZones}
+              onValueChange={(value) =>
+                handleFilterChange(setSelectedZones, value)
+              }
+            />
+            <MultiValueSelector
+              items={numberOptions}
+              placeholder="Numer klatki"
+              value={selectedNumbers}
+              onValueChange={(value) =>
+                handleFilterChange(setSelectedNumbers, value)
+              }
+            />
 
-              <SingleValueSelector
-                items={[...CAGE_STATUS_OPTIONS]}
-                placeholder="Status"
-                value={selectedStatus}
-                onValueChange={(value) =>
-                  handleFilterChange(
-                    setSelectedStatus,
-                    value as CageStatusLabel | null,
-                  )
-                }
-              />
+            <SingleValueSelector
+              items={[...CAGE_STATUS_OPTIONS]}
+              placeholder="Status"
+              value={selectedStatus}
+              onValueChange={(value) =>
+                handleFilterChange(
+                  setSelectedStatus,
+                  value as CageStatusLabel | null,
+                )
+              }
+            />
 
-              <Button onClick={resetFilters} variant="destructive">
-                Resetuj filtry
-              </Button>
+            <Button onClick={resetFilters} variant="destructive">
+              Resetuj filtry
+            </Button>
 
-              <Button variant="success" asChild>
-                <Link to="/admin/klatki/dodaj">Dodaj klatkę</Link>
-              </Button>
+            <Button
+              variant="success"
+              asChild
+              className="col-span-2 sm:col-span-1"
+            >
+              <Link to="/admin/klatki/dodaj">Dodaj klatkę</Link>
+            </Button>
           </FilterToolbar>
 
-            <Table className={isFetching ? "opacity-60" : undefined}>
-              <TableCaption>Lista klatek w schronisku</TableCaption>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Numer strefy</TableHead>
-                  <TableHead>Numer klatki</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Zwierzę</TableHead>
-                  <TableHead className="text-right">Opcje</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {cages.length ? (
-                  cages.map((cage) => {
-                    const label = cage.label ?? formatCageLabel(cage);
-                    const isOccupied = cage.isOccupied || !!cage.animal;
+          <Table className={isFetching ? "opacity-60" : undefined}>
+            <TableCaption>Lista klatek w schronisku</TableCaption>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Numer strefy i klatki</TableHead>
+                <TableHead className="hidden sm:table-cell">Status</TableHead>
+                <TableHead className="hidden sm:table-cell">Zwierzę</TableHead>
+                <TableHead className="w-0 text-right">Opcje</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {cages.length ? (
+                cages.map((cage) => {
+                  const label = cage.label ?? formatCageLabel(cage);
+                  const isOccupied = cage.isOccupied || !!cage.animal;
 
-                    return (
-                      <TableRow key={cage.id}>
-                        <TableCell className="font-medium">
-                          {cage.zone}
-                        </TableCell>
-                        <TableCell>{cage.number}</TableCell>
-                        <TableCell>
-                          <span
-                            className={`${styleCageStatus(isOccupied)} rounded-2xl px-4 py-2 text-xs`}
-                          >
-                            {isOccupied ? "Zajęte" : "Puste"}
-                          </span>
-                        </TableCell>
-                        <TableCell>
-                          {cage.animal ? (
-                            <div className="flex items-center gap-x-4 font-medium">
-                              <AnimalAvatar
-                                type={cage.animal.type}
-                                src={cage.animal.imageUrl?.[0]}
-                                alt={cage.animal.name}
-                              />
-                              {cage.animal.name}
-                            </div>
-                          ) : (
-                            <span className="text-muted-foreground">Brak</span>
-                          )}
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <TableRowActions
-                            deleteSlot={
-                              <DeleteCageDialog
-                                cageId={cage.id}
-                                cageLabel={label}
-                                disabled={isOccupied}
-                                onConfirm={handleDeleteCage}
-                              />
-                            }
-                          />
-                        </TableCell>
-                      </TableRow>
-                    );
-                  })
-                ) : (
-                  <TableRow>
-                    <TableCell
-                      colSpan={5}
-                      className="py-5 text-center font-medium"
-                    >
-                      Brak klatek o podanych filtrach.
-                    </TableCell>
-                  </TableRow>
-                )}
-              </TableBody>
-              <TableFooter>
+                  return (
+                    <TableRow key={cage.id}>
+                      <TableCell className="font-medium">
+                        {cage.zone}-{cage.number}
+                      </TableCell>
+                      <TableCell className="hidden sm:table-cell">
+                        <span
+                          className={`${styleCageStatus(isOccupied)} rounded-2xl px-4 py-2 text-xs`}
+                        >
+                          {isOccupied ? "Zajęte" : "Puste"}
+                        </span>
+                      </TableCell>
+                      <TableCell className="hidden sm:table-cell">
+                        {cage.animal ? (
+                          <div className="flex items-center gap-x-4 font-medium">
+                            <AnimalAvatar
+                              type={cage.animal.type}
+                              src={cage.animal.imageUrl?.[0]}
+                              alt={cage.animal.name}
+                            />
+                            {cage.animal.name}
+                          </div>
+                        ) : (
+                          <span className="text-muted-foreground">Brak</span>
+                        )}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <TableRowActions
+                          deleteSlot={
+                            <DeleteCageDialog
+                              cageId={cage.id}
+                              cageLabel={label}
+                              disabled={isOccupied}
+                              onConfirm={handleDeleteCage}
+                            />
+                          }
+                        />
+                      </TableCell>
+                    </TableRow>
+                  );
+                })
+              ) : (
                 <TableRow>
-                  <TableCell colSpan={5}>
-                    <TablePagination
-                      page={page}
-                      totalPages={totalPages}
-                      onPageChange={goToPage}
-                    />
+                  <TableCell
+                    colSpan={4}
+                    className="py-5 text-center font-medium"
+                  >
+                    Brak klatek o podanych filtrach.
                   </TableCell>
                 </TableRow>
-                <TableRow>
-                  <TableCell colSpan={4}>Suma klatek</TableCell>
-                  <TableCell className="text-right">{total}</TableCell>
-                </TableRow>
-              </TableFooter>
-            </Table>
+              )}
+            </TableBody>
+            <TableFooter>
+              <TableRow>
+                <TableCell colSpan={4}>
+                  <TablePagination
+                    page={page}
+                    totalPages={totalPages}
+                    onPageChange={goToPage}
+                  />
+                </TableCell>
+              </TableRow>
+              <TableRow>
+                <TableCell colSpan={3}>Suma klatek</TableCell>
+                <TableCell className="text-right">{total}</TableCell>
+              </TableRow>
+            </TableFooter>
+          </Table>
         </section>
       )}
     </DashboardPage>

@@ -151,9 +151,7 @@ const AdminVetsPage = () => {
       title="Zarządzaj weterynarzami"
       description="W tym panelu znajdują się wszyscy weterynarze współpracujący ze schroniskiem."
     >
-      {isLoading && (
-        <DashboardTableSkeleton columns={4} filters={4} rows={8} />
-      )}
+      {isLoading && <DashboardTableSkeleton columns={4} filters={4} rows={8} />}
       {error && (
         <DashboardErrorState
           title="Nie udało się załadować weterynarzy"
@@ -162,106 +160,112 @@ const AdminVetsPage = () => {
       )}
       {!isLoading && !error && (
         <section id="table">
-          <FilterToolbar>
-              <div className="flex flex-row gap-x-2">
-                <Label>Wyszukaj</Label>
-                <Input
-                  value={searchQuery}
-                  onChange={(e) =>
-                    handleFilterChange(setSearchQuery, e.target.value)
-                  }
-                  placeholder="Szukaj po imieniu..."
-                />
-              </div>
-
-              <MultiValueSelector
-                items={clinicOptions}
-                placeholder="Klinika"
-                value={selectedClinics}
-                onValueChange={(value) =>
-                  handleFilterChange(setSelectedClinics, value)
+          <FilterToolbar className="grid grid-cols-2 items-center md:sticky md:flex md:flex-wrap">
+            <div className="col-span-2 flex flex-row gap-x-2 sm:col-span-1">
+              <Label>Wyszukaj</Label>
+              <Input
+                value={searchQuery}
+                onChange={(e) =>
+                  handleFilterChange(setSearchQuery, e.target.value)
                 }
+                placeholder="Szukaj po imieniu..."
               />
+            </div>
 
-              <Button onClick={resetFilters} variant="destructive">
-                Resetuj filtry
-              </Button>
+            <MultiValueSelector
+              items={clinicOptions}
+              placeholder="Klinika"
+              value={selectedClinics}
+              onValueChange={(value) =>
+                handleFilterChange(setSelectedClinics, value)
+              }
+            />
 
-              <Button variant="success" asChild>
-                <Link to="/admin/weterynarze/dodaj">Dodaj weterynarza</Link>
-              </Button>
+            <Button onClick={resetFilters} variant="destructive">
+              Resetuj filtry
+            </Button>
+
+            <Button
+              variant="success"
+              asChild
+              className="col-span-2 sm:col-span-1"
+            >
+              <Link to="/admin/weterynarze/dodaj">Dodaj weterynarza</Link>
+            </Button>
           </FilterToolbar>
 
-            <Table className={isFetching ? "opacity-60" : undefined}>
-              <TableCaption>
-                Lista weterynarzy współpracujących ze schroniskiem
-              </TableCaption>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Imię i nazwisko</TableHead>
-                  <TableHead>Klinika</TableHead>
-                  <TableHead>Telefon</TableHead>
-                  <TableHead className="text-right">Opcje</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {vets.length ? (
-                  vets.map((vet) => (
-                    <TableRow
-                      key={vet.id}
-                      className="cursor-pointer"
-                      onClick={() =>
-                        navigate(`/admin/weterynarze/${vet.id}/edycja`)
-                      }
-                    >
-                      <TableCell className="font-medium">{vet.name}</TableCell>
-                      <TableCell>{vet.clinic}</TableCell>
-                      <TableCell>
-                        {vet.phone.replace(/(\d{3})(\d{3})(\d{3})/, "$1 $2 $3")}
-                      </TableCell>
-                      <TableCell
-                        className="text-right"
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        <TableRowActions
-                          editTo={`/admin/weterynarze/${vet.id}/edycja`}
-                          deleteSlot={
-                            <DeleteVetDialog
-                              vetId={vet.id}
-                              onConfirm={handleDeleteVet}
-                            />
-                          }
-                        />
-                      </TableCell>
-                    </TableRow>
-                  ))
-                ) : (
-                  <TableRow>
+          <Table className={isFetching ? "opacity-60" : undefined}>
+            <TableCaption>
+              Lista weterynarzy współpracujących ze schroniskiem
+            </TableCaption>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Imię i nazwisko</TableHead>
+                <TableHead className="hidden md:table-cell">Klinika</TableHead>
+                <TableHead className="hidden sm:table-cell">Telefon</TableHead>
+                <TableHead className="w-0 text-right">Opcje</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {vets.length ? (
+                vets.map((vet) => (
+                  <TableRow
+                    key={vet.id}
+                    className="cursor-pointer"
+                    onClick={() =>
+                      navigate(`/admin/weterynarze/${vet.id}/edycja`)
+                    }
+                  >
+                    <TableCell className="font-medium">{vet.name}</TableCell>
+                    <TableCell className="hidden md:table-cell">
+                      {vet.clinic}
+                    </TableCell>
+                    <TableCell className="hidden sm:table-cell">
+                      {vet.phone.replace(/(\d{3})(\d{3})(\d{3})/, "$1 $2 $3")}
+                    </TableCell>
                     <TableCell
-                      colSpan={4}
-                      className="py-5 text-center font-medium"
+                      className="text-right"
+                      onClick={(e) => e.stopPropagation()}
                     >
-                      Brak weterynarzy o podanych filtrach.
+                      <TableRowActions
+                        editTo={`/admin/weterynarze/${vet.id}/edycja`}
+                        deleteSlot={
+                          <DeleteVetDialog
+                            vetId={vet.id}
+                            onConfirm={handleDeleteVet}
+                          />
+                        }
+                      />
                     </TableCell>
                   </TableRow>
-                )}
-              </TableBody>
-              <TableFooter>
+                ))
+              ) : (
                 <TableRow>
-                  <TableCell colSpan={4}>
-                    <TablePagination
-                      page={page}
-                      totalPages={totalPages}
-                      onPageChange={goToPage}
-                    />
+                  <TableCell
+                    colSpan={4}
+                    className="py-5 text-center font-medium"
+                  >
+                    Brak weterynarzy o podanych filtrach.
                   </TableCell>
                 </TableRow>
-                <TableRow>
-                  <TableCell colSpan={3}>Suma weterynarzy</TableCell>
-                  <TableCell className="text-right">{vets.length}</TableCell>
-                </TableRow>
-              </TableFooter>
-            </Table>
+              )}
+            </TableBody>
+            <TableFooter>
+              <TableRow>
+                <TableCell colSpan={4}>
+                  <TablePagination
+                    page={page}
+                    totalPages={totalPages}
+                    onPageChange={goToPage}
+                  />
+                </TableCell>
+              </TableRow>
+              <TableRow>
+                <TableCell colSpan={3}>Suma weterynarzy</TableCell>
+                <TableCell className="text-right">{vets.length}</TableCell>
+              </TableRow>
+            </TableFooter>
+          </Table>
         </section>
       )}
     </DashboardPage>

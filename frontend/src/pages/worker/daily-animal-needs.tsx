@@ -411,7 +411,7 @@ const DailyAnimalNeedsPage = () => {
       {!isPending && !isError && (
         <div id="table">
           <FilterToolbar className="grid grid-cols-2 items-center md:flex md:flex-wrap">
-            <div className="col-span-2 flex flex-row items-center gap-x-2">
+            <div className="col-span-2 flex items-center gap-x-2 sm:col-span-1">
               <Label htmlFor="care-status-filter">Status wykonania</Label>
               <SingleValueSelector
                 items={[...CARE_STATUS_OPTIONS]}
@@ -444,7 +444,11 @@ const DailyAnimalNeedsPage = () => {
               }
             />
 
-            <Button onClick={resetFilters} variant="destructive">
+            <Button
+              onClick={resetFilters}
+              variant="destructive"
+              className="col-span-2 sm:col-span-1"
+            >
               Resetuj filtry
             </Button>
             {isFiltering && (
@@ -496,8 +500,7 @@ const DailyAnimalNeedsPage = () => {
                         <CareCheckbox
                           checked={care.fed}
                           disabled={
-                            !canEditCare ||
-                            pendingKeys.has(`${animal.id}-fed`)
+                            !canEditCare || pendingKeys.has(`${animal.id}-fed`)
                           }
                           ariaLabel={`Jedzenie — ${animal.name}`}
                           onChange={(value) =>
@@ -575,9 +578,7 @@ const DailyAnimalNeedsPage = () => {
         />
       )}
       {!isWorkersProgressPending && !isWorkersProgressError && (
-        <WorkersProgressTable
-          workers={workersProgressData?.workers ?? []}
-        />
+        <WorkersProgressTable workers={workersProgressData?.workers ?? []} />
       )}
     </DashboardPage>
   );

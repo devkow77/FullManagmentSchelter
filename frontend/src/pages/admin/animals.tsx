@@ -5,9 +5,7 @@ import {
   Button,
   Table,
   TableBody,
-  TableCaption,
   TableCell,
-  TableFooter,
   TableHead,
   TableHeader,
   TableRow,
@@ -243,7 +241,7 @@ const AdminAnimalsPage = () => {
 
       {!isLoading && !error && (
         <section id="table">
-          <FilterToolbar className="grid grid-cols-2 items-center md:flex md:flex-wrap">
+          <FilterToolbar className="grid grid-cols-2 items-center md:sticky md:flex md:flex-wrap">
             <div className="col-span-2 flex flex-row items-center gap-x-2">
               <Label htmlFor="search-input">Wyszukaj</Label>
               <Input
@@ -318,19 +316,26 @@ const AdminAnimalsPage = () => {
               <Link to="/admin/zwierzeta/dodaj">Dodaj zwierzę</Link>
             </Button>
           </FilterToolbar>
-          <Table className={isFetching ? "opacity-60" : undefined}>
-            <TableCaption>Lista zwierząt w schronisku</TableCaption>
+          <Table className={`${isFetching ? "opacity-60" : undefined}`}>
             <TableHeader>
               <TableRow>
                 <TableHead>Imię</TableHead>
-                <TableHead>Gatunek</TableHead>
-                <TableHead>Płeć</TableHead>
-                <TableHead>Status adopcji</TableHead>
-                <TableHead>Stan zdrowia</TableHead>
-                <TableHead>Zapotrzebowanie</TableHead>
-                <TableHead>Data następnej wizyty</TableHead>
-                <TableHead>Wiek</TableHead>
-                <TableHead className="text-right">Opcje</TableHead>
+                <TableHead className="hidden sm:table-cell">Gatunek</TableHead>
+                <TableHead className="hidden md:table-cell">Płeć</TableHead>
+                <TableHead className="hidden sm:table-cell">
+                  Status adopcji
+                </TableHead>
+                <TableHead className="hidden lg:table-cell">
+                  Stan zdrowia
+                </TableHead>
+                <TableHead className="hidden md:table-cell">
+                  Zapotrzebowanie
+                </TableHead>
+                <TableHead className="hidden lg:table-cell">
+                  Data następnej wizyty
+                </TableHead>
+                <TableHead className="hidden sm:table-cell">Wiek</TableHead>
+                <TableHead className="w-0 text-right">Opcje</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -338,7 +343,7 @@ const AdminAnimalsPage = () => {
                 animals.map((animal) => (
                   <TableRow
                     key={animal.id}
-                    className="cursor-pointer"
+                    className="w-full cursor-pointer"
                     onClick={() =>
                       navigate(`/admin/zwierzeta/${animal.id}/edycja`)
                     }
@@ -353,36 +358,44 @@ const AdminAnimalsPage = () => {
                         {animal.name}
                       </div>
                     </TableCell>
-                    <TableCell>{formatAnimalType[animal.type]}</TableCell>
-                    <TableCell>{formatAnimalGender(animal.gender)}</TableCell>
-                    <TableCell>
+                    <TableCell className="hidden sm:table-cell">
+                      {formatAnimalType[animal.type]}
+                    </TableCell>
+                    <TableCell className="hidden md:table-cell">
+                      {formatAnimalGender(animal.gender)}
+                    </TableCell>
+                    <TableCell className="hidden sm:table-cell">
                       <span
                         className={`${styleAnimalStatus(animal.status)} rounded-2xl px-4 py-2 text-xs`}
                       >
                         {formatAnimalStatus[animal.status]}
                       </span>
                     </TableCell>
-                    <TableCell>
+                    <TableCell className="hidden lg:table-cell">
                       <span
                         className={`${styleAnimalHealthStatus(animal.healthStatus)} rounded-2xl px-4 py-2 text-xs`}
                       >
                         {formatAnimalHealthStatus[animal.healthStatus]}
                       </span>
                     </TableCell>
-                    <TableCell className={styleAnimalNeed(animal.needsCount)}>
+                    <TableCell
+                      className={`${styleAnimalNeed(animal.needsCount)} hidden md:table-cell`}
+                    >
                       {formatNeedsCount(animal.needsCount)}
                     </TableCell>
                     <TableCell
-                      className={styleEmptyField(animal.nextVisitDate)}
+                      className={`${styleEmptyField(animal.nextVisitDate)} hidden lg:table-cell`}
                     >
                       {animal.nextVisitDate
                         ? `${new Date(animal.nextVisitDate).toLocaleDateString()} r.`
                         : "Brak"}
                     </TableCell>
 
-                    <TableCell>{calculateAge(animal.dateOfBirth)}</TableCell>
+                    <TableCell className="hidden sm:table-cell">
+                      {calculateAge(animal.dateOfBirth)}
+                    </TableCell>
                     <TableCell
-                      className="text-right"
+                      className="w-0 text-right"
                       onClick={(e) => e.stopPropagation()}
                     >
                       <TableRowActions
@@ -408,23 +421,23 @@ const AdminAnimalsPage = () => {
                 </TableRow>
               )}
             </TableBody>
-            <TableFooter>
-              <TableRow>
-                <TableCell colSpan={9}>
-                  <TablePagination
-                    page={page}
-                    totalPages={totalPages}
-                    onPageChange={goToPage}
-                  />
-                </TableCell>
-              </TableRow>
-
-              <TableRow>
-                <TableCell colSpan={8}>Suma zwierząt</TableCell>
-                <TableCell className="text-right">{total}</TableCell>
-              </TableRow>
-            </TableFooter>
           </Table>
+          <div className="bg-muted/50 border-t font-medium">
+            <div className="p-2">
+              <TablePagination
+                page={page}
+                totalPages={totalPages}
+                onPageChange={goToPage}
+              />
+            </div>
+            <div className="flex items-center justify-between border-t p-2">
+              <span>Suma zwierząt</span>
+              <span>{total}</span>
+            </div>
+          </div>
+          <p className="text-muted-foreground mt-4 text-center text-sm">
+            Lista zwierząt w schronisku
+          </p>
         </section>
       )}
     </DashboardPage>

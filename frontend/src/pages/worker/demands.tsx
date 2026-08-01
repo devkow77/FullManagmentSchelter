@@ -209,123 +209,133 @@ const AnimalDemandsPage = () => {
 
       {!isPending && !isError && (
         <section id="table" className="space-y-0">
-          <FilterToolbar>
-              <div className="flex flex-row items-center gap-x-2">
-                <Label htmlFor="search-input">Wyszukaj</Label>
-                <Input
-                  id="search-input"
-                  value={searchQuery}
-                  onChange={(e) =>
-                    handleFilterChange(setSearchQuery, e.target.value)
-                  }
-                  placeholder="Nazwa zwierzęcia..."
-                />
-              </div>
-
-              <MultiValueSelector
-                items={workerOptions}
-                placeholder="Zgłosił"
-                value={selectedReporters}
-                onValueChange={(value) =>
-                  handleFilterChange(setSelectedReporters, value)
+          <FilterToolbar className="grid grid-cols-2 items-center md:sticky md:flex md:flex-wrap">
+            <div className="col-span-2 flex flex-row items-center gap-x-2 sm:col-span-1">
+              <Label htmlFor="search-input">Wyszukaj</Label>
+              <Input
+                id="search-input"
+                value={searchQuery}
+                onChange={(e) =>
+                  handleFilterChange(setSearchQuery, e.target.value)
                 }
+                placeholder="Nazwa zwierzęcia..."
               />
+            </div>
 
-              <Button onClick={resetFilters} variant="destructive">
-                Resetuj filtry
-              </Button>
+            <MultiValueSelector
+              items={workerOptions}
+              placeholder="Zgłosił"
+              value={selectedReporters}
+              onValueChange={(value) =>
+                handleFilterChange(setSelectedReporters, value)
+              }
+            />
 
-              <Button variant="success" asChild className="ml-auto">
-                <Link to="/pracownik/zapotrzebowania-zwierzat/dodaj">
-                  Dodaj zapotrzebowanie
-                </Link>
-              </Button>
+            <Button onClick={resetFilters} variant="destructive">
+              Resetuj filtry
+            </Button>
+
+            <Button
+              variant="success"
+              asChild
+              className="col-span-2 sm:col-span-1"
+            >
+              <Link to="/pracownik/zapotrzebowania-zwierzat/dodaj">
+                Dodaj zapotrzebowanie
+              </Link>
+            </Button>
           </FilterToolbar>
 
-            <Table className={isFetching ? "opacity-60" : undefined}>
-              <TableCaption>Aktywne zapotrzebowania</TableCaption>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Zwierzę</TableHead>
-                  <TableHead>Numer klatki</TableHead>
-                  <TableHead>Rzecz</TableHead>
-                  <TableHead>Powód</TableHead>
-                  <TableHead>Zgłosił</TableHead>
-                  <TableHead className="text-right">Opcje</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {needs.length > 0 ? (
-                  needs.map((need) => (
-                    <TableRow key={need.id}>
-                      <TableCell className="align-middle font-medium">
-                        <div className="flex items-center gap-x-4">
-                          <AnimalAvatar
-                            type={need.animal.type}
-                            src={need.animal.imageUrl[0]}
-                            alt={need.animal.name}
-                          />
-                          <Link
-                            to={`/zwierzeta/${need.animal.id}`}
-                            className="underline-offset-4 hover:underline"
-                          >
-                            {need.animal.name}
-                          </Link>
-                        </div>
-                      </TableCell>
-                      <TableCell>{need.animal.cageNumber ?? "—"}</TableCell>
-                      <TableCell className="whitespace-normal">
-                        {need.name}
-                      </TableCell>
-                      <TableCell className="max-w-xs whitespace-normal">
-                        {need.description?.trim() || "—"}
-                      </TableCell>
-                      <TableCell>{need.reportedBy?.fullName ?? "—"}</TableCell>
-                      <TableCell
-                        className="text-right"
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        <TableRowActions
-                          deleteSlot={
-                            <DeleteAnimalNeedDialog
-                              animalNeedId={need.id}
-                              onConfirm={handleDeleteAnimalNeed}
-                            />
-                          }
+          <Table className={isFetching ? "opacity-60" : undefined}>
+            <TableCaption>Aktywne zapotrzebowania</TableCaption>
+            <TableHeader>
+              <TableRow>
+                <TableHead className="hidden sm:table-cell">Zwierzę</TableHead>
+                <TableHead className="hidden sm:table-cell">
+                  Numer klatki
+                </TableHead>
+                <TableHead>Rzecz</TableHead>
+                <TableHead className="hidden md:table-cell">Powód</TableHead>
+                <TableHead className="hidden md:table-cell">Zgłosił</TableHead>
+                <TableHead className="w-0 text-right">Opcje</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {needs.length > 0 ? (
+                needs.map((need) => (
+                  <TableRow key={need.id}>
+                    <TableCell className="hidden align-middle font-medium sm:table-cell">
+                      <div className="flex items-center gap-x-4">
+                        <AnimalAvatar
+                          type={need.animal.type}
+                          src={need.animal.imageUrl[0]}
+                          alt={need.animal.name}
                         />
-                      </TableCell>
-                    </TableRow>
-                  ))
-                ) : (
-                  <TableRow>
+                        <Link
+                          to={`/zwierzeta/${need.animal.id}`}
+                          className="underline-offset-4 hover:underline"
+                        >
+                          {need.animal.name}
+                        </Link>
+                      </div>
+                    </TableCell>
+                    <TableCell className="hidden sm:table-cell">
+                      {need.animal.cageNumber ?? "—"}
+                    </TableCell>
+                    <TableCell className="whitespace-normal">
+                      {need.name}
+                    </TableCell>
+                    <TableCell className="hidden max-w-xs whitespace-normal md:table-cell">
+                      {need.description?.trim() || "—"}
+                    </TableCell>
+                    <TableCell className="hidden md:table-cell">
+                      {need.reportedBy?.fullName ?? "—"}
+                    </TableCell>
                     <TableCell
-                      colSpan={6}
-                      className="py-5 text-center font-medium"
+                      className="text-right"
+                      onClick={(e) => e.stopPropagation()}
                     >
-                      {hasActiveFilters
-                        ? "Brak zapotrzebowań dla podanych filtrów."
-                        : "Brak aktywnych zapotrzebowań."}
+                      <TableRowActions
+                        deleteSlot={
+                          <DeleteAnimalNeedDialog
+                            animalNeedId={need.id}
+                            onConfirm={handleDeleteAnimalNeed}
+                          />
+                        }
+                      />
                     </TableCell>
                   </TableRow>
-                )}
-              </TableBody>
-              <TableFooter>
+                ))
+              ) : (
                 <TableRow>
-                  <TableCell colSpan={6}>
-                    <TablePagination
-                      page={page}
-                      totalPages={totalPages}
-                      onPageChange={goToPage}
-                    />
+                  <TableCell
+                    colSpan={6}
+                    className="py-5 text-center font-medium"
+                  >
+                    {hasActiveFilters
+                      ? "Brak zapotrzebowań dla podanych filtrów."
+                      : "Brak aktywnych zapotrzebowań."}
                   </TableCell>
                 </TableRow>
+              )}
+            </TableBody>
+            <TableFooter>
+              <TableRow>
+                <TableCell colSpan={6}>
+                  <TablePagination
+                    page={page}
+                    totalPages={totalPages}
+                    onPageChange={goToPage}
+                  />
+                </TableCell>
+              </TableRow>
 
-                <TableRow>
-                  <TableCell colSpan={5}>Suma zapotrzebowań</TableCell>
-                  <TableCell className="text-right">{total}</TableCell>
-                </TableRow>
-              </TableFooter>
-            </Table>
+              <TableRow>
+                <TableCell colSpan={5}>Suma zapotrzebowań</TableCell>
+                <TableCell className="text-right">{total}</TableCell>
+              </TableRow>
+            </TableFooter>
+          </Table>
         </section>
       )}
     </DashboardPage>

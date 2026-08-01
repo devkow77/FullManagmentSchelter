@@ -115,9 +115,7 @@ const AdminAdoptionsPage = () => {
       title="Zarządzaj adopcjami"
       description="W tym panelu znajdują się wszystkie adopcje użytkowników."
     >
-      {isLoading && (
-        <DashboardTableSkeleton columns={6} filters={3} rows={8} />
-      )}
+      {isLoading && <DashboardTableSkeleton columns={6} filters={3} rows={8} />}
       {error && (
         <DashboardErrorState
           title="Nie udało się załadować adopcji"
@@ -126,104 +124,108 @@ const AdminAdoptionsPage = () => {
       )}
       {!isLoading && !error && (
         <section id="table">
-          <FilterToolbar>
-              <div className="flex flex-row gap-x-2">
-                <Label>Wyszukaj po statusie</Label>
-                <MultiValueSelector
-                  items={adoptionStatusOptions}
-                  placeholder="Status"
-                  value={selectedStatutes}
-                  onValueChange={(value) =>
-                    handleFilterChange(setSelectedStatutes, value)
-                  }
-                />
-              </div>
+          <FilterToolbar className="grid grid-cols-1 items-center sm:grid-cols-2 md:sticky md:flex md:flex-wrap">
+            <div className="flex flex-row gap-x-2">
+              <Label>Wyszukaj po statusie</Label>
+              <MultiValueSelector
+                items={adoptionStatusOptions}
+                placeholder="Status"
+                value={selectedStatutes}
+                onValueChange={(value) =>
+                  handleFilterChange(setSelectedStatutes, value)
+                }
+              />
+            </div>
 
-              <Button onClick={resetFilters} variant="destructive">
-                Resetuj filtry
-              </Button>
+            <Button onClick={resetFilters} variant="destructive">
+              Resetuj filtry
+            </Button>
           </FilterToolbar>
 
-            <Table className={isFetching ? "opacity-60" : undefined}>
-              <TableCaption>Lista adopcji w schronisku</TableCaption>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Użytkownik</TableHead>
-                  <TableHead>Zwierzę</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Wiadomość użytkownika</TableHead>
-                  <TableHead>Wiadomość pracownika</TableHead>
-                  <TableHead className="text-right">Opcje</TableHead>
-                </TableRow>
-              </TableHeader>
+          <Table className={isFetching ? "opacity-60" : undefined}>
+            <TableCaption>Lista adopcji w schronisku</TableCaption>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Użytkownik</TableHead>
+                <TableHead className="hidden sm:table-cell">Zwierzę</TableHead>
+                <TableHead className="hidden sm:table-cell">Status</TableHead>
+                <TableHead className="hidden lg:table-cell">
+                  Wiadomość użytkownika
+                </TableHead>
+                <TableHead className="hidden lg:table-cell">
+                  Wiadomość pracownika
+                </TableHead>
+                <TableHead className="w-0 text-right">Opcje</TableHead>
+              </TableRow>
+            </TableHeader>
 
-              <TableBody>
-                {adoptions.length ? (
-                  adoptions.map((adoption) => (
-                    <TableRow
-                      key={adoption.id}
-                      className="cursor-pointer"
-                      onClick={() =>
-                        navigate(`/pracownik/adopcje/${adoption.id}/edycja`)
-                      }
-                    >
-                      <TableCell>{adoption.user.fullName}</TableCell>
-                      <TableCell>{adoption.animal.name}</TableCell>
-                      <TableCell>
-                        <span
-                          className={`${styleAdoptionStatus(adoption.status)} rounded-2xl px-4 py-2 text-xs`}
-                        >
-                          {formatAdoptionStatus[adoption.status]}
-                        </span>
-                      </TableCell>
-                      <TableCell>
-                        {adoption.message?.slice(0, 30).concat("...") ?? "Brak"}
-                      </TableCell>
-                      <TableCell>
-                        {adoption.employeeNote?.slice(0, 30).concat("...") ??
-                          "Brak"}
-                      </TableCell>
-                      <TableCell
-                        className="text-right"
-                        onClick={(e) => e.stopPropagation()}
+            <TableBody>
+              {adoptions.length ? (
+                adoptions.map((adoption) => (
+                  <TableRow
+                    key={adoption.id}
+                    className="cursor-pointer"
+                    onClick={() =>
+                      navigate(`/pracownik/adopcje/${adoption.id}/edycja`)
+                    }
+                  >
+                    <TableCell>{adoption.user.fullName}</TableCell>
+                    <TableCell className="hidden sm:table-cell">
+                      {adoption.animal.name}
+                    </TableCell>
+                    <TableCell className="hidden sm:table-cell">
+                      <span
+                        className={`${styleAdoptionStatus(adoption.status)} rounded-2xl px-4 py-2 text-xs`}
                       >
-                        <TableRowActions
-                          editTo={`/pracownik/adopcje/${adoption.id}/edycja`}
-                          editLabel="Szczegóły"
-                        />
-                      </TableCell>
-                    </TableRow>
-                  ))
-                ) : (
-                  <TableRow>
+                        {formatAdoptionStatus[adoption.status]}
+                      </span>
+                    </TableCell>
+                    <TableCell className="hidden lg:table-cell">
+                      {adoption.message?.slice(0, 30).concat("...") ?? "Brak"}
+                    </TableCell>
+                    <TableCell className="hidden lg:table-cell">
+                      {adoption.employeeNote?.slice(0, 30).concat("...") ??
+                        "Brak"}
+                    </TableCell>
                     <TableCell
-                      colSpan={6}
-                      className="py-5 text-center font-medium"
+                      className="text-right"
+                      onClick={(e) => e.stopPropagation()}
                     >
-                      Brak adopcji o podanych filtrach.
+                      <TableRowActions
+                        editTo={`/pracownik/adopcje/${adoption.id}/edycja`}
+                        editLabel="Szczegóły"
+                      />
                     </TableCell>
                   </TableRow>
-                )}
-              </TableBody>
+                ))
+              ) : (
+                <TableRow>
+                  <TableCell
+                    colSpan={6}
+                    className="py-5 text-center font-medium"
+                  >
+                    Brak adopcji o podanych filtrach.
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
 
-              <TableFooter>
-                <TableRow>
-                  <TableCell colSpan={6}>
-                    <TablePagination
-                      page={page}
-                      totalPages={totalPages}
-                      onPageChange={goToPage}
-                    />
-                  </TableCell>
-                </TableRow>
-                <TableRow>
-                  <TableCell colSpan={5}>Suma adopcji</TableCell>
-                  <TableCell className="text-right">
-                    {adoptions.length}
-                  </TableCell>
-                </TableRow>
-              </TableFooter>
-            </Table>
+            <TableFooter>
+              <TableRow>
+                <TableCell colSpan={6}>
+                  <TablePagination
+                    page={page}
+                    totalPages={totalPages}
+                    onPageChange={goToPage}
+                  />
+                </TableCell>
+              </TableRow>
+              <TableRow>
+                <TableCell colSpan={5}>Suma adopcji</TableCell>
+                <TableCell className="text-right">{adoptions.length}</TableCell>
+              </TableRow>
+            </TableFooter>
+          </Table>
         </section>
       )}
     </DashboardPage>
