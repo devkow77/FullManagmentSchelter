@@ -13,7 +13,6 @@ import {
   TableBody,
   TableCaption,
   TableCell,
-  TableFooter,
   TableHead,
   TableHeader,
   TableRow,
@@ -29,7 +28,12 @@ import {
   formatMedicalRecordType,
   formatAnimalType,
 } from "@/lib/utils";
-import { MultiValueSelector, TableRowActions, FilterToolbar } from "@/components/shared";
+import {
+  MultiValueSelector,
+  TableRowActions,
+  FilterToolbar,
+  DashboardTableFooter,
+} from "@/components/shared";
 import {
   medicalRecordAnimalTypeOptions,
   medicalRecordTypeOptions,
@@ -314,7 +318,7 @@ const EditVetPage = () => {
                     </TableCell>
                     <TableCell>{medicalRecord.cost} zł</TableCell>
                     <TableCell
-                      className="text-right"
+                      className="w-0 text-right"
                       onClick={(e) => e.stopPropagation()}
                     >
                       <TableRowActions
@@ -344,14 +348,19 @@ const EditVetPage = () => {
               )}
             </TableBody>
 
-            <TableFooter>
-              <TableRow>
-                <TableCell colSpan={6}>Suma raportów</TableCell>
-                <TableCell className="text-right">
-                  {filteredMedicalRecords.length}
-                </TableCell>
-              </TableRow>
-            </TableFooter>
+            <DashboardTableFooter
+              columns={[
+                "always",
+                "always",
+                "always",
+                "always",
+                "always",
+                "always",
+                "always",
+              ]}
+              sumLabel="Suma raportów"
+              sumValue={filteredMedicalRecords.length}
+            />
           </Table>
         </section>
       </Container>

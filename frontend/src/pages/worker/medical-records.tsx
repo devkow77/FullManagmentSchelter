@@ -4,7 +4,6 @@ import {
   TableBody,
   TableCaption,
   TableCell,
-  TableFooter,
   TableHead,
   TableHeader,
   TableRow,
@@ -23,9 +22,9 @@ import {
 } from "@/lib/utils";
 import {
   MultiValueSelector,
-  TablePagination,
   DashboardErrorState,
   DashboardTableSkeleton,
+  DashboardTableFooter,
   TableRowActions,
   DashboardPage,
   FilterToolbar,
@@ -310,7 +309,7 @@ const MedicalRecordsPage = () => {
                       {medicalRecord.cost} zł
                     </TableCell>
                     <TableCell
-                      className="text-right"
+                      className="w-0 text-right"
                       onClick={(e) => e.stopPropagation()}
                     >
                       <TableRowActions
@@ -340,23 +339,14 @@ const MedicalRecordsPage = () => {
               )}
             </TableBody>
 
-            <TableFooter>
-              <TableRow>
-                <TableCell colSpan={8}>
-                  <TablePagination
-                    page={page}
-                    totalPages={totalPages}
-                    onPageChange={goToPage}
-                  />
-                </TableCell>
-              </TableRow>
-              <TableRow>
-                <TableCell colSpan={7}>Suma raportów</TableCell>
-                <TableCell className="text-right">
-                  {medicalRecords.length}
-                </TableCell>
-              </TableRow>
-            </TableFooter>
+            <DashboardTableFooter
+              columns={["always", "sm", "md", "md", "lg", "md", "lg", "always"]}
+              page={page}
+              totalPages={totalPages}
+              onPageChange={goToPage}
+              sumLabel="Suma raportów"
+              sumValue={medicalRecords.length}
+            />
           </Table>
         </section>
       )}

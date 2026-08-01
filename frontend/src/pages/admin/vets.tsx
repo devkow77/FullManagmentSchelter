@@ -7,7 +7,6 @@ import {
   TableBody,
   TableCaption,
   TableCell,
-  TableFooter,
   TableHead,
   TableHeader,
   TableRow,
@@ -18,7 +17,7 @@ import { Link, useNavigate } from "react-router";
 import { toast } from "sonner";
 import {
   MultiValueSelector,
-  TablePagination,
+  DashboardTableFooter,
   DashboardErrorState,
   DashboardTableSkeleton,
   TableRowActions,
@@ -224,7 +223,7 @@ const AdminVetsPage = () => {
                       {vet.phone.replace(/(\d{3})(\d{3})(\d{3})/, "$1 $2 $3")}
                     </TableCell>
                     <TableCell
-                      className="text-right"
+                      className="w-0 text-right"
                       onClick={(e) => e.stopPropagation()}
                     >
                       <TableRowActions
@@ -250,21 +249,14 @@ const AdminVetsPage = () => {
                 </TableRow>
               )}
             </TableBody>
-            <TableFooter>
-              <TableRow>
-                <TableCell colSpan={4}>
-                  <TablePagination
-                    page={page}
-                    totalPages={totalPages}
-                    onPageChange={goToPage}
-                  />
-                </TableCell>
-              </TableRow>
-              <TableRow>
-                <TableCell colSpan={3}>Suma weterynarzy</TableCell>
-                <TableCell className="text-right">{vets.length}</TableCell>
-              </TableRow>
-            </TableFooter>
+            <DashboardTableFooter
+              columns={["always", "md", "sm", "always"]}
+              page={page}
+              totalPages={totalPages}
+              onPageChange={goToPage}
+              sumLabel="Suma weterynarzy"
+              sumValue={vets.length}
+            />
           </Table>
         </section>
       )}

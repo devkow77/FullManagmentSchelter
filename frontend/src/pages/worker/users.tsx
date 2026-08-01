@@ -6,7 +6,6 @@ import {
   TableBody,
   TableCaption,
   TableCell,
-  TableFooter,
   TableHead,
   TableHeader,
   TableRow,
@@ -15,9 +14,9 @@ import {
 import {
   UserAvatar,
   MultiValueSelector,
-  TablePagination,
   DashboardErrorState,
   DashboardTableSkeleton,
+  DashboardTableFooter,
   TableRowActions,
   DashboardPage,
   FilterToolbar,
@@ -324,7 +323,7 @@ const WorkerUsersPage = () => {
                     </TableCell>
                     {isAdmin ? (
                       <TableCell
-                        className="text-right"
+                        className="w-0 text-right"
                         onClick={(e) => e.stopPropagation()}
                       >
                         <TableRowActions
@@ -351,23 +350,18 @@ const WorkerUsersPage = () => {
                 </TableRow>
               )}
             </TableBody>
-            <TableFooter>
-              <TableRow>
-                <TableCell colSpan={isAdmin ? 8 : 7}>
-                  <TablePagination
-                    page={page}
-                    totalPages={totalPages}
-                    onPageChange={goToPage}
-                  />
-                </TableCell>
-              </TableRow>
-              <TableRow>
-                <TableCell colSpan={isAdmin ? 7 : 6}>
-                  Suma użytkowników
-                </TableCell>
-                <TableCell className="text-right">{users.length}</TableCell>
-              </TableRow>
-            </TableFooter>
+            <DashboardTableFooter
+              columns={
+                isAdmin
+                  ? ["always", "sm", "xl", "md", "lg", "xl", "xl", "always"]
+                  : ["always", "sm", "xl", "md", "lg", "xl", "xl"]
+              }
+              page={page}
+              totalPages={totalPages}
+              onPageChange={goToPage}
+              sumLabel="Suma użytkowników"
+              sumValue={users.length}
+            />
           </Table>
         </section>
       )}

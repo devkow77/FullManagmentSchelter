@@ -15,7 +15,6 @@ import {
   TableBody,
   TableCaption,
   TableCell,
-  TableFooter,
   TableHead,
   TableHeader,
   TableRow,
@@ -28,6 +27,7 @@ import {
   SingleValueSelector,
   TableRowActions,
   FilterToolbar,
+  DashboardTableFooter,
 } from "@/components/shared";
 import { editUserSchema, type EditUserFormData, getMaxDateOfBirth } from "@/schemas/user.schema";
 import { userRoleValues, userGenderValues } from "@/constants/user.constants";
@@ -641,7 +641,7 @@ const EditUserPage = () => {
                           : "Brak"}
                       </TableCell>
                       <TableCell
-                        className="text-right"
+                        className="w-0 text-right"
                         onClick={(e) => e.stopPropagation()}
                       >
                         <TableRowActions
@@ -663,14 +663,11 @@ const EditUserPage = () => {
                 )}
               </TableBody>
 
-              <TableFooter>
-                <TableRow>
-                  <TableCell colSpan={5}>Suma adopcji</TableCell>
-                  <TableCell className="text-right">
-                    {filteredAdoptions.length}
-                  </TableCell>
-                </TableRow>
-              </TableFooter>
+              <DashboardTableFooter
+                columns={["always", "always", "always", "always", "always", "always"]}
+                sumLabel="Suma adopcji"
+                sumValue={filteredAdoptions.length}
+              />
             </Table>
           </section>
         )}

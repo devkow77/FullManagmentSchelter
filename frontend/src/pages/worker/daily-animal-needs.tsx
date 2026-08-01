@@ -6,7 +6,6 @@ import {
   TableBody,
   TableCaption,
   TableCell,
-  TableFooter,
   TableHead,
   TableHeader,
   TableRow,
@@ -27,9 +26,9 @@ import {
   MultiValueSelector,
   SingleValueSelector,
   UserAvatar,
-  TablePagination,
   DashboardErrorState,
   DashboardTableSkeleton,
+  DashboardTableFooter,
   DashboardPage,
   FilterToolbar,
 } from "@/components/shared";
@@ -551,21 +550,14 @@ const DailyAnimalNeedsPage = () => {
                 </TableRow>
               )}
             </TableBody>
-            <TableFooter>
-              <TableRow>
-                <TableCell colSpan={7}>
-                  <TablePagination
-                    page={page}
-                    totalPages={totalPages}
-                    onPageChange={goToPage}
-                  />
-                </TableCell>
-              </TableRow>
-              <TableRow>
-                <TableCell colSpan={6}>Suma zwierząt</TableCell>
-                <TableCell className="text-right">{total}</TableCell>
-              </TableRow>
-            </TableFooter>
+            <DashboardTableFooter
+              columns={Array(7).fill("always")}
+              page={page}
+              totalPages={totalPages}
+              onPageChange={goToPage}
+              sumLabel="Suma zwierząt"
+              sumValue={total}
+            />
           </Table>
         </div>
       )}

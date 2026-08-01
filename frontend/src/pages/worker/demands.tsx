@@ -6,7 +6,6 @@ import {
   TableBody,
   TableCaption,
   TableCell,
-  TableFooter,
   TableHead,
   TableHeader,
   TableRow,
@@ -25,9 +24,9 @@ import { toast } from "sonner";
 import {
   AnimalAvatar,
   MultiValueSelector,
-  TablePagination,
   DashboardErrorState,
   DashboardTableSkeleton,
+  DashboardTableFooter,
   TableRowActions,
   DashboardPage,
   FilterToolbar,
@@ -292,7 +291,7 @@ const AnimalDemandsPage = () => {
                       {need.reportedBy?.fullName ?? "—"}
                     </TableCell>
                     <TableCell
-                      className="text-right"
+                      className="w-0 text-right"
                       onClick={(e) => e.stopPropagation()}
                     >
                       <TableRowActions
@@ -319,22 +318,14 @@ const AnimalDemandsPage = () => {
                 </TableRow>
               )}
             </TableBody>
-            <TableFooter>
-              <TableRow>
-                <TableCell colSpan={6}>
-                  <TablePagination
-                    page={page}
-                    totalPages={totalPages}
-                    onPageChange={goToPage}
-                  />
-                </TableCell>
-              </TableRow>
-
-              <TableRow>
-                <TableCell colSpan={5}>Suma zapotrzebowań</TableCell>
-                <TableCell className="text-right">{total}</TableCell>
-              </TableRow>
-            </TableFooter>
+            <DashboardTableFooter
+              columns={["sm", "sm", "always", "md", "md", "always"]}
+              page={page}
+              totalPages={totalPages}
+              onPageChange={goToPage}
+              sumLabel="Suma zapotrzebowań"
+              sumValue={total}
+            />
           </Table>
         </section>
       )}

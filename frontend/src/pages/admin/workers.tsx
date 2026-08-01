@@ -6,7 +6,6 @@ import {
   TableBody,
   TableCaption,
   TableCell,
-  TableFooter,
   TableHead,
   TableHeader,
   TableRow,
@@ -25,7 +24,7 @@ import { toast } from "sonner";
 import {
   MultiValueSelector,
   UserAvatar,
-  TablePagination,
+  DashboardTableFooter,
   DashboardErrorState,
   DashboardTableSkeleton,
   TableRowActions,
@@ -336,7 +335,7 @@ const AdminWorkersPage = () => {
                       r.
                     </TableCell>
                     <TableCell
-                      className="text-right"
+                      className="w-0 text-right"
                       onClick={(e) => e.stopPropagation()}
                     >
                       <TableRowActions
@@ -362,21 +361,14 @@ const AdminWorkersPage = () => {
                 </TableRow>
               )}
             </TableBody>
-            <TableFooter>
-              <TableRow>
-                <TableCell colSpan={9}>
-                  <TablePagination
-                    page={page}
-                    totalPages={totalPages}
-                    onPageChange={goToPage}
-                  />
-                </TableCell>
-              </TableRow>
-              <TableRow>
-                <TableCell colSpan={7}>Suma pracowników</TableCell>
-                <TableCell className="text-right">{workers.length}</TableCell>
-              </TableRow>
-            </TableFooter>
+            <DashboardTableFooter
+              columns={["always", "sm", "xl", "sm", "xl", "xl", "lg", "always"]}
+              page={page}
+              totalPages={totalPages}
+              onPageChange={goToPage}
+              sumLabel="Suma pracowników"
+              sumValue={workers.length}
+            />
           </Table>
         </section>
       )}

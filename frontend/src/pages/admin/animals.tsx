@@ -5,6 +5,7 @@ import {
   Button,
   Table,
   TableBody,
+  TableCaption,
   TableCell,
   TableHead,
   TableHeader,
@@ -35,7 +36,7 @@ import {
   MultiValueSelector,
   AgeSlider,
   AnimalAvatar,
-  TablePagination,
+  DashboardTableFooter,
   DashboardErrorState,
   DashboardTableSkeleton,
   TableRowActions,
@@ -317,6 +318,7 @@ const AdminAnimalsPage = () => {
             </Button>
           </FilterToolbar>
           <Table className={`${isFetching ? "opacity-60" : undefined}`}>
+            <TableCaption>Lista zwierząt w schronisku</TableCaption>
             <TableHeader>
               <TableRow>
                 <TableHead>Imię</TableHead>
@@ -421,23 +423,15 @@ const AdminAnimalsPage = () => {
                 </TableRow>
               )}
             </TableBody>
+            <DashboardTableFooter
+              columns={["always", "sm", "md", "sm", "lg", "md", "lg", "sm", "always"]}
+              page={page}
+              totalPages={totalPages}
+              onPageChange={goToPage}
+              sumLabel="Suma zwierząt"
+              sumValue={total}
+            />
           </Table>
-          <div className="bg-muted/50 border-t font-medium">
-            <div className="p-2">
-              <TablePagination
-                page={page}
-                totalPages={totalPages}
-                onPageChange={goToPage}
-              />
-            </div>
-            <div className="flex items-center justify-between border-t p-2">
-              <span>Suma zwierząt</span>
-              <span>{total}</span>
-            </div>
-          </div>
-          <p className="text-muted-foreground mt-4 text-center text-sm">
-            Lista zwierząt w schronisku
-          </p>
         </section>
       )}
     </DashboardPage>

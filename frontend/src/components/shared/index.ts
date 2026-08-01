@@ -16,6 +16,7 @@ import DashboardTableSkeleton from "./DashboardTableSkeleton";
 import TableRowActions from "./TableRowActions";
 import DashboardPage from "./DashboardPage";
 import FilterToolbar from "./FilterToolbar";
+import DashboardTableFooter from "./DashboardTableFooter";
 
 export {
   ShortFaqList,
@@ -36,4 +37,7 @@ export {
   TableRowActions,
   DashboardPage,
   FilterToolbar,
+  DashboardTableFooter,
 };
+
+export type { TableColumnVisibility } from "./DashboardTableFooter";

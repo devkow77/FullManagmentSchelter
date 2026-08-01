@@ -5,7 +5,6 @@ import {
   TableBody,
   TableCaption,
   TableCell,
-  TableFooter,
   TableHead,
   TableHeader,
   TableRow,
@@ -24,7 +23,7 @@ import {
   MultiValueSelector,
   SingleValueSelector,
   AnimalAvatar,
-  TablePagination,
+  DashboardTableFooter,
   DashboardErrorState,
   DashboardTableSkeleton,
   TableRowActions,
@@ -323,7 +322,7 @@ const AdminCagesPage = () => {
                           <span className="text-muted-foreground">Brak</span>
                         )}
                       </TableCell>
-                      <TableCell className="text-right">
+                      <TableCell className="w-0 text-right">
                         <TableRowActions
                           deleteSlot={
                             <DeleteCageDialog
@@ -349,21 +348,14 @@ const AdminCagesPage = () => {
                 </TableRow>
               )}
             </TableBody>
-            <TableFooter>
-              <TableRow>
-                <TableCell colSpan={4}>
-                  <TablePagination
-                    page={page}
-                    totalPages={totalPages}
-                    onPageChange={goToPage}
-                  />
-                </TableCell>
-              </TableRow>
-              <TableRow>
-                <TableCell colSpan={3}>Suma klatek</TableCell>
-                <TableCell className="text-right">{total}</TableCell>
-              </TableRow>
-            </TableFooter>
+            <DashboardTableFooter
+              columns={["always", "sm", "sm", "always"]}
+              page={page}
+              totalPages={totalPages}
+              onPageChange={goToPage}
+              sumLabel="Suma klatek"
+              sumValue={total}
+            />
           </Table>
         </section>
       )}

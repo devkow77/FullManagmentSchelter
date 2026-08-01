@@ -5,7 +5,6 @@ import {
   TableBody,
   TableCaption,
   TableCell,
-  TableFooter,
   TableHead,
   TableHeader,
   TableRow,
@@ -16,7 +15,7 @@ import { formatAdoptionStatus, styleAdoptionStatus } from "@/lib/utils";
 import type { Adoption } from "@/types/adoption";
 import {
   MultiValueSelector,
-  TablePagination,
+  DashboardTableFooter,
   DashboardErrorState,
   DashboardTableSkeleton,
   TableRowActions,
@@ -188,7 +187,7 @@ const AdminAdoptionsPage = () => {
                         "Brak"}
                     </TableCell>
                     <TableCell
-                      className="text-right"
+                      className="w-0 text-right"
                       onClick={(e) => e.stopPropagation()}
                     >
                       <TableRowActions
@@ -210,21 +209,14 @@ const AdminAdoptionsPage = () => {
               )}
             </TableBody>
 
-            <TableFooter>
-              <TableRow>
-                <TableCell colSpan={6}>
-                  <TablePagination
-                    page={page}
-                    totalPages={totalPages}
-                    onPageChange={goToPage}
-                  />
-                </TableCell>
-              </TableRow>
-              <TableRow>
-                <TableCell colSpan={5}>Suma adopcji</TableCell>
-                <TableCell className="text-right">{adoptions.length}</TableCell>
-              </TableRow>
-            </TableFooter>
+            <DashboardTableFooter
+              columns={["always", "sm", "sm", "lg", "lg", "always"]}
+              page={page}
+              totalPages={totalPages}
+              onPageChange={goToPage}
+              sumLabel="Suma adopcji"
+              sumValue={adoptions.length}
+            />
           </Table>
         </section>
       )}
