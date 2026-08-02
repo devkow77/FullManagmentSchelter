@@ -63,6 +63,10 @@ const EditVetPage = () => {
   });
 
   useEffect(() => {
+    document.title = "Edytuj dane weterynarza | Schronisko";
+  }, []);
+
+  useEffect(() => {
     const fetchVet = async () => {
       try {
         const res = await axios.get<Vet>(`/api/vets/${id}`, {
@@ -162,7 +166,10 @@ const EditVetPage = () => {
     <main>
       <Container className="mb-6 space-y-12 md:mb-10 md:space-y-16">
         <div className="space-y-2">
-          <h1 className="text-3xl font-bold text-green-900 md:text-5xl">
+          <h1
+            id="edit-vet-heading"
+            className="text-3xl font-bold text-green-900 md:text-5xl"
+          >
             Edytuj dane weterynarza
           </h1>
           <p className="text-sm leading-6 font-medium md:text-base md:leading-7">

@@ -68,6 +68,12 @@ const AccountPage = () => {
   };
 
   useEffect(() => {
+    document.title = user?.fullName
+      ? `${user.fullName} | Schronisko`
+      : "Konto | Schronisko";
+  }, [user?.fullName]);
+
+  useEffect(() => {
     if (!loading && !user?.role) {
       toast.info("Musisz być zalogowany aby mieć dostęp do konta!");
       navigate("/");
@@ -79,24 +85,32 @@ const AccountPage = () => {
       <Container className="mb-6 space-y-12 md:mb-10 md:space-y-16">
         <section
           id="info"
+          aria-labelledby="client-account-heading"
           className="space-y-6 gap-x-12 text-center md:flex md:text-left"
         >
           <div className="relative mx-auto h-50 w-50 overflow-hidden rounded-full md:mx-0">
             <img
-              src="./client-logged-avatar.png"
+              src="/client-logged-avatar.png"
               alt="profilowe klienta"
+              width={200}
+              height={200}
               className="absolute top-0 left-0 size-full object-cover"
-              role="presentation"
             />
           </div>
           <div className="space-y-2">
-            <h1 className="text-3xl font-bold text-green-900 md:text-5xl">
+            <h1
+              id="client-account-heading"
+              className="text-3xl font-bold text-green-900 md:text-5xl"
+            >
               {user?.fullName}
             </h1>
             <p className="text-sm leading-6 font-medium md:text-base md:leading-7">
               Poniżej znajdują się twoje podstawowe dane z konta.
             </p>
-            <ul className="space-y-2 text-sm leading-6 md:text-base md:leading-7">
+            <ul
+              aria-label="Dane konta"
+              className="space-y-2 text-sm leading-6 md:text-base md:leading-7"
+            >
               <li>Imię i nazwisko: {user?.fullName}</li>
               <li>Email: {user?.email}</li>
               <li className="mt-4">
@@ -109,9 +123,16 @@ const AccountPage = () => {
             </ul>
           </div>
         </section>
-        <section id="adoptions" className="space-y-6 lg:space-y-8">
+        <section
+          id="adoptions"
+          aria-labelledby="adoptions-heading"
+          className="space-y-6 lg:space-y-8"
+        >
           <div className="space-y-2">
-            <h2 className="text-2xl font-bold text-green-900 md:text-4xl">
+            <h2
+              id="adoptions-heading"
+              className="text-2xl font-bold text-green-900 md:text-4xl"
+            >
               Twoje aktualne adopcje
             </h2>
             <p className="text-sm leading-6 md:text-base md:leading-7">
@@ -146,51 +167,96 @@ const AccountPage = () => {
             ))}
           </div>
         </section>
-        <section id="editPassword" className="space-y-6 lg:space-y-8">
+        <section
+          id="editPassword"
+          aria-labelledby="edit-password-heading"
+          className="space-y-6 lg:space-y-8"
+        >
           <div className="space-y-2">
-            <h2 className="text-2xl font-bold text-green-900 md:text-4xl">
+            <h2
+              id="edit-password-heading"
+              className="text-2xl font-bold text-green-900 md:text-4xl"
+            >
               Chcesz zmienić hasło?
             </h2>
             <p className="text-sm leading-6 md:text-base md:leading-7">
               Poniżej znajduje się formularz do zmiany dotychczasowego hasła.
             </p>
           </div>
-          <form onSubmit={handleSubmit(onSubmit)}>
-            <Label>Aktualne hasło</Label>
+          <form
+            onSubmit={handleSubmit(onSubmit)}
+            aria-label="Formularz zmiany hasła"
+            noValidate
+          >
+            <Label htmlFor="client-currentPassword">Aktualne hasło</Label>
             <Input
+              id="client-currentPassword"
               {...register("currentPassword")}
               className="mt-2 mb-4"
               placeholder="Podaj swoje aktualne hasło..."
               autoFocus
               type="password"
+              autoComplete="current-password"
+              aria-invalid={Boolean(errors.currentPassword)}
+              aria-describedby={
+                errors.currentPassword
+                  ? "client-currentPassword-error"
+                  : undefined
+              }
             />
             {errors.currentPassword && (
-              <p className="-mt-2 mb-4 text-xs font-medium text-red-600 lg:text-sm">
+              <p
+                id="client-currentPassword-error"
+                role="alert"
+                className="-mt-2 mb-4 text-xs font-medium text-red-600 lg:text-sm"
+              >
                 {errors.currentPassword.message}
               </p>
             )}
-            <Label>Nowe hasło</Label>
+            <Label htmlFor="client-newPassword">Nowe hasło</Label>
             <Input
+              id="client-newPassword"
               {...register("newPassword")}
               className="mt-2 mb-4"
               placeholder="Podaj nowe hasło..."
               type="password"
+              autoComplete="new-password"
+              aria-invalid={Boolean(errors.newPassword)}
+              aria-describedby={
+                errors.newPassword ? "client-newPassword-error" : undefined
+              }
             />
             {errors.newPassword && (
-              <p className="-mt-2 mb-4 text-xs font-medium text-red-600 lg:text-sm">
+              <p
+                id="client-newPassword-error"
+                role="alert"
+                className="-mt-2 mb-4 text-xs font-medium text-red-600 lg:text-sm"
+              >
                 {errors.newPassword.message}
               </p>
             )}
 
-            <Label>Powtórz nowe hasło</Label>
+            <Label htmlFor="client-confirmNewPassword">Powtórz nowe hasło</Label>
             <Input
+              id="client-confirmNewPassword"
               {...register("confirmNewPassword")}
               className="mt-2 mb-4"
               placeholder="Powtórz nowe hasło..."
               type="password"
+              autoComplete="new-password"
+              aria-invalid={Boolean(errors.confirmNewPassword)}
+              aria-describedby={
+                errors.confirmNewPassword
+                  ? "client-confirmNewPassword-error"
+                  : undefined
+              }
             />
             {errors.confirmNewPassword && (
-              <p className="-mt-2 mb-4 text-xs font-medium text-red-600 lg:text-sm">
+              <p
+                id="client-confirmNewPassword-error"
+                role="alert"
+                className="-mt-2 mb-4 text-xs font-medium text-red-600 lg:text-sm"
+              >
                 {errors.confirmNewPassword.message}
               </p>
             )}
@@ -204,9 +270,16 @@ const AccountPage = () => {
             </Button>
           </form>
         </section>
-        <section id="2fa" className="space-y-6 lg:space-y-8">
+        <section
+          id="2fa"
+          aria-labelledby="2fa-heading"
+          className="space-y-6 lg:space-y-8"
+        >
           <div className="space-y-2">
-            <h2 className="text-2xl font-bold text-green-900 md:text-4xl">
+            <h2
+              id="2fa-heading"
+              className="text-2xl font-bold text-green-900 md:text-4xl"
+            >
               {user?.twoFactorEnabled
                 ? "Zarządzaj weryfikacją dwuetapową 2FA"
                 : "Włącz weryfikację dwuetapową 2FA"}
@@ -223,7 +296,14 @@ const AccountPage = () => {
                 Zeskanuj poniższy kod QR w aplikacji Authenticator (np. Google
                 Authenticator lub Authy):
               </p>
-              {qrCode && <img src={qrCode} alt="QR Code do TOTP" />}
+              {qrCode && (
+                <img
+                  src={qrCode}
+                  alt="QR Code do TOTP"
+                  width={200}
+                  height={200}
+                />
+              )}
               <p className="text-sm leading-6 md:text-base md:leading-7">
                 Lub wpisz ręcznie klucz:
               </p>

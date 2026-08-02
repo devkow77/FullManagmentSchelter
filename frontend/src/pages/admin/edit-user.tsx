@@ -125,6 +125,10 @@ const EditUserPage = () => {
     : existingImage || null;
 
   useEffect(() => {
+    document.title = "Edytuj dane | Schronisko";
+  }, []);
+
+  useEffect(() => {
     const fetchUser = async () => {
       try {
         const res = await axios.get<AppUser>(`/api/users/${id}`, {
@@ -280,7 +284,10 @@ const EditUserPage = () => {
     <main>
       <Container className="mb-6 space-y-12 md:mb-10 md:space-y-16">
         <div className="space-y-2">
-          <h1 className="text-3xl font-bold text-green-900 md:text-5xl">
+          <h1
+            id="edit-user-heading"
+            className="text-3xl font-bold text-green-900 md:text-5xl"
+          >
             Edytuj dane
           </h1>
           <p className="text-sm leading-6 font-medium md:text-base md:leading-7">
