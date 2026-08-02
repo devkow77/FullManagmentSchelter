@@ -190,6 +190,29 @@ const TypeAnimalPage = () => {
   );
   const total = data?.pages[0]?.total ?? 0;
 
+  useEffect(() => {
+    if (animalTypeConfig?.title) {
+      document.title = `${animalTypeConfig.title} | Schronisko`;
+    }
+  }, [animalTypeConfig?.title]);
+
+  const animalsJsonLd = useMemo(() => {
+    if (!animalTypeConfig || animals.length === 0) return null;
+
+    return {
+      "@context": "https://schema.org",
+      "@type": "ItemList",
+      name: animalTypeConfig.title,
+      numberOfItems: total,
+      itemListElement: animals.map((animal, index) => ({
+        "@type": "ListItem",
+        position: index + 1,
+        name: animal.name,
+        url: `/zwierzeta/${animal.id}`,
+      })),
+    };
+  }, [animalTypeConfig, animals, total]);
+
   if (!animalTypeConfig) {
     return null;
   }
@@ -198,9 +221,15 @@ const TypeAnimalPage = () => {
     return (
       <main>
         <Container className="space-y-12 md:space-y-16">
-          <section className="space-y-6 lg:space-y-8">
+          <section
+            aria-labelledby="type-animals-heading"
+            className="space-y-6 lg:space-y-8"
+          >
             <div className="space-y-2">
-              <h1 className="text-3xl font-bold text-green-900 md:text-5xl">
+              <h1
+                id="type-animals-heading"
+                className="text-3xl font-bold text-green-900 md:text-5xl"
+              >
                 {animalTypeConfig.title}
               </h1>
               <p className="text-sm leading-6 md:text-base md:leading-7">
@@ -208,12 +237,15 @@ const TypeAnimalPage = () => {
               </p>
             </div>
           </section>
-          <section className="flex flex-col items-center justify-center gap-4 rounded-xl border border-red-200 bg-red-50 px-6 py-12 text-center">
-            <CircleAlert className="size-12 text-red-600" />
+          <div
+            role="alert"
+            className="flex flex-col items-center justify-center gap-4 rounded-xl border border-red-200 bg-red-50 px-6 py-12 text-center"
+          >
+            <CircleAlert className="size-12 text-red-600" aria-hidden="true" />
             <div className="space-y-2">
-              <h2 className="text-xl font-semibold text-red-900">
+              <p className="text-xl font-semibold text-red-900">
                 Nie udało się załadować zwierząt
-              </h2>
+              </p>
               <p className="max-w-md text-sm text-red-800 md:text-base">
                 Wystąpił problem podczas pobierania listy zwierząt. Sprawdź
                 połączenie z internetem i spróbuj ponownie.
@@ -224,10 +256,13 @@ const TypeAnimalPage = () => {
               onClick={() => refetch()}
               disabled={isFetching}
             >
-              <RefreshCw className={isFetching ? "animate-spin" : undefined} />
+              <RefreshCw
+                className={isFetching ? "animate-spin" : undefined}
+                aria-hidden="true"
+              />
               {isFetching ? "Ponawianie..." : "Spróbuj ponownie"}
             </Button>
-          </section>
+          </div>
         </Container>
       </main>
     );
@@ -235,10 +270,23 @@ const TypeAnimalPage = () => {
 
   return (
     <main>
+      {animalsJsonLd && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(animalsJsonLd) }}
+        />
+      )}
       <Container className="space-y-12 md:space-y-16">
-        <section id="categories" className="space-y-6 lg:space-y-8">
+        <section
+          id="categories"
+          aria-labelledby="type-animals-heading"
+          className="space-y-6 lg:space-y-8"
+        >
           <div className="space-y-2">
-            <h1 className="text-3xl font-bold text-green-900 md:text-5xl">
+            <h1
+              id="type-animals-heading"
+              className="text-3xl font-bold text-green-900 md:text-5xl"
+            >
               {animalTypeConfig.title}
             </h1>
             <p className="text-sm leading-6 md:text-base md:leading-7">
@@ -247,6 +295,8 @@ const TypeAnimalPage = () => {
             </p>
           </div>
           <div
+            role="search"
+            aria-label="Filtry zwierząt"
             className={cn(
               "sticky top-0 z-20 -mt-4 flex flex-wrap items-center gap-4 bg-white py-4 transition-transform duration-300 lg:-mt-8",
               isFiltersVisible
@@ -277,8 +327,11 @@ const TypeAnimalPage = () => {
               Resetuj filtry
             </Button>
             {isFiltering && (
-              <span className="flex items-center gap-2 text-sm text-green-900">
-                <Loader2 className="size-4 animate-spin" />
+              <span
+                role="status"
+                className="flex items-center gap-2 text-sm text-green-900"
+              >
+                <Loader2 className="size-4 animate-spin" aria-hidden="true" />
                 Filtrowanie...
               </span>
             )}
@@ -298,7 +351,10 @@ const TypeAnimalPage = () => {
 
           <div ref={loadMoreRef} className="flex justify-center py-4">
             {isFetchingNextPage && (
-              <Loader2 className="size-8 animate-spin text-green-900" />
+              <Loader2
+                className="size-8 animate-spin text-green-900"
+                aria-label="Ładowanie kolejnych zwierząt"
+              />
             )}
           </div>
         </section>
@@ -309,7 +365,7 @@ const TypeAnimalPage = () => {
 
 const LoadingAnimals = () => {
   return Array.from({ length: PAGE_SIZE }).map((_, index) => (
-    <div key={index} className="space-y-2">
+    <div key={index} className="space-y-2" aria-hidden="true">
       <Skeleton className="aspect-video rounded-xl" />
       <div className="space-y-2">
         <Skeleton className="h-10 w-40 rounded-xl" />
@@ -321,18 +377,18 @@ const LoadingAnimals = () => {
 
 const EmptyAnimals = () => {
   return (
-    <section
-      id="empty-animals"
+    <div
+      role="status"
       className="col-span-full flex flex-col items-center justify-center gap-4 rounded-2xl border border-blue-900 bg-blue-50 px-6 py-12 text-center"
     >
-      <Info className="size-12 text-blue-600" />
+      <Info className="size-12 text-blue-600" aria-hidden="true" />
       <div className="space-y-2">
-        <h2 className="text-xl font-semibold text-blue-900">Brak zwierząt</h2>
+        <p className="text-xl font-semibold text-blue-900">Brak zwierząt</p>
         <p className="max-w-md text-sm text-blue-900 md:text-base">
           Nie znaleziono zwierząt spełniających wybrane kryteria.
         </p>
       </div>
-    </section>
+    </div>
   );
 };
 

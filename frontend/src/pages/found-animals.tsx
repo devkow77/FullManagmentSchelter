@@ -7,6 +7,7 @@ import { useEffect, useMemo, useRef } from "react";
 import { useInfiniteQuery } from "@tanstack/react-query";
 
 const PAGE_SIZE = 6;
+const PAGE_TITLE = "Znalezione zwierzęta | Schronisko";
 
 interface FoundAnimal {
   id: number;
@@ -79,13 +80,50 @@ const FoundAnimalsPage = () => {
     () => data?.pages.flatMap((page) => page.data) ?? [],
     [data],
   );
+  const total = data?.pages[0]?.total ?? 0;
+
+  useEffect(() => {
+    document.title = PAGE_TITLE;
+  }, []);
+
+  const foundAnimalsJsonLd = useMemo(() => {
+    if (foundAnimals.length === 0) return null;
+
+    return {
+      "@context": "https://schema.org",
+      "@type": "ItemList",
+      name: "Znalezione zwierzęta",
+      numberOfItems: total,
+      itemListElement: foundAnimals.map((animal, index) => ({
+        "@type": "ListItem",
+        position: index + 1,
+        name: animal.name,
+        url: `/zwierzeta/${animal.id}`,
+      })),
+    };
+  }, [foundAnimals, total]);
 
   return (
     <main>
+      {foundAnimalsJsonLd && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify(foundAnimalsJsonLd),
+          }}
+        />
+      )}
       <Container className="space-y-12 md:space-y-16">
-        <section id="found-animals" className="space-y-6 lg:space-y-8">
+        <section
+          id="found-animals"
+          aria-labelledby="found-animals-heading"
+          className="space-y-6 lg:space-y-8"
+        >
           <div className="space-y-2">
-            <h1 className="text-3xl font-bold text-green-900 md:text-5xl">
+            <h1
+              id="found-animals-heading"
+              className="text-3xl font-bold text-green-900 md:text-5xl"
+            >
               Znalezione zwierzęta
             </h1>
             <p className="text-sm leading-6 md:text-base md:leading-7">
@@ -105,7 +143,10 @@ const FoundAnimalsPage = () => {
           </div>
           <div ref={loadMoreRef} className="flex justify-center py-4">
             {isFetchingNextPage && (
-              <Loader2 className="size-8 animate-spin text-green-900" />
+              <Loader2
+                className="size-8 animate-spin text-green-900"
+                aria-label="Ładowanie kolejnych zwierząt"
+              />
             )}
           </div>
         </section>
@@ -131,10 +172,15 @@ const FoundAnimalCard = ({ foundAnimal }: { foundAnimal: FoundAnimal }) => {
           <img
             src={foundAnimal.imageUrl[0]}
             alt={foundAnimal.name}
+            width={640}
+            height={360}
             className="absolute size-full object-cover"
           />
         ) : (
-          <ImageOff className="absolute size-10 object-cover text-gray-300 md:size-20" />
+          <ImageOff
+            className="absolute size-10 object-cover text-gray-300 md:size-20"
+            aria-hidden="true"
+          />
         )}
       </div>
       <div className="space-y-1">
@@ -153,7 +199,7 @@ const FoundAnimalCard = ({ foundAnimal }: { foundAnimal: FoundAnimal }) => {
 // UI podczas ładowania zwierzat
 const LoadingFoundAnimals = () => {
   return Array.from({ length: PAGE_SIZE }).map((_, index) => (
-    <div key={index} className="space-y-2">
+    <div key={index} className="space-y-2" aria-hidden="true">
       <Skeleton className="aspect-video rounded-xl" />
       <div className="space-y-2">
         <Skeleton className="h-10 w-40 rounded-xl" />
@@ -166,42 +212,42 @@ const LoadingFoundAnimals = () => {
 // UI podczas wystąpienia błędu
 const ErrorFoundAnimals = () => {
   return (
-    <section
-      id="error-found-animals"
+    <div
+      role="alert"
       className="col-span-full flex flex-col items-center justify-center gap-4 rounded-2xl border border-red-200 bg-red-50 px-6 py-12 text-center"
     >
-      <CircleAlert className="size-12 text-red-600" />
+      <CircleAlert className="size-12 text-red-600" aria-hidden="true" />
       <div className="space-y-2">
-        <h2 className="text-lg font-semibold text-red-900 md:text-xl">
+        <p className="text-lg font-semibold text-red-900 md:text-xl">
           Wystapił błąd
-        </h2>
+        </p>
         <p className="max-w-md text-sm text-red-800 md:text-base">
           Wystąpił błąd podczas ładowania zwierząt. Odśwież stronę lub spróbuj
           później.
         </p>
       </div>
-    </section>
+    </div>
   );
 };
 
 // UI podczas braku zwierzat
 const EmptyFoundAnimals = () => {
   return (
-    <section
-      id="empty-found-animals"
+    <div
+      role="status"
       className="col-span-full flex flex-col items-center justify-center gap-4 rounded-2xl border border-blue-900 bg-blue-50 px-6 py-12 text-center"
     >
-      <Info className="size-12 text-blue-600" />
+      <Info className="size-12 text-blue-600" aria-hidden="true" />
       <div className="space-y-2">
-        <h2 className="text-lg font-semibold text-blue-900 md:text-xl">
+        <p className="text-lg font-semibold text-blue-900 md:text-xl">
           Brak znalezionych zwierząt
-        </h2>
+        </p>
         <p className="max-w-md text-sm text-blue-900 md:text-base">
           Aktualnie brak znalezionych zwierząt. Wróć wkrótce, aby poznać nasze
           znalezione zwierzaki.
         </p>
       </div>
-    </section>
+    </div>
   );
 };
 

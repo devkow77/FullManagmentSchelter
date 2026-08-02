@@ -1,13 +1,14 @@
+import { useEffect } from "react";
 import { Container } from "@/components/ui";
 
-interface AdoptionReason {
+interface HelpOption {
   icon: string;
   bgColor: string;
   title: string;
   description: string;
 }
 
-const helpOptions: AdoptionReason[] = [
+const helpOptions: HelpOption[] = [
   {
     icon: "🐾",
     title: "Adoptuj zwierzę",
@@ -52,13 +53,77 @@ const helpOptions: AdoptionReason[] = [
   },
 ];
 
+const PAGE_TITLE = "Jak nam pomóc? | Schronisko";
+
+const volunteerSteps = [
+  "Przejdź do sekcji „Wolontariat” w naszej aplikacji.",
+  "Wypełnij formularz zgłoszeniowy, podając swoje dane i doświadczenie.",
+  "Wybierz dostępne dni i godziny, w których możesz pomagać w schronisku.",
+  "Poczekaj na potwierdzenie od koordynatora wolontariatu.",
+  "Po akceptacji, rozpocznij swoją przygodę z pomocą zwierzętom!",
+];
+
+const donationSteps = [
+  "Wpłać darowiznę na konto bankowe schroniska: PL12 3456 7890 1234 5678 9012 3456.",
+  "W tytule przelewu wpisz „Darowizna na zwierzęta” i opcjonalnie swoje imię.",
+  "Po dokonaniu wpłaty możesz wysłać potwierdzenie na e-mail schroniska, aby otrzymać podziękowanie.",
+];
+
+const howToHelpJsonLd = {
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "ItemList",
+      name: "Jak nam pomóc?",
+      itemListElement: helpOptions.map((option, index) => ({
+        "@type": "ListItem",
+        position: index + 1,
+        name: option.title,
+        description: option.description,
+      })),
+    },
+    {
+      "@type": "HowTo",
+      name: "Jak zostać wolontariuszem?",
+      step: volunteerSteps.map((text, index) => ({
+        "@type": "HowToStep",
+        position: index + 1,
+        text,
+      })),
+    },
+    {
+      "@type": "HowTo",
+      name: "Na jakie konto wpłacać darowizny?",
+      step: donationSteps.map((text, index) => ({
+        "@type": "HowToStep",
+        position: index + 1,
+        text,
+      })),
+    },
+  ],
+};
+
 const HowToHelp = () => {
+  useEffect(() => {
+    document.title = PAGE_TITLE;
+  }, []);
+
   return (
     <main>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(howToHelpJsonLd) }}
+      />
       <Container className="space-y-12 md:space-y-16">
-        <section className="space-y-6 lg:space-y-8">
+        <section
+          aria-labelledby="how-to-help-heading"
+          className="space-y-6 lg:space-y-8"
+        >
           <div className="space-y-2">
-            <h1 className="text-3xl font-bold text-green-900 md:text-5xl">
+            <h1
+              id="how-to-help-heading"
+              className="text-3xl font-bold text-green-900 md:text-5xl"
+            >
               Jak nam pomóc?
             </h1>
             <p className="text-sm leading-6 md:text-base md:leading-7">
@@ -66,12 +131,12 @@ const HowToHelp = () => {
               wesprzeć nasze schronisko.
             </p>
           </div>
-          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 lg:gap-6">
-            {helpOptions.map((reason, index) => (
-              <div className="space-y-2" key={index}>
+          <ul className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 lg:gap-6">
+            {helpOptions.map((reason) => (
+              <li className="space-y-2" key={reason.title}>
                 <div
-                  key={index}
                   className={`${reason.bgColor} grid aspect-square place-items-center rounded-full text-5xl`}
+                  aria-hidden="true"
                 >
                   {reason.icon}
                 </div>
@@ -79,14 +144,20 @@ const HowToHelp = () => {
                   <h3 className="font-semibold md:text-lg">{reason.title}</h3>
                   <p className="text-xs md:text-sm">{reason.description}</p>
                 </div>
-              </div>
+              </li>
             ))}
-          </div>
+          </ul>
         </section>
-        <section className="space-y-6 lg:space-y-8">
-          <h1 className="text-2xl font-bold text-green-900 md:text-4xl">
+        <section
+          aria-labelledby="volunteer-heading"
+          className="space-y-6 lg:space-y-8"
+        >
+          <h2
+            id="volunteer-heading"
+            className="text-2xl font-bold text-green-900 md:text-4xl"
+          >
             Jak zostać wolontariuszem?
-          </h1>
+          </h2>
           <ol className="w-fit list-inside list-decimal space-y-2 bg-red-100 p-4 text-sm leading-6 md:text-base md:leading-7">
             <li>Przejdź do sekcji „Wolontariat” w naszej aplikacji.</li>
             <li>
@@ -103,10 +174,16 @@ const HowToHelp = () => {
             </li>
           </ol>
         </section>
-        <section className="space-y-6 lg:space-y-8">
-          <h1 className="text-2xl font-bold text-green-900 md:text-4xl">
+        <section
+          aria-labelledby="donation-heading"
+          className="space-y-6 lg:space-y-8"
+        >
+          <h2
+            id="donation-heading"
+            className="text-2xl font-bold text-green-900 md:text-4xl"
+          >
             Na jakie konto wpłacać darowizny?
-          </h1>
+          </h2>
           <ol className="w-fit list-inside list-decimal space-y-2 bg-yellow-100 p-4 text-sm leading-6 md:text-base md:leading-7">
             <li>
               Wpłać darowiznę na konto bankowe schroniska:{" "}
@@ -122,10 +199,16 @@ const HowToHelp = () => {
             </li>
           </ol>
         </section>
-        <section className="space-y-6 lg:space-y-8">
-          <h1 className="text-2xl font-bold text-green-900 md:text-4xl">
+        <section
+          aria-labelledby="needs-heading"
+          className="space-y-6 lg:space-y-8"
+        >
+          <h2
+            id="needs-heading"
+            className="text-2xl font-bold text-green-900 md:text-4xl"
+          >
             Co najbardziej potrzebujemy?
-          </h1>
+          </h2>
           <ol className="w-fit list-inside list-decimal space-y-2 bg-green-100 p-4 text-sm leading-6 md:text-base md:leading-7">
             <li>Karma dla psów i kotów – zarówno mokra, jak i sucha.</li>
             <li>Koce, ręczniki i posłania dla zwierząt.</li>
@@ -139,21 +222,27 @@ const HowToHelp = () => {
             </li>
           </ol>
         </section>
-        <section className="space-y-6 md:space-y-8">
+        <section
+          aria-labelledby="video-heading"
+          className="space-y-6 md:space-y-8"
+        >
           <div className="space-y-2 text-center">
-            <h1 className="text-2xl font-bold text-green-900 md:text-4xl">
+            <h2
+              id="video-heading"
+              className="text-2xl font-bold text-green-900 md:text-4xl"
+            >
               Zobacz nas w akcji!
-            </h1>
+            </h2>
           </div>
           <div className="relative mx-auto grid aspect-video max-h-100 w-full max-w-5xl place-items-center bg-black/20">
             <iframe
               src="https://www.youtube.com/embed/cD83zreoW_g?si=pS-_y0bB2zQ6Xe6C"
               title="Film użyty na potrzeby projektu, nie jest to nasze schronisko."
-              frameBorder="0"
+              loading="lazy"
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
               allowFullScreen
-              className="absolute top-0 left-0 h-full w-full"
-            ></iframe>
+              className="absolute top-0 left-0 h-full w-full border-0"
+            />
           </div>
         </section>
       </Container>

@@ -25,6 +25,25 @@ const contactSchema = z.object({
 
 type ContactFormData = z.infer<typeof contactSchema>;
 
+const PAGE_TITLE = "Kontakt | Schronisko";
+
+const contactJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "ContactPage",
+  name: "Kontakt",
+  description:
+    "Skontaktuj się z nami, jeśli masz pytania lub potrzebujesz pomocy.",
+  mainEntity: {
+    "@type": "Organization",
+    name: "Schronisko",
+    contactPoint: {
+      "@type": "ContactPoint",
+      contactType: "customer support",
+      availableLanguage: "Polish",
+    },
+  },
+};
+
 const ContactPage = () => {
   const { user } = useAuth();
 
@@ -41,6 +60,10 @@ const ContactPage = () => {
       message: "",
     },
   });
+
+  useEffect(() => {
+    document.title = PAGE_TITLE;
+  }, []);
 
   useEffect(() => {
     if (user) {
@@ -68,10 +91,20 @@ const ContactPage = () => {
 
   return (
     <main>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(contactJsonLd) }}
+      />
       <Container>
-        <article className="space-y-6 lg:space-y-8">
+        <article
+          aria-labelledby="contact-heading"
+          className="space-y-6 lg:space-y-8"
+        >
           <div className="space-y-2 lg:space-y-4">
-            <h1 className="text-3xl font-bold text-green-900 md:text-5xl">
+            <h1
+              id="contact-heading"
+              className="text-3xl font-bold text-green-900 md:text-5xl"
+            >
               Kontakt
             </h1>
             <p className="text-sm leading-5 md:text-base md:leading-6">
@@ -79,45 +112,78 @@ const ContactPage = () => {
             </p>
           </div>
           {canSendMessage ? (
-            <form onSubmit={handleSubmit(onSubmit)}>
+            <form
+              onSubmit={handleSubmit(onSubmit)}
+              aria-label="Formularz kontaktowy"
+              noValidate
+            >
               {/* Email */}
-              <Label>Email</Label>
+              <Label htmlFor="contact-email">Email</Label>
               <Input
+                id="contact-email"
                 {...register("email")}
                 className={`${errors.email && "bg-red-600/20"} mt-2 mb-4`}
                 placeholder="Podaj swój email..."
                 type="email"
+                autoComplete="email"
                 disabled={!!user}
+                aria-invalid={Boolean(errors.email)}
+                aria-describedby={
+                  errors.email ? "contact-email-error" : undefined
+                }
               />
               {errors.email && (
-                <p className="-mt-2 mb-4 text-xs font-medium text-red-600 lg:text-sm">
+                <p
+                  id="contact-email-error"
+                  role="alert"
+                  className="-mt-2 mb-4 text-xs font-medium text-red-600 lg:text-sm"
+                >
                   {errors.email.message}
                 </p>
               )}
 
               {/* Imię i nazwisko */}
-              <Label>Imię i nazwisko</Label>
+              <Label htmlFor="contact-fullName">Imię i nazwisko</Label>
               <Input
+                id="contact-fullName"
                 {...register("fullName")}
                 className={`${errors.fullName && "bg-red-600/20"} mt-2 mb-4`}
                 placeholder="Podaj swoje imię i nazwisko..."
+                autoComplete="name"
                 disabled={!!user}
+                aria-invalid={Boolean(errors.fullName)}
+                aria-describedby={
+                  errors.fullName ? "contact-fullName-error" : undefined
+                }
               />
               {errors.fullName && (
-                <p className="-mt-2 mb-4 text-xs font-medium text-red-600 lg:text-sm">
+                <p
+                  id="contact-fullName-error"
+                  role="alert"
+                  className="-mt-2 mb-4 text-xs font-medium text-red-600 lg:text-sm"
+                >
                   {errors.fullName.message}
                 </p>
               )}
 
               {/* Wiadomość */}
-              <Label>Wiadomość</Label>
+              <Label htmlFor="contact-message">Wiadomość</Label>
               <Textarea
+                id="contact-message"
                 {...register("message")}
                 className={`${errors.message && "bg-red-600/20"} mt-2 mb-4 resize-none md:h-50`}
                 placeholder="Podaj swoją wiadomość..."
+                aria-invalid={Boolean(errors.message)}
+                aria-describedby={
+                  errors.message ? "contact-message-error" : undefined
+                }
               />
               {errors.message && (
-                <p className="-mt-2 mb-4 text-xs font-medium text-red-600 lg:text-sm">
+                <p
+                  id="contact-message-error"
+                  role="alert"
+                  className="-mt-2 mb-4 text-xs font-medium text-red-600 lg:text-sm"
+                >
                   {errors.message.message}
                 </p>
               )}

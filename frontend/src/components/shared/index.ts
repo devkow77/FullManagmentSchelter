@@ -1,5 +1,5 @@
-import FullFaqList from "./FullFaqList";
-import ShortFaqList from "./ShortFaqList";
+import FullFaqList, { fullFaqData } from "./FullFaqList";
+import ShortFaqList, { shortFaqData } from "./ShortFaqList";
 import DisableTotpForm from "./DisableTotpForm";
 import VerifyTotpForm from "./VerifyTotpForm";
 import MultiValueSelector from "./MultiValueSelector";
@@ -20,7 +20,9 @@ import DashboardTableFooter from "./DashboardTableFooter";
 
 export {
   ShortFaqList,
+  shortFaqData,
   FullFaqList,
+  fullFaqData,
   DisableTotpForm,
   VerifyTotpForm,
   MultiValueSelector,

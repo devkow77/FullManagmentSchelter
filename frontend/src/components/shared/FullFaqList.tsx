@@ -1,6 +1,6 @@
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui";
 
-const faqData = [
+export const fullFaqData = [
   {
     question: "Jak wygląda proces adopcji?",
     answer:
@@ -68,8 +68,8 @@ const faqData = [
 const FullFaqList = () => {
   return (
     <Accordion type="single" collapsible className="w-full flex-1">
-      {faqData.map((item, index) => (
-        <AccordionItem key={index} value={`item-${index}`}>
+      {fullFaqData.map((item, index) => (
+        <AccordionItem key={item.question} value={`item-${index}`}>
           <AccordionTrigger>{item.question}</AccordionTrigger>
           <AccordionContent>{item.answer}</AccordionContent>
         </AccordionItem>

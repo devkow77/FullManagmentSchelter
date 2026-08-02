@@ -1,5 +1,6 @@
+import { useEffect } from "react";
 import { Button, Container, Skeleton } from "@/components/ui";
-import { ShortFaqList, AnimalCard, BlogCard } from "@/components/shared";
+import { ShortFaqList, AnimalCard, BlogCard, shortFaqData } from "@/components/shared";
 import { Link } from "react-router";
 import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
@@ -9,23 +10,27 @@ interface AnimalType {
   name: string;
   image: string;
   href: string;
+  label: string;
 }
 
 const animalTypes: AnimalType[] = [
   {
     name: "Psy",
-    image: "./dog.webp",
+    image: "/dog.webp",
     href: "/zwierzeta/psy",
+    label: "Zobacz psy do adopcji",
   },
   {
     name: "Koty",
-    image: "./cat.webp",
+    image: "/cat.webp",
     href: "/zwierzeta/koty",
+    label: "Zobacz koty do adopcji",
   },
   {
     name: "Króliki",
-    image: "./rabbit.webp",
+    image: "/rabbit.webp",
     href: "/zwierzeta/kroliki",
+    label: "Zobacz króliki do adopcji",
   },
 ];
 
@@ -121,7 +126,26 @@ interface BlogPost {
   createdAt: string;
 }
 
+const PAGE_TITLE = "Schronisko dla zwierząt – adoptuj pupila";
+
+const faqJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  mainEntity: shortFaqData.map((item) => ({
+    "@type": "Question",
+    name: item.question,
+    acceptedAnswer: {
+      "@type": "Answer",
+      text: item.answer,
+    },
+  })),
+};
+
 const HomePage = () => {
+  useEffect(() => {
+    document.title = PAGE_TITLE;
+  }, []);
+
   // Funkcja do pobierania najdłużej czekających zwierząt
   const getLongestWaintingAnimals = async () => {
     const res = await axios.get<LongestWaintingAnimal[]>(
@@ -148,11 +172,22 @@ const HomePage = () => {
 
   return (
     <main>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
+      />
       <Container className="space-y-12 md:space-y-16">
         {/* Gatunki zwierząt */}
-        <section id="animalTypes" className="space-y-6 lg:space-y-8">
+        <section
+          id="animalTypes"
+          aria-labelledby="animal-types-heading"
+          className="space-y-6 lg:space-y-8"
+        >
           <div className="space-y-2">
-            <h1 className="text-3xl font-bold text-green-900 md:text-5xl">
+            <h1
+              id="animal-types-heading"
+              className="text-3xl font-bold text-green-900 md:text-5xl"
+            >
               Schronisko
             </h1>
             <p className="text-sm leading-6 md:text-base md:leading-7">
@@ -161,23 +196,36 @@ const HomePage = () => {
               czworonogich przyjacieli.
             </p>
           </div>
-          <div className="grid grid-cols-2 gap-4 md:grid-cols-4 lg:gap-6">
-            {animalTypes.map((animal: AnimalType, index: number) => (
-              <AnimalTypeCard key={index} animal={animal} />
+          <ul className="grid grid-cols-2 gap-4 md:grid-cols-4 lg:gap-6">
+            {animalTypes.map((animal: AnimalType) => (
+              <li key={animal.href}>
+                <AnimalTypeCard animal={animal} />
+              </li>
             ))}
-            <Link to="/zwierzeta">
-              <div className="grid aspect-square place-items-center rounded-full bg-green-900">
-                <h2 className="z-2 text-xl font-semibold text-white lg:text-3xl">
+            <li>
+              <Link
+                to="/zwierzeta"
+                aria-label="Zobacz wszystkie zwierzęta do adopcji"
+                className="grid aspect-square place-items-center rounded-full bg-green-900"
+              >
+                <span className="z-2 text-xl font-semibold text-white lg:text-3xl">
                   Wszystkie
-                </h2>
-              </div>
-            </Link>
-          </div>
+                </span>
+              </Link>
+            </li>
+          </ul>
         </section>
         {/* Dlaczego warto adoptować? */}
-        <section id="adoptionsReasons" className="space-y-6 lg:space-y-8">
+        <section
+          id="adoptionsReasons"
+          aria-labelledby="adoption-reasons-heading"
+          className="space-y-6 lg:space-y-8"
+        >
           <div className="space-y-2">
-            <h2 className="text-2xl font-bold text-green-900 md:text-4xl">
+            <h2
+              id="adoption-reasons-heading"
+              className="text-2xl font-bold text-green-900 md:text-4xl"
+            >
               Dlaczego warto adoptować?
             </h2>
             <p className="text-sm leading-6 md:text-base md:leading-7">
@@ -185,16 +233,25 @@ const HomePage = () => {
               przyjaciela, ale także dajesz drugą szansę na lepsze życie.
             </p>
           </div>
-          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 lg:gap-6">
-            {adoptionsReasons.map((reason: AdoptionReason, index: number) => (
-              <AdoptionReasonCard key={index} reason={reason} />
+          <ul className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 lg:gap-6">
+            {adoptionsReasons.map((reason: AdoptionReason) => (
+              <li key={reason.title}>
+                <AdoptionReasonCard reason={reason} />
+              </li>
             ))}
-          </div>
+          </ul>
         </section>
         {/* Najdłużej czekające zwierzęta */}
-        <section id="longestWaiting" className="space-y-6 lg:space-y-8">
+        <section
+          id="longestWaiting"
+          aria-labelledby="longest-waiting-heading"
+          className="space-y-6 lg:space-y-8"
+        >
           <div className="space-y-2">
-            <h2 className="text-2xl font-bold text-green-900 md:text-4xl">
+            <h2
+              id="longest-waiting-heading"
+              className="text-2xl font-bold text-green-900 md:text-4xl"
+            >
               Najdłużej czekające
             </h2>
             <p className="text-sm leading-6 md:text-base md:leading-7">
@@ -220,28 +277,44 @@ const HomePage = () => {
           </Button>
         </section>
         {/* Często zadawane pytania */}
-        <section id="faq" className="space-y-6 lg:space-y-8">
+        <section
+          id="faq"
+          aria-labelledby="faq-heading"
+          className="space-y-6 lg:space-y-8"
+        >
           <div className="space-y-2">
-            <h2 className="text-2xl font-bold text-green-900 md:text-4xl">
+            <h2
+              id="faq-heading"
+              className="text-2xl font-bold text-green-900 md:text-4xl"
+            >
               Często zadawane pytania
             </h2>
           </div>
           <div className="space-y-4 md:flex md:gap-6">
             <ShortFaqList />
-            <div className="flex-1 space-y-4 md:pl-6">
-              {faqFeatures.map((feature: FaqFeature, index: number) => (
-                <FaqCard key={index} feature={feature} />
+            <ul className="flex-1 space-y-4 md:pl-6">
+              {faqFeatures.map((feature: FaqFeature) => (
+                <li key={feature.title}>
+                  <FaqCard feature={feature} />
+                </li>
               ))}
-            </div>
+            </ul>
           </div>
           <Button variant={"success"} asChild>
             <Link to="/kontakt">Skontaktuj się z nami</Link>
           </Button>
         </section>
         {/* Nasze ostatnie akcje */}
-        <section id="blog" className="space-y-6 lg:space-y-8">
+        <section
+          id="blog"
+          aria-labelledby="blog-heading"
+          className="space-y-6 lg:space-y-8"
+        >
           <div className="space-y-2">
-            <h2 className="text-2xl font-bold text-green-900 md:text-4xl">
+            <h2
+              id="blog-heading"
+              className="text-2xl font-bold text-green-900 md:text-4xl"
+            >
               Nasze ostatnie akcje
             </h2>
           </div>
@@ -251,8 +324,8 @@ const HomePage = () => {
             {!isLoading && !error && blogPosts.length === 0 && (
               <EmptyBlogPosts />
             )}
-            {blogPosts.map((post: BlogPost, index: number) => (
-              <BlogCard key={index} post={post} />
+            {blogPosts.map((post: BlogPost) => (
+              <BlogCard key={post.slug} post={post} />
             ))}
           </div>
           <Button variant={"success"} asChild>
@@ -267,19 +340,23 @@ const HomePage = () => {
 // Karta gatunku zwierzęcia
 const AnimalTypeCard = ({ animal }: { animal: AnimalType }) => {
   return (
-    <Link to={animal.href}>
-      <div className="relative grid aspect-square place-items-center overflow-hidden rounded-2xl">
-        <img
-          src={animal.image}
-          alt=""
-          role="presentation"
-          className="absolute size-full object-cover"
-        />
-        <div className="absolute size-full bg-black/50 object-cover" />
-        <h2 className="z-2 text-xl font-semibold text-white lg:text-3xl">
-          {animal.name}
-        </h2>
-      </div>
+    <Link
+      to={animal.href}
+      aria-label={animal.label}
+      className="relative grid aspect-square place-items-center overflow-hidden rounded-2xl"
+    >
+      <img
+        src={animal.image}
+        alt=""
+        width={400}
+        height={400}
+        aria-hidden="true"
+        className="absolute size-full object-cover"
+      />
+      <div className="absolute size-full bg-black/50" aria-hidden="true" />
+      <span className="z-2 text-xl font-semibold text-white lg:text-3xl">
+        {animal.name}
+      </span>
     </Link>
   );
 };
@@ -290,6 +367,7 @@ const AdoptionReasonCard = ({ reason }: { reason: AdoptionReason }) => {
     <div className="space-y-2">
       <div
         className={`${reason.bgColor} grid aspect-square place-items-center rounded-full text-3xl`}
+        aria-hidden="true"
       >
         {reason.icon}
       </div>
@@ -304,7 +382,7 @@ const AdoptionReasonCard = ({ reason }: { reason: AdoptionReason }) => {
 // UI podczas ładowania najdłużej czekających zwierząt
 const LoadingLongestWaitingAnimals = () => {
   return Array.from({ length: 8 }).map((_, index: number) => (
-    <div key={index} className="space-y-2">
+    <div key={index} className="space-y-2" aria-hidden="true">
       <Skeleton className="aspect-video" />
       <div className="space-y-2">
         <Skeleton className="h-10 w-40" />
@@ -317,49 +395,49 @@ const LoadingLongestWaitingAnimals = () => {
 // UI podczas wystąpienia błędu podczas ładowania najdłużej czekających zwierząt
 const ErrorLongestWaitingAnimals = () => {
   return (
-    <section
-      id="error"
+    <div
+      role="alert"
       className="col-span-full flex flex-col items-center justify-center gap-4 rounded-2xl border border-red-200 bg-red-50 px-6 py-12 text-center"
     >
-      <CircleAlert className="size-12 text-red-600" />
+      <CircleAlert className="size-12 text-red-600" aria-hidden="true" />
       <div className="space-y-2">
-        <h2 className="text-lg font-semibold text-red-900 md:text-xl">
+        <p className="text-lg font-semibold text-red-900 md:text-xl">
           Wystapił błąd
-        </h2>
+        </p>
         <p className="max-w-md text-sm text-red-800 md:text-base">
           Wystąpił błąd podczas ładowania zwierząt. Odśwież stronę lub spróbuj
           później.
         </p>
       </div>
-    </section>
+    </div>
   );
 };
 
 // UI podczas braku najdłużej czekających zwierząt
 const EmptyLongestWaitingAnimals = () => {
   return (
-    <section
-      id="empty-longest-waiting-animals"
+    <div
+      role="status"
       className="col-span-full flex flex-col items-center justify-center gap-4 rounded-2xl border border-blue-900 bg-blue-50 px-6 py-12 text-center"
     >
-      <Info className="size-12 text-blue-600" />
+      <Info className="size-12 text-blue-600" aria-hidden="true" />
       <div className="space-y-2">
-        <h2 className="text-lg font-semibold text-blue-900 md:text-xl">
+        <p className="text-lg font-semibold text-blue-900 md:text-xl">
           Brak zwierząt
-        </h2>
+        </p>
         <p className="max-w-md text-sm text-blue-900 md:text-base">
           Aktualnie brak zwierząt w naszym schronisku. Wróć wkrótce, aby poznać
           nasze zwierzaki.
         </p>
       </div>
-    </section>
+    </div>
   );
 };
 
 // UI podczas ładowania postów z bloga
 const LoadingBlogPosts = () => {
   return Array.from({ length: 6 }).map((_, index: number) => (
-    <div key={index} className="space-y-2">
+    <div key={index} className="space-y-2" aria-hidden="true">
       <Skeleton className="aspect-video" />
       <div className="space-y-2">
         <Skeleton className="h-10 w-50" />
@@ -370,45 +448,45 @@ const LoadingBlogPosts = () => {
   ));
 };
 
-// UI podczas wystąpienia błędu podczas ładowania najdłużej czekających zwierząt
+// UI podczas wystąpienia błędu podczas ładowania postów z bloga
 const ErrorBlogPosts = () => {
   return (
-    <section
-      id="error-blog-posts"
+    <div
+      role="alert"
       className="col-span-full flex flex-col items-center justify-center gap-4 rounded-2xl border border-red-200 bg-red-50 px-6 py-12 text-center"
     >
-      <CircleAlert className="size-12 text-red-600" />
+      <CircleAlert className="size-12 text-red-600" aria-hidden="true" />
       <div className="space-y-2">
-        <h2 className="text-lg font-semibold text-red-900 md:text-xl">
+        <p className="text-lg font-semibold text-red-900 md:text-xl">
           Wystapił błąd
-        </h2>
+        </p>
         <p className="max-w-md text-sm text-red-800 md:text-base">
           Wystąpił błąd podczas ładowania postów z bloga. Odśwież stronę lub
           spróbuj później.
         </p>
       </div>
-    </section>
+    </div>
   );
 };
 
-// UI podczas braku najdłużej czekających zwierząt
+// UI podczas braku postów z bloga
 const EmptyBlogPosts = () => {
   return (
-    <section
-      id="empty-blog-posts"
+    <div
+      role="status"
       className="col-span-full flex flex-col items-center justify-center gap-4 rounded-2xl border border-blue-900 bg-blue-50 px-6 py-12 text-center"
     >
-      <Info className="size-12 text-blue-600" />
+      <Info className="size-12 text-blue-600" aria-hidden="true" />
       <div className="space-y-2">
-        <h2 className="text-lg font-semibold text-blue-900 md:text-xl">
+        <p className="text-lg font-semibold text-blue-900 md:text-xl">
           Brak postów
-        </h2>
+        </p>
         <p className="max-w-md text-sm text-blue-900 md:text-base">
           Aktualnie brak postów w naszym blogu. Wróć wkrótce, aby poznać nasze
           ostatnie akcje.
         </p>
       </div>
-    </section>
+    </div>
   );
 };
 
@@ -418,6 +496,7 @@ const FaqCard = ({ feature }: { feature: FaqFeature }) => {
     <div className="flex items-center gap-x-4">
       <div
         className={`${feature.bgColor} grid h-30 min-w-30 place-items-center rounded-full text-3xl`}
+        aria-hidden="true"
       >
         {feature.icon}
       </div>

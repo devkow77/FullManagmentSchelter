@@ -13,6 +13,7 @@ import { useFavoritesStore } from "@/store/useFavoritesStore";
 import { useEffect, useMemo, useRef } from "react";
 
 const PAGE_SIZE = 6;
+const PAGE_TITLE = "Ulubione zwierzęta | Schronisko";
 
 interface FavouritesAnimalsResponse {
   id: number;
@@ -111,12 +112,47 @@ const FavouritesAnimalsPage = () => {
 
   const isLoadingFavourites = favoriteIds.length > 0 && isPending;
 
+  useEffect(() => {
+    document.title = PAGE_TITLE;
+  }, []);
+
+  const favouritesJsonLd =
+    favouritesAnimals.length > 0
+      ? {
+          "@context": "https://schema.org",
+          "@type": "ItemList",
+          name: "Ulubione zwierzęta",
+          numberOfItems: favoriteIds.length,
+          itemListElement: favouritesAnimals.map((animal, index) => ({
+            "@type": "ListItem",
+            position: index + 1,
+            name: animal.name,
+            url: `/zwierzeta/${animal.id}`,
+          })),
+        }
+      : null;
+
   return (
     <main>
+      {favouritesJsonLd && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify(favouritesJsonLd),
+          }}
+        />
+      )}
       <Container className="space-y-12 md:space-y-16">
-        <section id="categories" className="space-y-6 lg:space-y-8">
+        <section
+          id="favourites"
+          aria-labelledby="favourites-heading"
+          className="space-y-6 lg:space-y-8"
+        >
           <div className="space-y-2">
-            <h1 className="text-3xl font-bold text-green-900 md:text-5xl">
+            <h1
+              id="favourites-heading"
+              className="text-3xl font-bold text-green-900 md:text-5xl"
+            >
               Ulubione zwierzęta
             </h1>
             <p className="text-sm leading-6 md:text-base md:leading-7">
@@ -147,10 +183,15 @@ const FavouritesAnimalsPage = () => {
                       <img
                         src={animal.imageUrl[0]}
                         alt={animal.name}
+                        width={640}
+                        height={360}
                         className="absolute size-full object-cover"
                       />
                     ) : (
-                      <ImageOff className="absolute size-10 object-cover text-black opacity-20 md:size-20" />
+                      <ImageOff
+                        className="absolute size-10 object-cover text-black opacity-20 md:size-20"
+                        aria-hidden="true"
+                      />
                     )}
                   </div>
                   <div className="max-w-xl flex-1 md:space-y-1">
@@ -161,9 +202,9 @@ const FavouritesAnimalsPage = () => {
                       </p>
                       <p>{animal.traits}</p>
                     </div>
-                    <h3 className="font-semibold lg:text-lg">
+                    <h2 className="font-semibold lg:text-lg">
                       {animal.name} {calculateAge(animal.dateOfBirth)}
-                    </h3>
+                    </h2>
                     <p className="line-clamp-2 text-xs leading-6 sm:line-clamp-none md:text-base md:leading-6">
                       {animal.description}
                     </p>
@@ -174,7 +215,10 @@ const FavouritesAnimalsPage = () => {
 
           <div ref={loadMoreRef} className="flex justify-center py-4">
             {isFetchingNextPage && (
-              <Loader2 className="size-8 animate-spin text-green-900" />
+              <Loader2
+                className="size-8 animate-spin text-green-900"
+                aria-label="Ładowanie kolejnych zwierząt"
+              />
             )}
           </div>
         </section>
@@ -185,7 +229,11 @@ const FavouritesAnimalsPage = () => {
 
 const LoadingFavourites = () => {
   return Array.from({ length: PAGE_SIZE }).map((_, index) => (
-    <div key={index} className="space-y-2 sm:flex sm:gap-x-6">
+    <div
+      key={index}
+      className="space-y-2 sm:flex sm:gap-x-6"
+      aria-hidden="true"
+    >
       <Skeleton className="aspect-video flex-1 rounded-xl" />
       <div className="max-w-xl flex-1 space-y-2">
         <div className="flex justify-between">
@@ -201,35 +249,35 @@ const LoadingFavourites = () => {
 
 const ErrorFavourites = () => {
   return (
-    <section
-      id="error"
+    <div
+      role="alert"
       className="col-span-full flex flex-col items-center justify-center gap-4 rounded-2xl border border-red-200 bg-red-50 px-6 py-12 text-center"
     >
-      <CircleAlert className="size-12 text-red-600" />
+      <CircleAlert className="size-12 text-red-600" aria-hidden="true" />
       <div className="space-y-2">
-        <h2 className="text-lg font-semibold text-red-900 md:text-xl">
+        <p className="text-lg font-semibold text-red-900 md:text-xl">
           Wystąpił błąd
-        </h2>
+        </p>
         <p className="max-w-md text-sm text-red-800 md:text-base">
           Wystąpił błąd podczas ładowania zwierząt. Odśwież stronę lub spróbuj
           później.
         </p>
       </div>
-    </section>
+    </div>
   );
 };
 
 const EmptyFavourites = () => {
   return (
-    <section
-      id="empty"
+    <div
+      role="status"
       className="col-span-full flex flex-col items-center justify-center gap-4 rounded-xl border border-green-200 bg-green-50 px-6 py-12 text-center"
     >
-      <Heart className="size-12 text-green-600" />
+      <Heart className="size-12 text-green-600" aria-hidden="true" />
       <div className="space-y-2">
-        <h2 className="text-xl font-semibold text-green-900">
+        <p className="text-xl font-semibold text-green-900">
           Brak ulubionych zwierząt
-        </h2>
+        </p>
         <p className="max-w-md text-sm text-green-800 md:text-base">
           Nie masz jeszcze żadnych zwierząt w ulubionych. Przejrzyj listę
           zwierząt i dodaj te, które Cię zainteresują.
@@ -238,7 +286,7 @@ const EmptyFavourites = () => {
       <Button asChild>
         <Link to="/zwierzeta">Przejrzyj zwierzęta</Link>
       </Button>
-    </section>
+    </div>
   );
 };
 

@@ -17,7 +17,7 @@ import type { AnimalHealthStatus, AnimalStatus } from "@/types/animal";
 import { Link } from "react-router";
 import { AnimalCard } from "@/components/shared";
 import { useAuth } from "@/context/AuthContext";
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
@@ -112,9 +112,9 @@ const getOtherAnimals = async (excludeId: string) => {
 // Funkcja renderująca ikonę cechy zwierzęcia
 const TraitIcon = ({ active }: { active: boolean }) =>
   active ? (
-    <Check className="text-green-600" />
+    <Check className="text-green-600" aria-hidden="true" />
   ) : (
-    <X className="text-red-600" />
+    <X className="text-red-600" aria-hidden="true" />
   );
 
 const AnimalPage = () => {
@@ -141,6 +141,47 @@ const AnimalPage = () => {
 
   const animal = data?.[0];
   const otherAnimals = data?.[1] ?? [];
+
+  useEffect(() => {
+    if (animal?.name) {
+      document.title = `${animal.name} | Schronisko`;
+    } else {
+      document.title = "Zwierzę | Schronisko";
+    }
+  }, [animal?.name]);
+
+  const animalJsonLd = useMemo(() => {
+    if (!animal) return null;
+
+    return {
+      "@context": "https://schema.org",
+      "@type": "Pet",
+      name: animal.name,
+      description: animal.description,
+      image: animal.imageUrl?.length ? animal.imageUrl : undefined,
+      url: `/zwierzeta/${animal.id}`,
+      additionalProperty: [
+        {
+          "@type": "PropertyValue",
+          name: "Gatunek",
+          value: formatAnimalType[animal.type] ?? animal.type,
+        },
+        {
+          "@type": "PropertyValue",
+          name: "Rozmiar",
+          value: formatAnimalSize[animal.size] ?? animal.size,
+        },
+        {
+          "@type": "PropertyValue",
+          name: "Stan zdrowia",
+          value:
+            formatAnimalHealthStatus[
+              animal.healthStatus as AnimalHealthStatus
+            ] ?? animal.healthStatus,
+        },
+      ],
+    };
+  }, [animal]);
 
   const canAdopt = animal?.status === "SZUKA_DOMU";
   const isFound = animal?.status === "ZNALEZIONY";
@@ -184,25 +225,46 @@ const AnimalPage = () => {
 
   return (
     <main>
+      {animalJsonLd && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(animalJsonLd) }}
+        />
+      )}
       <Container className="space-y-12 md:space-y-16">
-        <section id="animal" className="space-y-6 gap-x-8 lg:flex lg:space-y-8">
+        <article
+          id="animal"
+          aria-labelledby="animal-heading"
+          className="space-y-6 gap-x-8 lg:flex lg:space-y-8"
+        >
           <div className="relative mx-auto grid aspect-square max-h-100 flex-1 place-items-center overflow-hidden rounded-full bg-gray-100">
             {animal?.imageUrl[0] ? (
               <img
                 src={animal.imageUrl[0]}
                 alt={animal.name}
+                width={400}
+                height={400}
                 className="absolute size-full object-cover object-center"
               />
             ) : (
-              <ImageOff className="absolute size-10 object-cover text-gray-300 sm:size-20" />
+              <ImageOff
+                className="absolute size-10 object-cover text-gray-300 sm:size-20"
+                aria-hidden="true"
+              />
             )}
           </div>
           <div className="flex-2 space-y-4">
-            <h1 className="text-3xl font-bold text-green-900 md:text-5xl">
+            <h1
+              id="animal-heading"
+              className="text-3xl font-bold text-green-900 md:text-5xl"
+            >
               {animal?.name}
             </h1>
             <div className="flex flex-wrap gap-x-20">
-              <ul className="text-sm leading-6 font-medium md:text-base md:leading-7">
+              <ul
+                aria-label="Podstawowe informacje"
+                className="text-sm leading-6 font-medium md:text-base md:leading-7"
+              >
                 <li>Gatunek: {formatAnimalType[animal?.type as string]}</li>
                 <li>
                   W schronisku od{" "}
@@ -225,7 +287,10 @@ const AnimalPage = () => {
                   }
                 </li>
               </ul>
-              <ul className="text-sm leading-6 font-medium md:text-base md:leading-7">
+              <ul
+                aria-label="Cechy zwierzęcia"
+                className="text-sm leading-6 font-medium md:text-base md:leading-7"
+              >
                 {ANIMAL_TRAIT_ITEMS.map(({ key, label }) => (
                   <li key={key} className="flex items-center gap-x-2">
                     <TraitIcon active={Boolean(animal?.[key])} /> {label}
@@ -244,6 +309,7 @@ const AnimalPage = () => {
                       <form
                         onSubmit={handleSubmit(onSubmitAdoption)}
                         className="space-y-3"
+                        aria-label="Formularz wniosku o adopcję"
                       >
                         <div className="space-y-2">
                           <Label htmlFor="adoptionMessage">
@@ -257,7 +323,10 @@ const AnimalPage = () => {
                             {...register("message")}
                           />
                           {errors.message && (
-                            <p className="text-xs font-medium text-red-600 md:text-sm">
+                            <p
+                              role="alert"
+                              className="text-xs font-medium text-red-600 md:text-sm"
+                            >
                               {errors.message.message}
                             </p>
                           )}
@@ -327,9 +396,16 @@ const AnimalPage = () => {
               </a>
             </div>
           </div>
-        </section>
-        <section id="similiar-animals" className="space-y-6 lg:space-y-8">
-          <h2 className="text-2xl font-bold text-green-900 md:text-4xl">
+        </article>
+        <section
+          id="similiar-animals"
+          aria-labelledby="similar-animals-heading"
+          className="space-y-6 lg:space-y-8"
+        >
+          <h2
+            id="similar-animals-heading"
+            className="text-2xl font-bold text-green-900 md:text-4xl"
+          >
             Inne zwierzęta
           </h2>
           {otherAnimals.length > 0 && (
@@ -356,12 +432,13 @@ const AnimalPage = () => {
               <SwiperSlide>
                 <Link
                   to="/zwierzeta"
+                  aria-label="Zobacz wszystkie zwierzęta"
                   className="space-y-2 transition-colors duration-200 hover:text-green-900"
                 >
                   <div className="relative grid aspect-video place-items-center overflow-hidden rounded-xl bg-green-900">
-                    <h3 className="text-xl font-semibold text-white lg:text-3xl">
+                    <span className="text-xl font-semibold text-white lg:text-3xl">
                       Wszystkie
-                    </h3>
+                    </span>
                   </div>
                   <div className="space-y-1">
                     <h3 className="font-semibold lg:text-lg">
