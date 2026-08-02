@@ -314,7 +314,7 @@ const AdminAnimalsPage = () => {
             </Button>
 
             <Button variant="success" asChild>
-              <Link to="/admin/zwierzeta/dodaj">Dodaj zwierzę</Link>
+              <Link to="/pracownik/zwierzeta/dodaj">Dodaj zwierzę</Link>
             </Button>
           </FilterToolbar>
           <Table className={`${isFetching ? "opacity-60" : undefined}`}>
@@ -347,7 +347,7 @@ const AdminAnimalsPage = () => {
                     key={animal.id}
                     className="w-full cursor-pointer"
                     onClick={() =>
-                      navigate(`/admin/zwierzeta/${animal.id}/edycja`)
+                      navigate(`/pracownik/zwierzeta/${animal.id}/edycja`)
                     }
                   >
                     <TableCell className="align-middle font-medium">
@@ -401,7 +401,7 @@ const AdminAnimalsPage = () => {
                       onClick={(e) => e.stopPropagation()}
                     >
                       <TableRowActions
-                        editTo={`/admin/zwierzeta/${animal.id}/edycja`}
+                        editTo={`/pracownik/zwierzeta/${animal.id}/edycja`}
                         deleteSlot={
                           <DeleteAnimalDialog
                             animalId={animal.id}
@@ -424,7 +424,17 @@ const AdminAnimalsPage = () => {
               )}
             </TableBody>
             <DashboardTableFooter
-              columns={["always", "sm", "md", "sm", "lg", "md", "lg", "sm", "always"]}
+              columns={[
+                "always",
+                "sm",
+                "md",
+                "sm",
+                "lg",
+                "md",
+                "lg",
+                "sm",
+                "always",
+              ]}
               page={page}
               totalPages={totalPages}
               onPageChange={goToPage}

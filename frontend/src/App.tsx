@@ -25,7 +25,6 @@ import { Toaster } from "@/components/ui";
 import { AuthProvider } from "./context/AuthContext";
 import { AccountPage } from "./pages/client";
 import {
-  AdminAccountPage,
   AdminAnimalsPage,
   EditAnimalPage,
   AddAnimalPage,
@@ -43,6 +42,7 @@ import {
 } from "./pages/admin";
 import { ProtectedRoute } from "./components/auth/ProtectedRoute";
 import {
+  AdminAccountPage,
   WorkerUsersPage,
   EditAdoptionPage,
   MedicalRecordsPage,
@@ -180,20 +180,12 @@ const router = createBrowserRouter([
         element: <AdminAccountPage />,
       },
       {
-        path: "/admin/zwierzeta",
-        element: <AdminAnimalsPage />,
-      },
-      {
-        path: "/admin/zwierzeta/:id/edycja",
-        element: <EditAnimalPage />,
-      },
-      {
-        path: "/admin/zwierzeta/dodaj",
-        element: <AddAnimalPage />,
-      },
-      {
         path: "/admin/pracownicy",
         element: <AdminWorkersPage />,
+      },
+      {
+        path: "/admin/uzytkownicy",
+        element: <WorkerUsersPage />,
       },
       {
         path: "/admin/uzytkownicy/:id/edycja",
@@ -204,20 +196,8 @@ const router = createBrowserRouter([
         element: <AddUserPage />,
       },
       {
-        path: "/admin/adopcje",
-        element: <AdminAdoptionsPage />,
-      },
-      {
         path: "/admin/weterynarze",
         element: <AdminVetsPage />,
-      },
-      {
-        path: "/admin/klatki",
-        element: <AdminCagesPage />,
-      },
-      {
-        path: "/admin/klatki/dodaj",
-        element: <AddCagePage />,
       },
       {
         path: "/admin/weterynarze/dodaj",
@@ -244,11 +224,30 @@ const router = createBrowserRouter([
         <NavbarOnlyLayout />
       </ProtectedRoute>
     ),
-    path: "/pracownik",
     children: [
       {
-        path: "/pracownik/uzytkownicy",
-        element: <WorkerUsersPage />,
+        path: "/pracownik/zwierzeta",
+        element: <AdminAnimalsPage />,
+      },
+      {
+        path: "/pracownik/zwierzeta/:id/edycja",
+        element: <EditAnimalPage />,
+      },
+      {
+        path: "/pracownik/zwierzeta/dodaj",
+        element: <AddAnimalPage />,
+      },
+      {
+        path: "/admin/klatki",
+        element: <AdminCagesPage />,
+      },
+      {
+        path: "/admin/klatki/dodaj",
+        element: <AddCagePage />,
+      },
+      {
+        path: "/admin/adopcje",
+        element: <AdminAdoptionsPage />,
       },
       {
         path: "/pracownik/adopcje/:id/edycja",
@@ -277,6 +276,10 @@ const router = createBrowserRouter([
       {
         path: "/pracownik/zapotrzebowania-zwierzat/dodaj",
         element: <AddDemandPage />,
+      },
+      {
+        path: "/pracownik/konto",
+        element: <AdminAccountPage />,
       },
     ],
   },

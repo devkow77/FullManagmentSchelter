@@ -60,7 +60,7 @@ const formatDateInput = (value: string | Date | null | undefined) => {
   return new Date(value).toISOString().split("T")[0];
 };
 
-const RETURN_PATHS = ["/admin/pracownicy", "/pracownik/uzytkownicy"] as const;
+const RETURN_PATHS = ["/admin/pracownicy", "/admin/uzytkownicy"] as const;
 type ReturnPath = (typeof RETURN_PATHS)[number];
 
 const EditUserPage = () => {
@@ -72,7 +72,7 @@ const EditUserPage = () => {
     RETURN_PATHS.find(
       (path) =>
         path === (location.state as { returnTo?: string } | null)?.returnTo,
-    ) ?? "/pracownik/uzytkownicy";
+    ) ?? "/admin/uzytkownicy";
 
   const {
     register,

@@ -11,8 +11,8 @@ import {
   AvatarFallback,
   AvatarImage,
 } from "@/components/ui";
-import { useAuth } from "@/context/AuthContext";
 import axios from "axios";
+import { useAuth } from "@/context/AuthContext";
 import { Link } from "react-router";
 
 const Profile = () => {
@@ -54,60 +54,23 @@ const Profile = () => {
   return (
     <DropdownMenu>
       {trigger}
-      {user ? (
-        <DropdownMenuContent
-          align="end"
-          className="bg-popover w-60 rounded-xl border border-white/10 p-2 shadow-lg backdrop-blur-md"
+      <DropdownMenuContent
+        align="end"
+        className="bg-popover w-60 rounded-xl border border-white/10 p-2 shadow-lg backdrop-blur-md"
+      >
+        <DropdownMenuLabel>Moje konto</DropdownMenuLabel>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem asChild className="cursor-pointer">
+          <Link to="/pracownik/konto">Panel pracownika</Link>
+        </DropdownMenuItem>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem
+          className="cursor-pointer font-semibold text-red-600"
+          onClick={handleLogout}
         >
-          <DropdownMenuLabel>Moje konto</DropdownMenuLabel>
-          <DropdownMenuSeparator />
-          <DropdownMenuItem asChild className="cursor-pointer">
-            <Link to="/pracownik/konto" className="w-full">
-              Profil
-            </Link>
-          </DropdownMenuItem>
-          <DropdownMenuItem className="cursor-pointer">
-            Ustawienia
-          </DropdownMenuItem>
-          <DropdownMenuSeparator />
-          <DropdownMenuItem
-            className="cursor-pointer font-semibold text-red-600"
-            onClick={handleLogout}
-          >
-            Wyloguj się
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      ) : (
-        <DropdownMenuContent
-          align="end"
-          className="bg-popover w-60 rounded-xl border border-white/10 p-2 shadow-lg backdrop-blur-md"
-        >
-          <DropdownMenuItem
-            className="cursor-pointer font-medium"
-            onClick={() => {}}
-          >
-            <Link to="/logowanie" className="w-full">
-              Zaloguj się
-            </Link>
-          </DropdownMenuItem>
-          <DropdownMenuItem
-            className="cursor-pointer font-medium"
-            onClick={() => {}}
-          >
-            Zaloguj się przez Google
-          </DropdownMenuItem>
-          <DropdownMenuSeparator />
-          <DropdownMenuLabel className="text-xs opacity-80">
-            Nie masz konta?
-          </DropdownMenuLabel>
-          <DropdownMenuSeparator />
-          <DropdownMenuItem className="cursor-pointer font-medium">
-            <Link to="/rejestracja" className="w-full">
-              Zarejestruj nowe konto
-            </Link>
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      )}
+          Wyloguj się
+        </DropdownMenuItem>
+      </DropdownMenuContent>
     </DropdownMenu>
   );
 };

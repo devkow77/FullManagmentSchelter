@@ -33,6 +33,21 @@ describe('Dzienna opieka E2E - Testy integracyjne', () => {
     );
     expect(animalRes.status).toBe(StatusCodes.CREATED);
     animalId = animalRes.body.id;
+
+    const worker = await prisma.user.findUniqueOrThrow({
+      where: { email: 'pracownik@gmail.com' },
+      select: { id: true },
+    });
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    await prisma.dailyZoneAssignment.create({
+      data: {
+        date: today,
+        zone: 'A',
+        workerId: worker.id,
+      },
+    });
   });
 
   afterAll(async () => {

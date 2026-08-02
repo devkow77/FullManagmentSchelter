@@ -6,7 +6,7 @@ import EditMedicalRecordPage from "./edit-medical-record";
 import DailyAnimalNeedsPage from "./daily-animal-needs";
 import AnimalDemandsPage from "./demands";
 import AddDemandPage from "./add-demand";
-
+import AdminAccountPage from "./account";
 export {
   WorkerUsersPage,
   EditAdoptionPage,
@@ -16,4 +16,5 @@ export {
   DailyAnimalNeedsPage,
   AnimalDemandsPage,
   AddDemandPage,
+  AdminAccountPage,
 };

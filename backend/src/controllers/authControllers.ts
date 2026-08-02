@@ -100,9 +100,11 @@ export const loginToAccount = async (req: Request, res: Response) => {
 
     // Wyciągamy dane bez hasła
     const userResponse = {
+      id: existingUser.id,
       fullName: existingUser.fullName,
       email: existingUser.email,
       role: existingUser.role,
+      twoFactorEnabled: existingUser.twoFactorEnabled,
     };
 
     res
@@ -139,6 +141,7 @@ export const authInfo = async (req: AuthRequest, res: Response) => {
     const user = await prisma.user.findUnique({
       where: { id: userId },
       select: {
+        id: true,
         fullName: true,
         email: true,
         role: true,

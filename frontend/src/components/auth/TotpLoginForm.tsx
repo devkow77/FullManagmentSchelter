@@ -15,6 +15,7 @@ type VerifyTotpFormData = z.infer<typeof verifyTotpSchema>;
 
 interface TotpLoginResponse {
   user: {
+    id: number;
     fullName: string;
     email: string;
     role: "UZYTKOWNIK" | "PRACOWNIK" | "ADMINISTRATOR";

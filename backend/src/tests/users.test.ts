@@ -41,13 +41,11 @@ describe('Zarządzanie użytkownikami - Testy integracyjne', () => {
   });
 
   describe('GET /api/users', () => {
-    it('Zwraca listę użytkowników dla pracownika i administratora', async () => {
+    it('Zwraca listę użytkowników dla administratora', async () => {
       // Sprawdza poprawne pobranie danych i kształt odpowiedzi.
       const adminRes = await adminAgent.get('/api/users');
-      const workerRes = await workerAgent.get('/api/users');
 
       expect(adminRes.status).toBe(StatusCodes.OK);
-      expect(workerRes.status).toBe(StatusCodes.OK);
       expect(Array.isArray(adminRes.body)).toBe(true);
       expect(adminRes.body.length).toBeGreaterThanOrEqual(1);
       expect(
@@ -55,6 +53,14 @@ describe('Zarządzanie użytkownikami - Testy integracyjne', () => {
           (user: { role: string }) => user.role === 'UZYTKOWNIK',
         ),
       ).toBe(true);
+    });
+
+    it('Zwraca błąd 403 dla pracownika', async () => {
+      // Sprawdza, że pracownik nie ma dostępu do listy użytkowników (403).
+      const res = await workerAgent.get('/api/users');
+
+      expect(res.status).toBe(StatusCodes.FORBIDDEN);
+      expect(res.body.msg).toBe('Brak uprawnień!');
     });
 
     it('Zwraca błąd 403 dla zwykłego użytkownika', async () => {

@@ -175,7 +175,7 @@ const EditAnimalPage = () => {
       } catch (err) {
         console.error("Błąd podczas pobierania:", err);
         toast.error("Nie udało się pobrać danych zwierzęcia.");
-        navigate("/admin/zwierzeta");
+        navigate("/pracownik/zwierzeta");
       }
     };
 
@@ -259,7 +259,7 @@ const EditAnimalPage = () => {
         fileInputRef.current.value = "";
       }
 
-      navigate("/admin/zwierzeta");
+      navigate("/pracownik/zwierzeta");
     } catch (err) {
       console.error(err);
 

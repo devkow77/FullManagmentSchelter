@@ -225,7 +225,14 @@ const DailyAnimalNeedsPage = () => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { user } = useAuth();
-  const canEditCare = user?.role === "PRACOWNIK";
+  const isWorker = user?.role === "PRACOWNIK";
+
+  const canEditAnimalCare = (animal: AnimalListItem) =>
+    isWorker &&
+    Boolean(
+      user?.id &&
+        animal.assignedWorkers?.some((worker) => worker.id === user.id),
+    );
 
   const [page, setPage] = useState(1);
   const [careStatus, setCareStatus] = useState<CareStatusLabel | null>(null);
@@ -372,12 +379,12 @@ const DailyAnimalNeedsPage = () => {
   };
 
   const handleCareToggle = (
-    animalId: number,
+    animal: AnimalListItem,
     field: CareField,
     value: boolean,
   ) => {
-    if (!canEditCare) return;
-    careMutation.mutate({ animalId, field, value });
+    if (!canEditAnimalCare(animal)) return;
+    careMutation.mutate({ animalId: animal.id, field, value });
   };
 
   return (
@@ -474,6 +481,7 @@ const DailyAnimalNeedsPage = () => {
               {animals.length ? (
                 animals.map((animal) => {
                   const care = animal.todayCare ?? emptyCare();
+                  const canEdit = canEditAnimalCare(animal);
 
                   return (
                     <TableRow
@@ -499,11 +507,11 @@ const DailyAnimalNeedsPage = () => {
                         <CareCheckbox
                           checked={care.fed}
                           disabled={
-                            !canEditCare || pendingKeys.has(`${animal.id}-fed`)
+                            !canEdit || pendingKeys.has(`${animal.id}-fed`)
                           }
                           ariaLabel={`Jedzenie — ${animal.name}`}
                           onChange={(value) =>
-                            handleCareToggle(animal.id, "fed", value)
+                            handleCareToggle(animal, "fed", value)
                           }
                         />
                       </TableCell>
@@ -511,12 +519,11 @@ const DailyAnimalNeedsPage = () => {
                         <CareCheckbox
                           checked={care.watered}
                           disabled={
-                            !canEditCare ||
-                            pendingKeys.has(`${animal.id}-watered`)
+                            !canEdit || pendingKeys.has(`${animal.id}-watered`)
                           }
                           ariaLabel={`Woda — ${animal.name}`}
                           onChange={(value) =>
-                            handleCareToggle(animal.id, "watered", value)
+                            handleCareToggle(animal, "watered", value)
                           }
                         />
                       </TableCell>
@@ -524,12 +531,11 @@ const DailyAnimalNeedsPage = () => {
                         <CareCheckbox
                           checked={care.cleaned}
                           disabled={
-                            !canEditCare ||
-                            pendingKeys.has(`${animal.id}-cleaned`)
+                            !canEdit || pendingKeys.has(`${animal.id}-cleaned`)
                           }
                           ariaLabel={`Sprzątanie — ${animal.name}`}
                           onChange={(value) =>
-                            handleCareToggle(animal.id, "cleaned", value)
+                            handleCareToggle(animal, "cleaned", value)
                           }
                         />
                       </TableCell>

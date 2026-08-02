@@ -1,17 +1,12 @@
 import type { IconType } from "react-icons";
 import {
   PawPrint,
-  UsersRound,
   Pencil,
   File,
-  ChartColumn,
   ClipboardPlus,
-  Package,
-  IdCardLanyard,
-  ShieldPlus,
   CalendarSync,
   Columns4,
-  CalendarDays,
+  Package,
 } from "lucide-react";
 import { Link, useLocation } from "react-router";
 import { useQuery } from "@tanstack/react-query";
@@ -24,16 +19,11 @@ const pendingMedicalRecordsQueryKey = [
   "medical-records",
   "pending-count",
 ] as const;
-const weekCoverageStatusQueryKey = [
-  "zone-assignments",
-  "current-week-coverage-status",
-] as const;
 
 const dailyTasksHref = "/pracownik/codzienne-obowiazki";
-const workWeekHref = "/admin/tydzien-pracy";
-const needsHref = "/pracownik/zapotrzebowania-zwierzat";
 const adoptionsHref = "/admin/adopcje";
 const medicalRecordsHref = "/pracownik/raporty-medyczne";
+const needsHref = "/pracownik/zapotrzebowania-zwierzat";
 
 const getDailyCareStatus = async () => {
   const res = await axios.get<{ allComplete: boolean }>(
@@ -64,60 +54,32 @@ const getPendingMedicalRecordsCount = async () => {
   return res.data.total;
 };
 
-const getWeekCoverageStatus = async () => {
-  const res = await axios.get<{ allZonesCovered: boolean }>(
-    "/api/zone-assignments/current-week-coverage/status",
-  );
-  return res.data;
-};
-
-interface AdminOptions {
+interface WorkerOptions {
   icon?: IconType;
   href: string;
   name: string;
 }
 
-const adminOptions: AdminOptions[] = [
+const workerOptions: WorkerOptions[] = [
   {
     icon: PawPrint,
     href: "/pracownik/zwierzeta",
     name: "Zarządzaj zwierzętami",
   },
   {
-    icon: IdCardLanyard,
-    href: "/admin/pracownicy",
-    name: "Zarządzaj pracownikami",
-  },
-  {
-    icon: UsersRound,
-    href: "/admin/uzytkownicy",
-    name: "Zarządzaj użytkownikami",
-  },
-  {
     icon: Columns4,
     href: "/admin/klatki",
     name: "Zarządzaj klatkami",
   },
-
   {
     icon: File,
-    href: "/admin/adopcje",
+    href: adoptionsHref,
     name: "Wnioski adopcyjne",
   },
   {
     icon: CalendarSync,
     href: dailyTasksHref,
-    name: "Codzienne obowiązki pracowników",
-  },
-  {
-    icon: CalendarDays,
-    href: workWeekHref,
-    name: "Zarządzaj tygodniem pracy",
-  },
-  {
-    icon: ShieldPlus,
-    href: "/admin/weterynarze",
-    name: "Zarządzaj weterynarzami",
+    name: "Codzienne obowiązki",
   },
   {
     icon: ClipboardPlus,
@@ -133,11 +95,6 @@ const adminOptions: AdminOptions[] = [
     icon: Pencil,
     href: `${import.meta.env.VITE_STRIPE_CMS_ADMIN_URL}/admin`,
     name: "Zarządzaj blogiem",
-  },
-  {
-    icon: ChartColumn,
-    href: "/admin/statystyki",
-    name: "Statystyki",
   },
 ];
 
@@ -181,12 +138,6 @@ const DashboardNavbar = () => {
     refetchOnWindowFocus: true,
   });
 
-  const { data: weekCoverageStatus } = useQuery({
-    queryKey: weekCoverageStatusQueryKey,
-    queryFn: getWeekCoverageStatus,
-    refetchOnWindowFocus: true,
-  });
-
   const { data: pendingAdoptionsCount = 0 } = useQuery({
     queryKey: pendingAdoptionsQueryKey,
     queryFn: getPendingAdoptionsCount,
@@ -206,10 +157,6 @@ const DashboardNavbar = () => {
     criticalHrefs.add(dailyTasksHref);
   }
 
-  if (weekCoverageStatus?.allZonesCovered === false) {
-    criticalHrefs.add(workWeekHref);
-  }
-
   if (pendingAdoptionsCount > 0) {
     warningHrefs.add(adoptionsHref);
   }
@@ -226,7 +173,7 @@ const DashboardNavbar = () => {
 
   return (
     <section className="grid grid-cols-2 gap-4 sm:grid-cols-4 lg:grid-cols-6 xl:grid-cols-7">
-      {adminOptions.map((option) => {
+      {workerOptions.map((option) => {
         const card = (
           <div
             className={`${getCardClassName(option.href, location.pathname, warningHrefs, criticalHrefs)} relative grid aspect-square place-items-center p-2 text-center font-medium`}

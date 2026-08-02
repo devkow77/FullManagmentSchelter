@@ -20,7 +20,7 @@ const router = Router();
 router.get(
   '/',
   authenticateUser,
-  authorizeRoles(Role.PRACOWNIK, Role.ADMINISTRATOR),
+  authorizeRoles(Role.ADMINISTRATOR),
   getUsers,
 );
 router.get(

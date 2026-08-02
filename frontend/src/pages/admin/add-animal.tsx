@@ -198,7 +198,7 @@ const AddAnimalPage = () => {
         fileInputRef.current.value = "";
       }
 
-      navigate("/admin/zwierzeta");
+      navigate("/pracownik/zwierzeta");
     } catch (err) {
       console.error(err);
       toast.error("Wystąpił błąd podczas zapisywania.");

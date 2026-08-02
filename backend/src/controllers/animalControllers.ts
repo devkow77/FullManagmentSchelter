@@ -640,7 +640,11 @@ export const updateAnimalDailyCare = async (
   try {
     const animal = await prisma.animal.findUnique({
       where: { id: animalId },
-      select: { id: true, status: true },
+      select: {
+        id: true,
+        status: true,
+        cage: { select: { zone: true } },
+      },
     });
 
     // -- Jezeli zwierze nie istnieje to zwracamy błąd -- //
@@ -657,7 +661,30 @@ export const updateAnimalDailyCare = async (
       });
     }
 
-    const { start } = getTodayRange();
+    // -- Pracownik moze odznaczac tylko zwierzeta z przypisanej mu strefy -- //
+    const zone = animal.cage?.zone;
+    if (!zone) {
+      return res.status(StatusCodes.FORBIDDEN).json({
+        msg: 'Nie mozna odznaczac opieki dla zwierzecia bez klatki.',
+      });
+    }
+
+    const { start, end } = getTodayRange();
+    const assignment = await prisma.dailyZoneAssignment.findFirst({
+      where: {
+        workerId: req.userId,
+        zone,
+        date: { gte: start, lt: end },
+      },
+      select: { id: true },
+    });
+
+    if (!assignment) {
+      return res.status(StatusCodes.FORBIDDEN).json({
+        msg: 'Mozesz odznaczac opiekę tylko dla zwierząt z przypisanej Ci strefy.',
+      });
+    }
+
     const byIdKey =
       field === 'fed'
         ? 'fedById'

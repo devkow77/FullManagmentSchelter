@@ -93,14 +93,17 @@ describe('Klatki - Testy integracyjne', () => {
   });
 
   describe('POST /api/cages', () => {
-    it('Odmawia utworzenia pracownikowi', async () => {
-      // Sprawdza, że pracownik nie ma dostępu do tej operacji (403).
+    it('Pozwala utworzyć klatkę pracownikowi', async () => {
       const res = await workerAgent.post('/api/cages').send({
-        zone: 'B',
-        number: 1,
+        zone: 'D',
+        number: 9,
       });
 
-      expect(res.status).toBe(StatusCodes.FORBIDDEN);
+      expect(res.status).toBe(StatusCodes.CREATED);
+      expect(res.body.zone).toBe('D');
+      expect(res.body.number).toBe(9);
+
+      await prisma.cage.delete({ where: { id: res.body.id } });
     });
 
     it('Tworzy nową klatkę', async () => {

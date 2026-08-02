@@ -2,7 +2,8 @@ import { Container } from "@/components/ui";
 import { useAuth } from "@/context/AuthContext";
 import { toast } from "sonner";
 import { useNavigate } from "react-router";
-import DashboardNavbar from "@/components/layout/admin/DashboardNavbar";
+import AdminDashboardNavbar from "@/components/layout/admin/DashboardNavbar";
+import WorkerDashboardNavbar from "@/components/layout/worker/DashboardNavbar";
 import { z } from "zod";
 import { Button, Input, Label } from "@/components/ui";
 import axios, { AxiosError } from "axios";
@@ -38,12 +39,29 @@ const updatePasswordSchema = z
 
 type UpdatePasswordFormData = z.infer<typeof updatePasswordSchema>;
 
-const PAGE_TITLE = "Panel administratora | Schronisko";
+const accountConfig = {
+  ADMINISTRATOR: {
+    panelTitle: "Panel administratora",
+    pageTitle: "Panel administratora | Schronisko",
+    avatarSrc: "/admin-logged-avatar.png",
+    avatarAlt: "profilowe administratora",
+  },
+  PRACOWNIK: {
+    panelTitle: "Panel pracownika",
+    pageTitle: "Panel pracownika | Schronisko",
+    avatarSrc: "/worker-logged-avatar.png",
+    avatarAlt: "profilowe pracownika",
+  },
+} as const;
 
 const AdminAccountPage = () => {
   const { qrCode, manualKey } = useTotp();
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+
+  const role = user?.role === "PRACOWNIK" ? "PRACOWNIK" : "ADMINISTRATOR";
+  const config = accountConfig[role];
+  const isWorker = role === "PRACOWNIK";
 
   const {
     handleSubmit,
@@ -54,8 +72,8 @@ const AdminAccountPage = () => {
   });
 
   useEffect(() => {
-    document.title = PAGE_TITLE;
-  }, []);
+    document.title = config.pageTitle;
+  }, [config.pageTitle]);
 
   const onSubmit = async (data: UpdatePasswordFormData) => {
     try {
@@ -79,13 +97,13 @@ const AdminAccountPage = () => {
       <Container className="mb-6 space-y-12 md:mb-10 md:space-y-16">
         <section
           id="info"
-          aria-labelledby="admin-account-heading"
+          aria-labelledby="staff-account-heading"
           className="space-y-6 gap-x-12 text-center md:flex md:text-left"
         >
           <div className="relative mx-auto h-50 w-50 overflow-hidden rounded-full md:mx-0">
             <img
-              src="/admin-logged-avatar.png"
-              alt="profilowe administratora"
+              src={config.avatarSrc}
+              alt={config.avatarAlt}
               width={200}
               height={200}
               className="absolute top-0 left-0 size-full object-cover"
@@ -93,10 +111,10 @@ const AdminAccountPage = () => {
           </div>
           <div className="space-y-2">
             <h1
-              id="admin-account-heading"
+              id="staff-account-heading"
               className="text-3xl font-bold text-green-900 md:text-5xl"
             >
-              Panel administratora
+              {config.panelTitle}
             </h1>
             <p className="text-sm leading-6 font-medium md:text-base md:leading-7">
               Poniżej znajdują się twoje podstawowe dane z konta.
@@ -122,7 +140,7 @@ const AdminAccountPage = () => {
             </ul>
           </div>
         </section>
-        <DashboardNavbar />
+        {isWorker ? <WorkerDashboardNavbar /> : <AdminDashboardNavbar />}
         <section
           id="editPassword"
           aria-labelledby="edit-password-heading"
@@ -144,9 +162,9 @@ const AdminAccountPage = () => {
             aria-label="Formularz zmiany hasła"
             noValidate
           >
-            <Label htmlFor="admin-currentPassword">Aktualne hasło</Label>
+            <Label htmlFor="staff-currentPassword">Aktualne hasło</Label>
             <Input
-              id="admin-currentPassword"
+              id="staff-currentPassword"
               {...register("currentPassword")}
               className={`mt-2 mb-4 ${errors.currentPassword && "bg-red-600/20"}`}
               placeholder="Podaj swoje aktualne hasło..."
@@ -156,22 +174,22 @@ const AdminAccountPage = () => {
               aria-invalid={Boolean(errors.currentPassword)}
               aria-describedby={
                 errors.currentPassword
-                  ? "admin-currentPassword-error"
+                  ? "staff-currentPassword-error"
                   : undefined
               }
             />
             {errors.currentPassword && (
               <p
-                id="admin-currentPassword-error"
+                id="staff-currentPassword-error"
                 role="alert"
                 className="-mt-2 mb-4 text-xs font-medium text-red-600 lg:text-sm"
               >
                 {errors.currentPassword.message}
               </p>
             )}
-            <Label htmlFor="admin-newPassword">Nowe hasło</Label>
+            <Label htmlFor="staff-newPassword">Nowe hasło</Label>
             <Input
-              id="admin-newPassword"
+              id="staff-newPassword"
               {...register("newPassword")}
               className={`mt-2 mb-4 ${errors.newPassword && "bg-red-600/20"}`}
               placeholder="Podaj nowe hasło..."
@@ -179,12 +197,12 @@ const AdminAccountPage = () => {
               autoComplete="new-password"
               aria-invalid={Boolean(errors.newPassword)}
               aria-describedby={
-                errors.newPassword ? "admin-newPassword-error" : undefined
+                errors.newPassword ? "staff-newPassword-error" : undefined
               }
             />
             {errors.newPassword && (
               <p
-                id="admin-newPassword-error"
+                id="staff-newPassword-error"
                 role="alert"
                 className="-mt-2 mb-4 text-xs font-medium text-red-600 lg:text-sm"
               >
@@ -192,9 +210,9 @@ const AdminAccountPage = () => {
               </p>
             )}
 
-            <Label htmlFor="admin-confirmNewPassword">Powtórz nowe hasło</Label>
+            <Label htmlFor="staff-confirmNewPassword">Powtórz nowe hasło</Label>
             <Input
-              id="admin-confirmNewPassword"
+              id="staff-confirmNewPassword"
               {...register("confirmNewPassword")}
               className="mt-2 mb-4"
               placeholder="Powtórz nowe hasło..."
@@ -203,13 +221,13 @@ const AdminAccountPage = () => {
               aria-invalid={Boolean(errors.confirmNewPassword)}
               aria-describedby={
                 errors.confirmNewPassword
-                  ? "admin-confirmNewPassword-error"
+                  ? "staff-confirmNewPassword-error"
                   : undefined
               }
             />
             {errors.confirmNewPassword && (
               <p
-                id="admin-confirmNewPassword-error"
+                id="staff-confirmNewPassword-error"
                 role="alert"
                 className="-mt-2 mb-4 text-xs font-medium text-red-800 lg:text-sm"
               >

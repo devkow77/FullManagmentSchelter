@@ -2,6 +2,7 @@ import { createContext, useContext, useEffect, useState } from "react";
 import axios from "axios";
 
 type User = {
+  id: number;
   fullName: string;
   email: string;
   role: "UZYTKOWNIK" | "PRACOWNIK" | "ADMINISTRATOR";

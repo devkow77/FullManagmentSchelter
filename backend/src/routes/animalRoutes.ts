@@ -47,19 +47,19 @@ router.get('/:id', getUniqueAnimal);
 router.post(
   '/',
   authenticateUser,
-  authorizeRoles(Role.ADMINISTRATOR),
+  authorizeRoles(Role.PRACOWNIK, Role.ADMINISTRATOR),
   createAnimal,
 ); // -- Rejestruje nowe zwierze w systemie -- //
 router.patch(
   '/:id',
   authenticateUser,
-  authorizeRoles(Role.ADMINISTRATOR),
+  authorizeRoles(Role.PRACOWNIK, Role.ADMINISTRATOR),
   updateUniqueAnimal,
 ); // -- Aktualizuje dane zwierzecia o podanym ID -- //
 router.delete(
   '/:id',
   authenticateUser,
-  authorizeRoles(Role.ADMINISTRATOR),
+  authorizeRoles(Role.PRACOWNIK, Role.ADMINISTRATOR),
   deleteUniqueAnimal,
 ); // -- Usuwa zwierze o podanym ID -- //
 

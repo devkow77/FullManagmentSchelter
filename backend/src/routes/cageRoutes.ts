@@ -32,28 +32,28 @@ router.get(
 router.post(
   '/',
   authenticateUser,
-  authorizeRoles(Role.ADMINISTRATOR),
+  authorizeRoles(Role.PRACOWNIK, Role.ADMINISTRATOR),
   createCage,
 );
 
 router.get(
   '/:id',
   authenticateUser,
-  authorizeRoles(Role.ADMINISTRATOR),
+  authorizeRoles(Role.PRACOWNIK, Role.ADMINISTRATOR),
   getUniqueCage,
 );
 
 router.patch(
   '/:id',
   authenticateUser,
-  authorizeRoles(Role.ADMINISTRATOR),
+  authorizeRoles(Role.PRACOWNIK, Role.ADMINISTRATOR),
   updateUniqueCage,
 );
 
 router.delete(
   '/:id',
   authenticateUser,
-  authorizeRoles(Role.ADMINISTRATOR),
+  authorizeRoles(Role.PRACOWNIK, Role.ADMINISTRATOR),
   deleteUniqueCage,
 );
 

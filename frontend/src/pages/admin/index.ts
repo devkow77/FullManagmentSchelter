@@ -1,4 +1,3 @@
-import AdminAccountPage from "./account";
 import AdminAnimalsPage from "./animals";
 import EditAnimalPage from "./edit-animal";
 import AddAnimalPage from "./add-animal";
@@ -15,7 +14,6 @@ import AddCagePage from "./add-cage";
 import WorkWeekPage from "./work-week";
 
 export {
-  AdminAccountPage,
   AdminAnimalsPage,
   EditAnimalPage,
   AddAnimalPage,

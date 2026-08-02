@@ -21,6 +21,7 @@ interface LoginResponse {
   requires2FA: boolean;
   tempToken: string;
   user: {
+    id: number;
     fullName: string;
     email: string;
     role: "UZYTKOWNIK" | "PRACOWNIK" | "ADMINISTRATOR";

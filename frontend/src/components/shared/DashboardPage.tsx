@@ -1,6 +1,8 @@
 import { useEffect, type ReactNode } from "react";
 import { Container } from "@/components/ui";
-import DashboardNavbar from "@/components/layout/admin/DashboardNavbar";
+import AdminDashboardNavbar from "@/components/layout/admin/DashboardNavbar";
+import WorkerDashboardNavbar from "@/components/layout/worker/DashboardNavbar";
+import { useAuth } from "@/context/AuthContext";
 
 type DashboardPageProps = {
   title: string;
@@ -18,6 +20,9 @@ const DashboardPage = ({
   showNavbar = true,
   children,
 }: DashboardPageProps) => {
+  const { user } = useAuth();
+  const isWorker = user?.role === "PRACOWNIK";
+
   useEffect(() => {
     document.title = `${title} | Schronisko`;
   }, [title]);
@@ -44,7 +49,8 @@ const DashboardPage = ({
               </p>
             )}
           </div>
-          {showNavbar && <DashboardNavbar />}
+          {showNavbar &&
+            (isWorker ? <WorkerDashboardNavbar /> : <AdminDashboardNavbar />)}
         </section>
         {children}
       </Container>

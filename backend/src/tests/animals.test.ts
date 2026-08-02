@@ -96,14 +96,25 @@ describe('Animal CRUD - Testy integracyjne', () => {
       expect(res.body.msg).toBe('Brak tokenu, autoryzacja odmówiona!');
     });
 
-    it('Odmawia utworzenia zwierzęcia pracownikowi', async () => {
-      // Sprawdza, że pracownik nie ma dostępu do tej operacji (403).
+    it('Poprawne utworzenie nowego zwierzęcia przez pracownika', async () => {
+      // Sprawdza, że pracownik może rejestrować zwierzęta.
       const res = await workerAgent
         .post('/api/animals')
-        .send(buildAnimalPayload({ cageId: freeCageId }));
+        .send(
+          buildAnimalPayload({
+            name: 'Azor',
+            cageId: secondCageId,
+            description: 'Zwierzę zarejestrowane przez pracownika.',
+          }),
+        );
 
-      expect(res.status).toBe(StatusCodes.FORBIDDEN);
-      expect(res.body.msg).toBe('Brak uprawnień!');
+      expect(res.status).toBe(StatusCodes.CREATED);
+      expect(res.body).toHaveProperty('id');
+      expect(res.body.name).toBe('Azor');
+      expect(res.body.cageId).toBe(secondCageId);
+
+      const cleanup = await workerAgent.delete(`/api/animals/${res.body.id}`);
+      expect(cleanup.status).toBe(StatusCodes.OK);
     });
 
     it('Odmawia utworzenia zwierzęcia zwykłemu użytkownikowi', async () => {
@@ -244,14 +255,20 @@ describe('Animal CRUD - Testy integracyjne', () => {
   });
 
   describe('PATCH /api/animals/:id', () => {
-    it('Odmawia aktualizacji pracownikowi', async () => {
-      // Sprawdza, że pracownik nie ma dostępu do tej operacji (403).
+    it('Poprawna aktualizacja danych zwierzęcia przez pracownika', async () => {
+      // Sprawdza, że pracownik może aktualizować dane zwierzęcia.
       const res = await workerAgent
         .patch(`/api/animals/${createdAnimalId}`)
-        .send(buildAnimalPayload({ cageId: freeCageId, name: 'Hack' }));
+        .send(
+          buildAnimalPayload({
+            cageId: freeCageId,
+            name: 'Burek Pracownik',
+            description: 'Zaktualizowany opis przez pracownika schroniska.',
+          }),
+        );
 
-      expect(res.status).toBe(StatusCodes.FORBIDDEN);
-      expect(res.body.msg).toBe('Brak uprawnień!');
+      expect(res.status).toBe(StatusCodes.OK);
+      expect(res.body.name).toBe('Burek Pracownik');
     });
 
     it('Poprawna aktualizacja danych zwierzęcia przez admina', async () => {
@@ -390,8 +407,31 @@ describe('Animal CRUD - Testy integracyjne', () => {
       expect(res.body.msg).toContain('Nieprawidlowe dane');
     });
 
-    it('Pozwala pracownikowi odznaczyć karmienie', async () => {
-      // Sprawdza odznaczanie dziennej opieki zwierzęcia przez pracownika.
+    it('Odmawia pracownikowi bez przypisanej strefy', async () => {
+      const res = await workerAgent
+        .patch(`/api/animals/${createdAnimalId}/daily-care`)
+        .send({ field: 'fed', value: true });
+
+      expect(res.status).toBe(StatusCodes.FORBIDDEN);
+      expect(res.body.msg).toContain('przypisanej');
+    });
+
+    it('Pozwala pracownikowi odznaczyć karmienie w przypisanej strefie', async () => {
+      const worker = await prisma.user.findUniqueOrThrow({
+        where: { email: 'pracownik@gmail.com' },
+        select: { id: true },
+      });
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+
+      await prisma.dailyZoneAssignment.create({
+        data: {
+          date: today,
+          zone: 'A',
+          workerId: worker.id,
+        },
+      });
+
       const res = await workerAgent
         .patch(`/api/animals/${createdAnimalId}/daily-care`)
         .send({ field: 'fed', value: true });
@@ -402,12 +442,23 @@ describe('Animal CRUD - Testy integracyjne', () => {
   });
 
   describe('DELETE /api/animals/:id', () => {
-    it('Odmawia usunięcia pracownikowi', async () => {
-      // Sprawdza, że pracownik nie ma dostępu do tej operacji (403).
-      const res = await workerAgent.delete(`/api/animals/${createdAnimalId}`);
+    it('Poprawne usunięcie zwierzęcia przez pracownika', async () => {
+      // Sprawdza, że pracownik może usuwać zwierzęta.
+      const createRes = await workerAgent
+        .post('/api/animals')
+        .send(
+          buildAnimalPayload({
+            name: 'DoUsuniecia',
+            cageId: secondCageId,
+            description: 'Zwierzę tymczasowe do usunięcia przez pracownika.',
+          }),
+        );
+      expect(createRes.status).toBe(StatusCodes.CREATED);
 
-      expect(res.status).toBe(StatusCodes.FORBIDDEN);
-      expect(res.body.msg).toBe('Brak uprawnień!');
+      const res = await workerAgent.delete(`/api/animals/${createRes.body.id}`);
+
+      expect(res.status).toBe(StatusCodes.OK);
+      expect(res.body.msg).toBe('Pomyslnie usunieto zwierze!');
     });
 
     it('Zwraca 400 przy niepoprawnym formacie ID', async () => {

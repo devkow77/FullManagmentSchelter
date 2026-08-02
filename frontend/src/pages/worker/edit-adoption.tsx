@@ -28,6 +28,7 @@ import {
   editAdoptionSchema,
   type EditAdoptionFormData,
 } from "@/schemas/adoption.schema";
+import { useAuth } from "@/context/AuthContext";
 
 type AdoptionUser = {
   id: number;
@@ -73,6 +74,8 @@ const EditAdoptionPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const { user: loggedUser } = useAuth();
+  const isAdmin = loggedUser?.role === "ADMINISTRATOR";
   const [adoption, setAdoption] = useState<AdoptionDetails | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -226,11 +229,13 @@ const EditAdoptionPage = () => {
                   Notatka administratora: {user.adminNote || "Brak notatki"}
                 </li>
               </ul>
-              <Button variant="success" asChild className="w-full sm:w-fit">
-                <Link to={`/admin/uzytkownicy/${user.id}/edycja`}>
-                  Zobacz profil
-                </Link>
-              </Button>
+              {isAdmin && (
+                <Button variant="success" asChild className="w-full sm:w-fit">
+                  <Link to={`/admin/uzytkownicy/${user.id}/edycja`}>
+                    Zobacz profil
+                  </Link>
+                </Button>
+              )}
               {/* WIADOMOŚĆ WNIOSKUJĄCEGO */}
               <div className="flex-1 space-y-2">
                 <Label htmlFor="message">Wiadomość wnioskującego</Label>
