@@ -387,6 +387,54 @@ describe('Animal CRUD - Testy integracyjne', () => {
     });
   });
 
+  describe('GET /api/animals/daily-care/my-tasks', () => {
+    it('Odmawia administratorowi', async () => {
+      const res = await adminAgent.get('/api/animals/daily-care/my-tasks');
+
+      expect(res.status).toBe(StatusCodes.FORBIDDEN);
+      expect(res.body.msg).toBe('Brak uprawnień!');
+    });
+
+    it('Zwraca puste zadania gdy pracownik nie ma strefy na dziś', async () => {
+      const res = await workerAgent.get('/api/animals/daily-care/my-tasks');
+
+      expect(res.status).toBe(StatusCodes.OK);
+      expect(res.body.data).toEqual([]);
+      expect(res.body.total).toBe(0);
+      expect(res.body.zones).toEqual([]);
+    });
+
+    it('Zwraca zwierzęta z przypisanej strefy pracownika', async () => {
+      const { start } = (
+        await import('../utils/animalHelpers')
+      ).getTodayRange();
+
+      await prisma.dailyZoneAssignment.create({
+        data: {
+          workerId: (await prisma.user.findUnique({
+            where: { email: 'pracownik@gmail.com' },
+            select: { id: true },
+          }))!.id,
+          zone: 'A',
+          date: start,
+        },
+      });
+
+      const res = await workerAgent.get('/api/animals/daily-care/my-tasks');
+
+      expect(res.status).toBe(StatusCodes.OK);
+      expect(res.body.zones).toContain('A');
+      expect(res.body.total).toBeGreaterThanOrEqual(1);
+      expect(
+        res.body.data.some((animal: { id: number }) => animal.id === createdAnimalId),
+      ).toBe(true);
+
+      await prisma.dailyZoneAssignment.deleteMany({
+        where: { zone: 'A', date: start },
+      });
+    });
+  });
+
   describe('PATCH /api/animals/:id/daily-care', () => {
     it('Odmawia adminowi (tylko pracownik)', async () => {
       // Sprawdza, że administrator nie ma dostępu do tej operacji (403).

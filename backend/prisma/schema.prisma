@@ -51,9 +51,6 @@ model User {
   imageUrl         String? 
   adoptions        Adoption[] 
   processedAdoptions Adoption[] @relation("processedBy") 
-  animalDailyCareFed AnimalDailyCare[] @relation("AnimalDailyCareFedBy") 
-  animalDailyCareWatered AnimalDailyCare[] @relation("AnimalDailyCareWateredBy") 
-  animalDailyCareCleaned AnimalDailyCare[] @relation("AnimalDailyCareCleanedBy") 
   dailyZoneAssignments DailyZoneAssignment[] 
   reportedAnimalNeeds AnimalNeed[] @relation("AnimalNeedReportedBy") 
 }
@@ -154,19 +151,12 @@ model AnimalDailyCare {
   fed         Boolean  @default(false) 
   watered     Boolean  @default(false) 
   cleaned     Boolean  @default(false) 
-
-  fedById     Int?     
-  wateredById Int?     
-  cleanedById Int?  
     
   fedAt       DateTime?
   wateredAt   DateTime? 
   cleanedAt   DateTime? 
 
   animal      Animal   @relation(fields: [animalId], references: [id], onDelete: Cascade)
-  fedBy       User?    @relation("AnimalDailyCareFedBy", fields: [fedById], references: [id], onDelete: SetNull)
-  wateredBy   User?    @relation("AnimalDailyCareWateredBy", fields: [wateredById], references: [id], onDelete: SetNull)
-  cleanedBy   User?    @relation("AnimalDailyCareCleanedBy", fields: [cleanedById], references: [id], onDelete: SetNull)
 
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt

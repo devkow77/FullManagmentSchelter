@@ -8,6 +8,7 @@ import {
 } from '../generated/prisma/enums';
 import type { Prisma } from '../generated/prisma/client';
 import { formatCageLabel } from '../selects/animal.select';
+import prisma from '../prisma';
 
 // ** ZMIENNE GLOBALNE **//
 
@@ -69,15 +70,10 @@ export const getTodayRange = () => {
   return { start, end };
 };
 
-type DailyCareUser = { id: number; fullName: string } | null;
-
 type DailyCareRecord = {
   fed: boolean;
   watered: boolean;
   cleaned: boolean;
-  fedBy: DailyCareUser;
-  wateredBy: DailyCareUser;
-  cleanedBy: DailyCareUser;
 };
 
 type CageInfo = { id: number; zone: string; number: number } | null;
@@ -108,9 +104,6 @@ export const mapAnimalListItem = <
             fed: care?.fed ?? false,
             watered: care?.watered ?? false,
             cleaned: care?.cleaned ?? false,
-            fedBy: care?.fedBy ?? null,
-            wateredBy: care?.wateredBy ?? null,
-            cleanedBy: care?.cleanedBy ?? null,
           },
         }
       : {}),
@@ -137,7 +130,7 @@ export { formatCageLabel };
 // ** FUNKCJE GLOWNE (FG) ** //
 
 // FG 1. GLOWNA FUNKCJA BUDUJACA ZAPYTANIE DO BAZY NA PODSTAWIE PARAMETROW URL (req.query) //
-export const parseAnimalsQuery = (req: Request) => {
+export const parseAnimalsQuery = async (req: Request) => {
   const {
     limit,
     sort,
@@ -320,22 +313,26 @@ export const parseAnimalsQuery = (req: Request) => {
     }
   }
 
-  // -- Filtr po pracownikach, ktorzy wykonali dzisiejsza opieke -- //
+  // -- Filtr po pracownikach przypisanych do strefy zwierzęcia na dziś -- //
   const careByIds = parseCsvParam(careBy)
     .map((id) => Number(id))
     .filter((id) => Number.isInteger(id) && id > 0);
 
   if (careByIds.length > 0) {
     const { start, end } = getTodayRange();
+    const assignments = await prisma.dailyZoneAssignment.findMany({
+      where: {
+        workerId: { in: careByIds },
+        date: { gte: start, lt: end },
+      },
+      select: { zone: true },
+    });
+    const zones = [...new Set(assignments.map((assignment) => assignment.zone))];
+
     dailyCareAnd.push({
-      dailyCare: {
-        some: {
-          date: { gte: start, lt: end },
-          OR: [
-            { fedById: { in: careByIds } },
-            { wateredById: { in: careByIds } },
-            { cleanedById: { in: careByIds } },
-          ],
+      cage: {
+        is: {
+          zone: { in: zones.length > 0 ? zones : ['__none__'] },
         },
       },
     });

@@ -62,11 +62,6 @@ const careStatusToParam = (
   return null;
 };
 
-type CareUser = {
-  id: number;
-  fullName: string;
-} | null;
-
 type AssignedWorker = {
   id: number;
   fullName: string;
@@ -76,9 +71,6 @@ type TodayCare = {
   fed: boolean;
   watered: boolean;
   cleaned: boolean;
-  fedBy: CareUser;
-  wateredBy: CareUser;
-  cleanedBy: CareUser;
 };
 
 type CareField = "fed" | "watered" | "cleaned";
@@ -130,9 +122,6 @@ const emptyCare = (): TodayCare => ({
   fed: false,
   watered: false,
   cleaned: false,
-  fedBy: null,
-  wateredBy: null,
-  cleanedBy: null,
 });
 
 const isCareComplete = (care: TodayCare) =>
@@ -206,14 +195,6 @@ const updateDailyCare = async ({
     { withCredentials: true },
   );
   return res.data;
-};
-
-const getPerformersLabel = (care: TodayCare) => {
-  const names = [care.fedBy, care.wateredBy, care.cleanedBy]
-    .filter((user): user is NonNullable<CareUser> => user !== null)
-    .map((user) => user.fullName);
-
-  return [...new Set(names)].join(", ") || "—";
 };
 
 const getAssignedWorkersLabel = (workers: AssignedWorker[] | undefined) =>
@@ -318,17 +299,13 @@ const DailyAnimalNeedsPage = () => {
           ? isCareComplete(todayCare)
           : !isCareComplete(todayCare));
 
-      const performerIds = [
-        todayCare.fedBy,
-        todayCare.wateredBy,
-        todayCare.cleanedBy,
-      ]
-        .filter((user): user is NonNullable<CareUser> => user !== null)
-        .map((user) => String(user.id));
-
       const matchesWorkerFilter =
         selectedWorkers.length === 0 ||
-        selectedWorkers.some((id) => performerIds.includes(id));
+        selectedWorkers.some((id) =>
+          (animals.find((a) => a.id === animalId)?.assignedWorkers ?? []).some(
+            (worker) => String(worker.id) === id,
+          ),
+        );
 
       void queryClient.invalidateQueries({ queryKey: dailyCareStatusQueryKey });
       void queryClient.invalidateQueries({ queryKey: workersProgressQueryKey });
@@ -400,7 +377,7 @@ const DailyAnimalNeedsPage = () => {
     >
       {isPending && (
         <DashboardTableSkeleton
-          columns={7}
+          columns={6}
           showAvatar
           showActions={false}
           filters={3}
@@ -474,7 +451,6 @@ const DailyAnimalNeedsPage = () => {
                 <TableHead>Jedzenie</TableHead>
                 <TableHead>Woda</TableHead>
                 <TableHead>Sprzątanie</TableHead>
-                <TableHead>Wykonał</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -539,16 +515,13 @@ const DailyAnimalNeedsPage = () => {
                           }
                         />
                       </TableCell>
-                      <TableCell className="whitespace-normal">
-                        {getPerformersLabel(care)}
-                      </TableCell>
                     </TableRow>
                   );
                 })
               ) : (
                 <TableRow>
                   <TableCell
-                    colSpan={7}
+                    colSpan={6}
                     className="py-5 text-center font-medium"
                   >
                     Brak zwierząt o podanych filtrach.
@@ -557,7 +530,7 @@ const DailyAnimalNeedsPage = () => {
               )}
             </TableBody>
             <DashboardTableFooter
-              columns={Array(7).fill("always")}
+              columns={Array(6).fill("always")}
               page={page}
               totalPages={totalPages}
               onPageChange={goToPage}

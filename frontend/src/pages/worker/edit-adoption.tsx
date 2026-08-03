@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useParams, useNavigate, Link } from "react-router";
+import { useParams, useNavigate } from "react-router";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { useQueryClient } from "@tanstack/react-query";
@@ -28,7 +28,6 @@ import {
   editAdoptionSchema,
   type EditAdoptionFormData,
 } from "@/schemas/adoption.schema";
-import { useAuth } from "@/context/AuthContext";
 
 type AdoptionUser = {
   id: number;
@@ -74,8 +73,6 @@ const EditAdoptionPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const { user: loggedUser } = useAuth();
-  const isAdmin = loggedUser?.role === "ADMINISTRATOR";
   const [adoption, setAdoption] = useState<AdoptionDetails | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -206,205 +203,185 @@ const EditAdoptionPage = () => {
                   <img
                     src={user.imageUrl}
                     alt={user.fullName}
-                      className="absolute h-full w-full rounded-full object-cover"
-                    />
-                  ) : (
-                    <UserRound className="size-15 text-black opacity-20 md:size-20" />
-                  )}
-                </div>
+                    className="absolute h-full w-full rounded-full object-cover"
+                  />
+                ) : (
+                  <UserRound className="size-15 text-black opacity-20 md:size-20" />
+                )}
               </div>
-              {/* DANE OSOBY WNIOSKUJĄCEJ */}
-              <ul className="text-sm leading-6 font-medium md:text-base md:leading-7">
-                <li>Imię i nazwisko: {user.fullName}</li>
-                <li>
-                  Wiek:{" "}
-                  {user.dateOfBirth
-                    ? calculateAge(user.dateOfBirth)
-                    : "Brak danych"}
-                </li>
-                <li>Adres zamieszkania: {formatAddress(user)}</li>
-                <li>Płeć: {formatUserGender(user.gender)}</li>
-                <li>Numer telefonu: {user.phoneNumber || "Brak danych"}</li>
-                <li>
-                  Notatka administratora: {user.adminNote || "Brak notatki"}
-                </li>
-              </ul>
-              {isAdmin && (
-                <Button variant="success" asChild className="w-full sm:w-fit">
-                  <Link to={`/admin/uzytkownicy/${user.id}/edycja`}>
-                    Zobacz profil
-                  </Link>
-                </Button>
+            </div>
+            {/* DANE OSOBY WNIOSKUJĄCEJ */}
+            <ul className="text-sm leading-6 font-medium md:text-base md:leading-7">
+              <li>Imię i nazwisko: {user.fullName}</li>
+              <li>
+                Wiek:{" "}
+                {user.dateOfBirth
+                  ? calculateAge(user.dateOfBirth)
+                  : "Brak danych"}
+              </li>
+              <li>Adres zamieszkania: {formatAddress(user)}</li>
+              <li>Płeć: {formatUserGender(user.gender)}</li>
+              <li>Numer telefonu: {user.phoneNumber || "Brak danych"}</li>
+              <li>
+                Notatka administratora: {user.adminNote || "Brak notatki"}
+              </li>
+            </ul>
+            {/* WIADOMOŚĆ WNIOSKUJĄCEGO */}
+            <div className="flex-1 space-y-2">
+              <Label htmlFor="message">Wiadomość wnioskującego</Label>
+              <Textarea
+                id="message"
+                {...register("message")}
+                className="h-50 resize-none lg:h-75"
+                placeholder="Brak wiadomości od wnioskującego"
+                disabled
+              />
+              {errors.message && (
+                <p className="text-red-600">{errors.message.message}</p>
               )}
-              {/* WIADOMOŚĆ WNIOSKUJĄCEGO */}
-              <div className="flex-1 space-y-2">
-                <Label htmlFor="message">Wiadomość wnioskującego</Label>
-                <Textarea
-                  id="message"
-                  {...register("message")}
-                  className="h-50 resize-none lg:h-75"
-                  placeholder="Brak wiadomości od wnioskującego"
-                  disabled
-                />
-                {errors.message && (
-                  <p className="text-red-600">{errors.message.message}</p>
-                )}
-              </div>
-              {/* DECYZJA O ADOPCJI */}
-              <div className="space-y-2">
-                <div>
-                  <p className="text-sm leading-6 font-semibold md:text-base md:leading-7">
-                    Ostateczna decyzja o adopcji
-                  </p>
-                  <p className="text-muted-foreground text-xs leading-5 md:text-sm md:leading-6">
-                    Musisz najpierw dodać odpowiedź pracownika, aby móc podjąć
-                    decyzję.
-                  </p>
-                </div>
-                <div className="flex flex-wrap items-center gap-2 lg:gap-4">
-                  <Button
-                    type="button"
-                    variant="success"
-                    disabled={
-                      isSubmitting ||
-                      status !== "OCZEKUJACA" ||
-                      !hasEmployeeNote
-                    }
-                    onClick={handleSubmit((data) =>
-                      onSubmit(data, "ZAAKCEPTOWANA"),
-                    )}
-                  >
-                    Akceptuj
-                  </Button>
-
-                  <Button
-                    type="button"
-                    variant="destructive"
-                    disabled={
-                      isSubmitting ||
-                      status !== "OCZEKUJACA" ||
-                      !hasEmployeeNote
-                    }
-                    onClick={handleSubmit((data) =>
-                      onSubmit(data, "ODRZUCONA"),
-                    )}
-                  >
-                    Odrzuć
-                  </Button>
-
-                  <Button
-                    type="button"
-                    variant="canceled"
-                    disabled={
-                      isSubmitting ||
-                      status !== "OCZEKUJACA" ||
-                      !hasEmployeeNote
-                    }
-                    onClick={handleSubmit((data) =>
-                      onSubmit(data, "ANULOWANA"),
-                    )}
-                  >
-                    Anuluj
-                  </Button>
-                </div>
-              </div>
-            </section>
-            {/* ZWIERZE ADOPTOWANE */}
-            <section className="space-y-4 lg:space-y-6">
-              {/* AVATAR */}
-              <div className="space-y-4">
-                <h2 className="font-semibold">Dane zwierzęcia adoptowanego</h2>
-                <div className="relative grid aspect-square w-60 place-items-center rounded-full bg-black/10">
-                  {animal.imageUrl?.[0] ? (
-                    <img
-                      src={animal.imageUrl[0]}
-                      alt={animal.name}
-                      className="absolute h-full w-full rounded-full object-cover"
-                    />
-                  ) : (
-                    <ImageOff className="absolute size-15 object-cover text-black opacity-20 md:size-20" />
-                  )}
-                </div>
-              </div>
-              {/* DANE ZWIERZĘCIA ADOPTOWANEGO */}
-              <ul className="text-sm leading-6 font-medium md:text-base md:leading-7">
-                <li>Imię: {animal.name}</li>
-                <li>Wiek: {calculateAge(animal.dateOfBirth)}</li>
-                <li>Typ: {formatAnimalType[animal.type] ?? animal.type}</li>
-                <li>Płeć: {formatAnimalGender(animal.gender)}</li>
-                <li>
-                  Stan zdrowia:{" "}
-                  {formatAnimalHealthStatus[animal.healthStatus] ??
-                    animal.healthStatus}
-                </li>
-                <li>Cechy: {animal.traits}</li>
-              </ul>
-              <Button variant="success" asChild className="w-full sm:w-fit">
-                <Link to={`/zwierzeta/${animal.id}`}>Zobacz profil</Link>
-              </Button>
-              {/* ODPOWIEDŹ PRACOWNIKA */}
-              <div className="flex-1 space-y-2">
-                <Label htmlFor="employeeNote">Odpowiedź pracownika</Label>
-                <Textarea
-                  id="employeeNote"
-                  {...register("employeeNote")}
-                  placeholder="Dodaj odpowiedź dla wnioskującego (np. powód odrzucenia wniosku)"
-                  className="h-50 resize-none lg:h-75"
-                  disabled={status !== "OCZEKUJACA"}
-                />
-                {errors.employeeNote && (
-                  <p className="text-red-600">{errors.employeeNote.message}</p>
-                )}
-              </div>
-              {/* WIADOMOSCI DO WNIOSKUJĄCEGO*/}
-              <div className="space-y-2">
+            </div>
+            {/* DECYZJA O ADOPCJI */}
+            <div className="space-y-2">
+              <div>
                 <p className="text-sm leading-6 font-semibold md:text-base md:leading-7">
-                  Szablony wiadomości
+                  Ostateczna decyzja o adopcji
                 </p>
-                <div className="flex flex-wrap items-center gap-2 lg:gap-4">
-                  <Button
-                    type="button"
-                    variant="success"
-                    disabled={isSubmitting || status !== "OCZEKUJACA"}
-                    onClick={() =>
-                      applyTemplate(
-                        getAcceptanceTemplate(user.fullName, animal.name),
-                      )
-                    }
-                  >
-                    Akceptacja
-                  </Button>
-
-                  <Button
-                    type="button"
-                    variant="destructive"
-                    disabled={isSubmitting || status !== "OCZEKUJACA"}
-                    onClick={() =>
-                      applyTemplate(
-                        getRejectionTemplate(user.fullName, animal.name),
-                      )
-                    }
-                  >
-                    Odrzucenie
-                  </Button>
-
-                  <Button
-                    type="button"
-                    variant="canceled"
-                    disabled={isSubmitting || status !== "OCZEKUJACA"}
-                    onClick={() =>
-                      applyTemplate(
-                        getCancellationTemplate(user.fullName, animal.name),
-                      )
-                    }
-                  >
-                    Anulacja
-                  </Button>
-                </div>
+                <p className="text-muted-foreground text-xs leading-5 md:text-sm md:leading-6">
+                  Musisz najpierw dodać odpowiedź pracownika, aby móc podjąć
+                  decyzję.
+                </p>
               </div>
-            </section>
-          </div>
-        </form>
+              <div className="flex flex-wrap items-center gap-2 lg:gap-4">
+                <Button
+                  type="button"
+                  variant="success"
+                  disabled={
+                    isSubmitting || status !== "OCZEKUJACA" || !hasEmployeeNote
+                  }
+                  onClick={handleSubmit((data) =>
+                    onSubmit(data, "ZAAKCEPTOWANA"),
+                  )}
+                >
+                  Akceptuj
+                </Button>
+
+                <Button
+                  type="button"
+                  variant="destructive"
+                  disabled={
+                    isSubmitting || status !== "OCZEKUJACA" || !hasEmployeeNote
+                  }
+                  onClick={handleSubmit((data) => onSubmit(data, "ODRZUCONA"))}
+                >
+                  Odrzuć
+                </Button>
+
+                <Button
+                  type="button"
+                  variant="canceled"
+                  disabled={
+                    isSubmitting || status !== "OCZEKUJACA" || !hasEmployeeNote
+                  }
+                  onClick={handleSubmit((data) => onSubmit(data, "ANULOWANA"))}
+                >
+                  Anuluj
+                </Button>
+              </div>
+            </div>
+          </section>
+          {/* ZWIERZE ADOPTOWANE */}
+          <section className="space-y-4 lg:space-y-6">
+            {/* AVATAR */}
+            <div className="space-y-4">
+              <h2 className="font-semibold">Dane zwierzęcia adoptowanego</h2>
+              <div className="relative grid aspect-square w-60 place-items-center rounded-full bg-black/10">
+                {animal.imageUrl?.[0] ? (
+                  <img
+                    src={animal.imageUrl[0]}
+                    alt={animal.name}
+                    className="absolute h-full w-full rounded-full object-cover"
+                  />
+                ) : (
+                  <ImageOff className="absolute size-15 object-cover text-black opacity-20 md:size-20" />
+                )}
+              </div>
+            </div>
+            {/* DANE ZWIERZĘCIA ADOPTOWANEGO */}
+            <ul className="text-sm leading-6 font-medium md:text-base md:leading-7">
+              <li>Imię: {animal.name}</li>
+              <li>Wiek: {calculateAge(animal.dateOfBirth)}</li>
+              <li>Typ: {formatAnimalType[animal.type] ?? animal.type}</li>
+              <li>Płeć: {formatAnimalGender(animal.gender)}</li>
+              <li>
+                Stan zdrowia:{" "}
+                {formatAnimalHealthStatus[animal.healthStatus] ??
+                  animal.healthStatus}
+              </li>
+              <li>Cechy: {animal.traits}</li>
+            </ul>
+            {/* ODPOWIEDŹ PRACOWNIKA */}
+            <div className="flex-1 space-y-2">
+              <Label htmlFor="employeeNote">Odpowiedź pracownika</Label>
+              <Textarea
+                id="employeeNote"
+                {...register("employeeNote")}
+                placeholder="Dodaj odpowiedź dla wnioskującego (np. powód odrzucenia wniosku)"
+                className="h-50 resize-none lg:h-75"
+                disabled={status !== "OCZEKUJACA"}
+              />
+              {errors.employeeNote && (
+                <p className="text-red-600">{errors.employeeNote.message}</p>
+              )}
+            </div>
+            {/* WIADOMOSCI DO WNIOSKUJĄCEGO*/}
+            <div className="space-y-2">
+              <p className="text-sm leading-6 font-semibold md:text-base md:leading-7">
+                Szablony wiadomości
+              </p>
+              <div className="flex flex-wrap items-center gap-2 lg:gap-4">
+                <Button
+                  type="button"
+                  variant="success"
+                  disabled={isSubmitting || status !== "OCZEKUJACA"}
+                  onClick={() =>
+                    applyTemplate(
+                      getAcceptanceTemplate(user.fullName, animal.name),
+                    )
+                  }
+                >
+                  Akceptacja
+                </Button>
+
+                <Button
+                  type="button"
+                  variant="destructive"
+                  disabled={isSubmitting || status !== "OCZEKUJACA"}
+                  onClick={() =>
+                    applyTemplate(
+                      getRejectionTemplate(user.fullName, animal.name),
+                    )
+                  }
+                >
+                  Odrzucenie
+                </Button>
+
+                <Button
+                  type="button"
+                  variant="canceled"
+                  disabled={isSubmitting || status !== "OCZEKUJACA"}
+                  onClick={() =>
+                    applyTemplate(
+                      getCancellationTemplate(user.fullName, animal.name),
+                    )
+                  }
+                >
+                  Anulacja
+                </Button>
+              </div>
+            </div>
+          </section>
+        </div>
+      </form>
     </DashboardPage>
   );
 };

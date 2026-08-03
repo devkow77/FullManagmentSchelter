@@ -6,6 +6,7 @@ import {
   getAnimalNeedsStatus,
   getDailyCareStatus,
   getDailyCareWorkersProgress,
+  getMyDailyCareTasks,
   getUniqueAnimal,
   updateAnimalDailyCare,
   updateUniqueAnimal,
@@ -31,6 +32,12 @@ router.get(
   authorizeRoles(Role.PRACOWNIK, Role.ADMINISTRATOR),
   getDailyCareWorkersProgress,
 ); // -- Postep pracownikow, ile procentowo zostalo zrealizowane klatek na dzis -- //
+router.get(
+  '/daily-care/my-tasks',
+  authenticateUser,
+  authorizeRoles(Role.PRACOWNIK),
+  getMyDailyCareTasks,
+); // -- Lista zwierzat z stref przypisanych zalogowanemu pracownikowi na dzis -- //
 router.get(
   '/needs/status',
   authenticateUser,

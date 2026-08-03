@@ -145,5 +145,146 @@ describe('Przypisania stref - Testy integracyjne', () => {
       expect(zoneA).toBeTruthy();
       expect(zoneA.currentWeek.workers.length).toBeGreaterThan(0);
     });
+
+    it('Nie wymaga potwierdzenia gdy ta sama strefa jest w innym tygodniu', async () => {
+      // Przypisanie strefy A w poprzednim tygodniu nie koliduje z przyszłym tygodniem.
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const day = today.getDay();
+      const mondayOffset = day === 0 ? -6 : 1 - day;
+      const currentMonday = new Date(today);
+      currentMonday.setDate(today.getDate() + mondayOffset);
+
+      const previousMonday = new Date(currentMonday);
+      previousMonday.setDate(currentMonday.getDate() - 7);
+
+      const nextMonday = new Date(currentMonday);
+      nextMonday.setDate(currentMonday.getDate() + 7);
+
+      await prisma.dailyZoneAssignment.create({
+        data: {
+          workerId,
+          zone: 'A',
+          date: new Date(
+            Date.UTC(
+              previousMonday.getFullYear(),
+              previousMonday.getMonth(),
+              previousMonday.getDate(),
+              12,
+              0,
+              0,
+            ),
+          ),
+        },
+      });
+
+      const nextMondayKey = toLocalDateInputValue(nextMonday);
+      const res = await adminAgent.post('/api/zone-assignments').send({
+        workerIds: [workerId],
+        zone: 'A',
+        dateFrom: nextMondayKey,
+        dateTo: nextMondayKey,
+      });
+
+      expect(res.status).toBe(StatusCodes.OK);
+      expect(res.body.zone).toBe('A');
+
+      const previousStillExists = await prisma.dailyZoneAssignment.findFirst({
+        where: {
+          workerId,
+          zone: 'A',
+          date: {
+            gte: previousMonday,
+            lt: currentMonday,
+          },
+        },
+      });
+      expect(previousStillExists).not.toBeNull();
+    });
+
+    it('Wymaga potwierdzenia gdy ta sama strefa jest już w tym samym tygodniu', async () => {
+      // Ponowne przypisanie strefy A w aktualnym tygodniu bez confirm → 409.
+      const today = toLocalDateInputValue();
+      const first = await adminAgent.post('/api/zone-assignments').send({
+        workerIds: [workerId],
+        zone: 'B',
+        dateFrom: today,
+        dateTo: today,
+        confirm: true,
+      });
+      expect(first.status).toBe(StatusCodes.OK);
+
+      const second = await adminAgent.post('/api/zone-assignments').send({
+        workerIds: [workerId],
+        zone: 'B',
+        dateFrom: today,
+        dateTo: today,
+      });
+
+      expect(second.status).toBe(StatusCodes.CONFLICT);
+      expect(second.body.requiresConfirmation).toBe(true);
+    });
+
+    it('Odmawia przypisania poza koniec przyszłego tygodnia', async () => {
+      // Zakres poza oknem retencji (dalej niż przyszły tydzień) → 400.
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const day = today.getDay();
+      const mondayOffset = day === 0 ? -6 : 1 - day;
+      const currentMonday = new Date(today);
+      currentMonday.setDate(today.getDate() + mondayOffset);
+      const threeWeeksAhead = new Date(currentMonday);
+      threeWeeksAhead.setDate(currentMonday.getDate() + 21);
+      const tooFar = toLocalDateInputValue(threeWeeksAhead);
+
+      const res = await adminAgent.post('/api/zone-assignments').send({
+        workerIds: [workerId],
+        zone: 'C',
+        dateFrom: tooFar,
+        dateTo: tooFar,
+      });
+
+      expect(res.status).toBe(StatusCodes.BAD_REQUEST);
+      expect(res.body.msg).toBe(
+        'Można przypisywać strefy maksymalnie do końca przyszłego tygodnia.',
+      );
+    });
+
+    it('Usuwa przypisania starsze niż 2 tygodnie wstecz przy overview', async () => {
+      // Po wejściu w przegląd stare wpisy poza oknem retencji znikają z bazy.
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const day = today.getDay();
+      const mondayOffset = day === 0 ? -6 : 1 - day;
+      const currentMonday = new Date(today);
+      currentMonday.setDate(today.getDate() + mondayOffset);
+      const threeWeeksAgo = new Date(currentMonday);
+      threeWeeksAgo.setDate(currentMonday.getDate() - 21);
+
+      const created = await prisma.dailyZoneAssignment.create({
+        data: {
+          workerId,
+          zone: 'D',
+          date: new Date(
+            Date.UTC(
+              threeWeeksAgo.getFullYear(),
+              threeWeeksAgo.getMonth(),
+              threeWeeksAgo.getDate(),
+              12,
+              0,
+              0,
+            ),
+          ),
+        },
+      });
+
+      const res = await adminAgent.get('/api/zone-assignments/workers-overview');
+      expect(res.status).toBe(StatusCodes.OK);
+
+      const leftover = await prisma.dailyZoneAssignment.findUnique({
+        where: { id: created.id },
+      });
+      expect(leftover).toBeNull();
+    });
   });
 });

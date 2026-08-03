@@ -106,8 +106,64 @@ const eachDateInRange = (from: Date, to: Date) => {
 const formatWeekLabel = (from: Date, to: Date) =>
   `${from.toLocaleDateString('pl-PL')} – ${to.toLocaleDateString('pl-PL')}`;
 
+/** Lokalna data z klucza RRRR-MM-DD (bez przesunięć UTC). */
+const localDateFromKey = (value: string) => {
+  const [year, month, day] = value.split('-').map(Number);
+  return new Date(year!, month! - 1, day!);
+};
+
+/**
+ * Okno przechowywania: przyszły tydzień, aktualny, poprzedni i 2 tygodnie temu.
+ * Starsze / dalsze przypisania są usuwane z bazy.
+ */
+const getAssignableWeeksWindow = (reference = new Date()) => {
+  const today = new Date(reference);
+  today.setHours(0, 0, 0, 0);
+
+  const currentWeekStart = startOfWeekMonday(today);
+  const nextWeekStart = new Date(currentWeekStart);
+  nextWeekStart.setDate(nextWeekStart.getDate() + 7);
+  const previousWeekStart = new Date(currentWeekStart);
+  previousWeekStart.setDate(previousWeekStart.getDate() - 7);
+  const twoWeeksAgoStart = new Date(currentWeekStart);
+  twoWeeksAgoStart.setDate(twoWeeksAgoStart.getDate() - 14);
+  const retentionEnd = endOfWeekSunday(nextWeekStart);
+
+  return {
+    today,
+    currentWeekStart,
+    nextWeekStart,
+    previousWeekStart,
+    twoWeeksAgoStart,
+    retentionStart: twoWeeksAgoStart,
+    retentionEnd,
+    maxAssignableDateKey: toDateKey(retentionEnd),
+  };
+};
+
+/** Pełne tygodnie (pn–nd) nachodzące na podany zakres dat. */
+const getTouchedWeeksRange = (dateFromKey: string, dateToKey: string) => {
+  const fromWeekStart = startOfWeekMonday(localDateFromKey(dateFromKey));
+  const toWeekStart = startOfWeekMonday(localDateFromKey(dateToKey));
+  return {
+    weekRangeStart: fromWeekStart,
+    weekRangeEnd: endOfWeekSunday(toWeekStart),
+  };
+};
+
+const purgeAssignmentsOutsideRetentionWindow = async () => {
+  const { retentionStart, retentionEnd } = getAssignableWeeksWindow();
+  await prisma.dailyZoneAssignment.deleteMany({
+    where: {
+      OR: [{ date: { lt: retentionStart } }, { date: { gt: retentionEnd } }],
+    },
+  });
+};
+
 export const assignZoneRange = async (req: Request, res: Response) => {
   try {
+    await purgeAssignmentsOutsideRetentionWindow();
+
     const body = req.body as {
       workerIds?: unknown;
       workerId?: unknown;
@@ -177,6 +233,13 @@ export const assignZoneRange = async (req: Request, res: Response) => {
       });
     }
 
+    const { maxAssignableDateKey } = getAssignableWeeksWindow();
+    if (dateToRaw > maxAssignableDateKey) {
+      return res.status(StatusCodes.BAD_REQUEST).json({
+        msg: 'Można przypisywać strefy maksymalnie do końca przyszłego tygodnia.',
+      });
+    }
+
     const dayCount =
       Math.floor((dateTo.getTime() - dateFrom.getTime()) / 86_400_000) + 1;
     if (dayCount > MAX_RANGE_DAYS) {
@@ -201,12 +264,20 @@ export const assignZoneRange = async (req: Request, res: Response) => {
 
     const dates = eachDateInRange(dateFrom, dateTo);
     const confirm = body.confirm === true;
+    const { weekRangeStart, weekRangeEnd } = getTouchedWeeksRange(
+      dateFromRaw,
+      dateToRaw,
+    );
 
-    // Konflikt tylko gdy ci sami pracownicy mają już TĘ SAMĄ strefę (inne strefy mogą współistnieć)
+    // Konflikt tylko w tygodniach objętych nowym zakresem — inne tygodnie są niezależne
     const existingSameZone = await prisma.dailyZoneAssignment.findMany({
       where: {
         workerId: { in: workerIds },
         zone,
+        date: {
+          gte: weekRangeStart,
+          lte: weekRangeEnd,
+        },
       },
       select: {
         date: true,
@@ -252,7 +323,7 @@ export const assignZoneRange = async (req: Request, res: Response) => {
 
       return res.status(StatusCodes.CONFLICT).json({
         requiresConfirmation: true,
-        msg: 'Wybrani pracownicy mają już przypisaną tę strefę.',
+        msg: 'Wybrani pracownicy mają już przypisaną tę strefę w wybranym tygodniu.',
         conflicts,
       });
     }
@@ -265,12 +336,16 @@ export const assignZoneRange = async (req: Request, res: Response) => {
       })),
     );
 
-    // Usuń tylko tę strefę u wybranych pracowników (inne ich strefy zostają), potem zapisz nowy zakres
+    // Nadpisz tylko w tygodniach objętych zakresem (inne tygodnie i inne strefy zostają)
     await prisma.$transaction([
       prisma.dailyZoneAssignment.deleteMany({
         where: {
           workerId: { in: workerIds },
           zone,
+          date: {
+            gte: weekRangeStart,
+            lte: weekRangeEnd,
+          },
         },
       }),
       prisma.dailyZoneAssignment.createMany({ data: payload }),
@@ -297,16 +372,14 @@ export const assignZoneRange = async (req: Request, res: Response) => {
 
 export const getWorkersZoneOverview = async (_req: Request, res: Response) => {
   try {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
+    await purgeAssignmentsOutsideRetentionWindow();
 
-    const currentWeekStart = startOfWeekMonday(today);
-    const nextWeekStart = new Date(currentWeekStart);
-    nextWeekStart.setDate(nextWeekStart.getDate() + 7);
-    const previousWeekStart = new Date(currentWeekStart);
-    previousWeekStart.setDate(previousWeekStart.getDate() - 7);
-    const twoWeeksAgoStart = new Date(currentWeekStart);
-    twoWeeksAgoStart.setDate(twoWeeksAgoStart.getDate() - 14);
+    const {
+      currentWeekStart,
+      nextWeekStart,
+      previousWeekStart,
+      twoWeeksAgoStart,
+    } = getAssignableWeeksWindow();
 
     const weeks = {
       current: {
@@ -546,10 +619,9 @@ export const getCurrentWeekCoverageStatus = async (
   res: Response,
 ) => {
   try {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
+    await purgeAssignmentsOutsideRetentionWindow();
 
-    const weekStart = startOfWeekMonday(today);
+    const { currentWeekStart: weekStart } = getAssignableWeeksWindow();
     const weekEnd = endOfWeekSunday(weekStart);
 
     const [cages, assignments] = await Promise.all([

@@ -4,6 +4,7 @@ import { type Request, type Response } from 'express';
 import { animalSchema } from '../validators/animal.validator';
 import { triggerNewAnimalNotification } from '../services/emailService';
 import { AnimalStatus } from '../generated/prisma/enums';
+import type { Prisma } from '../generated/prisma/client';
 import { animalListSelect, animalSelect } from '../selects/animal.select';
 import {
   BadRequestError,
@@ -71,9 +72,6 @@ const getAnimalListSelect = (includeDailyCare: boolean) => {
         fed: true,
         watered: true,
         cleaned: true,
-        fedBy: { select: dailyCareUserSelect },
-        wateredBy: { select: dailyCareUserSelect },
-        cleanedBy: { select: dailyCareUserSelect },
       },
     },
   };
@@ -119,9 +117,6 @@ const mapAnimalsWithZoneWorkers = <
       fed: boolean;
       watered: boolean;
       cleaned: boolean;
-      fedBy: { id: number; fullName: string } | null;
-      wateredBy: { id: number; fullName: string } | null;
-      cleanedBy: { id: number; fullName: string } | null;
     }[];
   },
 >(
@@ -142,7 +137,7 @@ const mapAnimalsWithZoneWorkers = <
 // 1. POBIERZ WSZYSTKIE ZWIERZETA (OBSLUGA PAGINACJI JEZELI PODANO PARAMETRY)
 export const getAnimals = async (req: Request, res: Response) => {
   try {
-    const { take, skip, page, orderBy, where } = parseAnimalsQuery(req);
+    const { take, skip, page, orderBy, where } = await parseAnimalsQuery(req);
     // -- Flaga czy zwrócic dane z dzisiejszej obsługi -- //
     const includeDailyCare = req.query.dailyCare === 'true';
     const select = getAnimalListSelect(includeDailyCare);
@@ -517,6 +512,130 @@ export const getDailyCareWorkersProgress = async (
   }
 };
 
+// 6b. LISTA ZWIERZAT Z STREFT PRZYPISANYCH ZALOGOWANEMU PRACOWNIKOWI NA DZIS
+export const getMyDailyCareTasks = async (req: AuthRequest, res: Response) => {
+  if (!req.userId) {
+    return res
+      .status(StatusCodes.UNAUTHORIZED)
+      .json({ msg: 'Brak tokenu, autoryzacja odmowiona!' });
+  }
+
+  try {
+    const { start, end } = getTodayRange();
+
+    const assignments = await prisma.dailyZoneAssignment.findMany({
+      where: {
+        workerId: req.userId,
+        date: { gte: start, lt: end },
+      },
+      select: { zone: true },
+    });
+
+    const zones = [...new Set(assignments.map((item) => item.zone))];
+
+    if (zones.length === 0) {
+      const page = Math.max(1, Number(req.query.page) || 1);
+      const pageSize = Math.min(
+        50,
+        Math.max(1, Number(req.query.limit) || DEFAULT_PAGE_SIZE),
+      );
+
+      return res.status(StatusCodes.OK).json({
+        data: [],
+        total: 0,
+        page,
+        pageSize,
+        hasMore: false,
+        zones: [],
+      });
+    }
+
+    const page = Math.max(1, Number(req.query.page) || 1);
+    const pageSize = Math.min(
+      50,
+      Math.max(1, Number(req.query.limit) || DEFAULT_PAGE_SIZE),
+    );
+    const skip = (page - 1) * pageSize;
+
+    const where: Prisma.AnimalWhereInput = {
+      status: { not: AnimalStatus.ADOPTOWANY },
+      cage: { is: { zone: { in: zones } } },
+    };
+
+    const dailyCareStatus = req.query.dailyCareStatus;
+    if (typeof dailyCareStatus === 'string' && dailyCareStatus.length > 0) {
+      if (dailyCareStatus !== 'complete' && dailyCareStatus !== 'incomplete') {
+        return res.status(StatusCodes.BAD_REQUEST).json({
+          msg: 'Nieprawidlowy parametr dailyCareStatus (complete|incomplete)',
+        });
+      }
+
+      const todayCareDate = { date: { gte: start, lt: end } };
+
+      if (dailyCareStatus === 'complete') {
+        where.AND = [
+          {
+            dailyCare: {
+              some: {
+                ...todayCareDate,
+                fed: true,
+                watered: true,
+                cleaned: true,
+              },
+            },
+          },
+        ];
+      } else {
+        where.AND = [
+          {
+            OR: [
+              { dailyCare: { none: todayCareDate } },
+              {
+                dailyCare: {
+                  some: {
+                    ...todayCareDate,
+                    OR: [
+                      { fed: false },
+                      { watered: false },
+                      { cleaned: false },
+                    ],
+                  },
+                },
+              },
+            ],
+          },
+        ];
+      }
+    }
+
+    const select = getAnimalListSelect(true);
+
+    const [animals, total] = await Promise.all([
+      prisma.animal.findMany({
+        where,
+        select,
+        orderBy: [{ cage: { zone: 'asc' } }, { cage: { number: 'asc' } }],
+        take: pageSize,
+        skip,
+      }),
+      prisma.animal.count({ where }),
+    ]);
+
+    return res.status(StatusCodes.OK).json({
+      data: mapAnimalsWithZoneWorkers(animals, null),
+      total,
+      page,
+      pageSize,
+      hasMore: page * pageSize < total,
+      zones: zones.sort((a, b) => a.localeCompare(b)),
+    });
+  } catch (err) {
+    return res
+      .status(StatusCodes.INTERNAL_SERVER_ERROR)
+      .json({ msg: 'Wewnetrzny blad serwera!' });
+  }
+};
+
 // 6. SPRAWDZA CZY ZWIERZE MA AKTYWNE POTRZEBY
 export const getAnimalNeedsStatus = async (_req: Request, res: Response) => {
   try {
@@ -685,12 +804,6 @@ export const updateAnimalDailyCare = async (
       });
     }
 
-    const byIdKey =
-      field === 'fed'
-        ? 'fedById'
-        : field === 'watered'
-          ? 'wateredById'
-          : 'cleanedById';
     const atKey =
       field === 'fed'
         ? 'fedAt'
@@ -700,7 +813,6 @@ export const updateAnimalDailyCare = async (
 
     const careData = {
       [field]: value,
-      [byIdKey]: value ? req.userId : null,
       [atKey]: value ? new Date() : null,
     };
 
@@ -721,9 +833,6 @@ export const updateAnimalDailyCare = async (
         fed: true,
         watered: true,
         cleaned: true,
-        fedBy: { select: dailyCareUserSelect },
-        wateredBy: { select: dailyCareUserSelect },
-        cleanedBy: { select: dailyCareUserSelect },
       },
     });
 

@@ -49,6 +49,7 @@ import {
   AddMedicalRecordPage,
   EditMedicalRecordPage,
   DailyAnimalNeedsPage,
+  MyDailyDutiesPage,
   AnimalDemandsPage,
   AddDemandPage,
 } from "./pages/worker";
@@ -217,6 +218,34 @@ const router = createBrowserRouter([
       },
     ],
   },
+  // SCIEZKI TYLKO ADMINISTRATORA (poza /admin) //
+  {
+    element: (
+      <ProtectedRoute requiredRole={["ADMINISTRATOR"]}>
+        <NavbarOnlyLayout />
+      </ProtectedRoute>
+    ),
+    children: [
+      {
+        path: "/pracownik/codzienne-obowiazki",
+        element: <DailyAnimalNeedsPage />,
+      },
+    ],
+  },
+  // SCIEZKI PRACOWNIKA //
+  {
+    element: (
+      <ProtectedRoute requiredRole={["PRACOWNIK"]}>
+        <NavbarOnlyLayout />
+      </ProtectedRoute>
+    ),
+    children: [
+      {
+        path: "/pracownik/moje-obowiazki",
+        element: <MyDailyDutiesPage />,
+      },
+    ],
+  },
   // SCIEZKI PRACOWNIKA I ADMINISTRATORA //
   {
     element: (
@@ -264,10 +293,6 @@ const router = createBrowserRouter([
       {
         path: "/pracownik/raporty-medyczne/:id/edycja",
         element: <EditMedicalRecordPage />,
-      },
-      {
-        path: "/pracownik/codzienne-obowiazki",
-        element: <DailyAnimalNeedsPage />,
       },
       {
         path: "/pracownik/zapotrzebowania-zwierzat",

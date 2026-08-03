@@ -20,7 +20,7 @@ const pendingMedicalRecordsQueryKey = [
   "pending-count",
 ] as const;
 
-const dailyTasksHref = "/pracownik/codzienne-obowiazki";
+const dailyTasksHref = "/pracownik/moje-obowiazki";
 const adoptionsHref = "/admin/adopcje";
 const medicalRecordsHref = "/pracownik/raporty-medyczne";
 const needsHref = "/pracownik/zapotrzebowania-zwierzat";

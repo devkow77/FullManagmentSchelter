@@ -58,6 +58,22 @@ const todayDate = () => {
 
 const minAssignableDate = toLocalDateInputValue(todayDate());
 
+const startOfWeekMonday = (input = new Date()) => {
+  const date = new Date(input);
+  date.setHours(0, 0, 0, 0);
+  const day = date.getDay();
+  const diff = day === 0 ? -6 : 1 - day;
+  date.setDate(date.getDate() + diff);
+  return date;
+};
+
+const maxAssignableDate = (() => {
+  const currentMonday = startOfWeekMonday(todayDate());
+  const nextWeekSunday = new Date(currentMonday);
+  nextWeekSunday.setDate(currentMonday.getDate() + 13);
+  return toLocalDateInputValue(nextWeekSunday);
+})();
+
 const assignmentSchema = z
   .object({
     workerIds: z
@@ -81,6 +97,16 @@ const assignmentSchema = z
   })
   .refine((data) => data.dateTo >= minAssignableDate, {
     message: "Nie można przypisywać stref do dni z przeszłości.",
+    path: ["dateTo"],
+  })
+  .refine((data) => data.dateFrom <= maxAssignableDate, {
+    message:
+      "Można przypisywać strefy maksymalnie do końca przyszłego tygodnia.",
+    path: ["dateFrom"],
+  })
+  .refine((data) => data.dateTo <= maxAssignableDate, {
+    message:
+      "Można przypisywać strefy maksymalnie do końca przyszłego tygodnia.",
     path: ["dateTo"],
   })
   .refine(
@@ -160,15 +186,6 @@ type WorkersZoneOverviewResponse = {
   };
   workers: WorkerZoneRow[];
   zones: ZoneCoverageRow[];
-};
-
-const startOfWeekMonday = (input = new Date()) => {
-  const date = new Date(input);
-  date.setHours(0, 0, 0, 0);
-  const day = date.getDay();
-  const diff = day === 0 ? -6 : 1 - day;
-  date.setDate(date.getDate() + diff);
-  return date;
 };
 
 const clampToTodayOrLater = (date: Date) => {
@@ -495,6 +512,7 @@ const WorkWeekPage = () => {
   const defaultDateFrom = toLocalDateInputValue(clampToTodayOrLater(weekStart));
   const defaultDateTo = toLocalDateInputValue(clampToTodayOrLater(weekEnd));
   const minDate = minAssignableDate;
+  const maxDate = maxAssignableDate;
 
   const { data: workers = [] } = useQuery({
     queryKey: workersQueryKey,
@@ -607,9 +625,10 @@ const WorkWeekPage = () => {
             </h2>
             <p className="text-sm leading-6 font-medium md:text-base md:leading-7">
               Wybierz jednego lub wielu pracowników, strefę oraz zakres dni.
-              Pracownik może mieć kilka różnych stref. <br />
-              Ponowne przypisanie tej samej strefy wymaga potwierdzenia i
-              nadpisuje jej poprzedni zakres.
+              Pracownik może mieć kilka różnych stref. Tygodnie są niezależne.
+              <br />
+              Ponowne przypisanie tej samej strefy w tym samym tygodniu wymaga
+              potwierdzenia i nadpisuje jej zakres tylko w tym tygodniu.
             </p>
           </div>
 
@@ -667,6 +686,7 @@ const WorkWeekPage = () => {
                 id="dateFrom"
                 type="date"
                 min={minDate}
+                max={maxDate}
                 {...register("dateFrom")}
                 className={errors.dateFrom ? "bg-red-600/20" : undefined}
               />
@@ -683,6 +703,7 @@ const WorkWeekPage = () => {
                 id="dateTo"
                 type="date"
                 min={minDate}
+                max={maxDate}
                 {...register("dateTo")}
                 className={errors.dateTo ? "bg-red-600/20" : undefined}
               />
@@ -941,8 +962,9 @@ const WorkWeekPage = () => {
             <AlertDialogDescription asChild>
               <div className="text-muted-foreground space-y-3 text-sm">
                 <p>
-                  Wybrani pracownicy mają już przypisaną tę strefę. Po
-                  potwierdzeniu jej zakres dat zostanie nadpisany:
+                  Wybrani pracownicy mają już przypisaną tę strefę w wybranym
+                  tygodniu. Po potwierdzeniu jej zakres dat w tym tygodniu
+                  zostanie nadpisany:
                 </p>
                 <ul className="text-foreground list-disc space-y-1 pl-5">
                   {conflicts.map((conflict) => (
