@@ -44,14 +44,21 @@ const RegisterForm = () => {
 
   const onSubmit = async (data: RegisterFormData) => {
     try {
-      const res = await axios.post("/api/auth/register", data);
-      toast.info(res.data.msg);
-      navigate("/login");
+      const res = await axios.post<{
+        msg: string;
+        email: string;
+        requiresEmailVerification?: boolean;
+      }>("/api/auth/register", data);
+
+      toast.success(res.data.msg);
+      navigate(
+        `/weryfikacja-email?email=${encodeURIComponent(res.data.email)}`,
+      );
     } catch (err: unknown) {
       if (err instanceof AxiosError) {
-        toast.info(err.response?.data.msg);
+        toast.error(err.response?.data.msg ?? "Wystąpił błąd rejestracji");
       } else {
-        toast.info("Wystąpił nieoczekiwany błąd");
+        toast.error("Wystąpił nieoczekiwany błąd");
       }
     }
   };

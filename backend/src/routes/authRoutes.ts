@@ -8,12 +8,16 @@ import {
   disableTwoFactor,
   verifyTwoFactorCode,
   loginWithTotp,
+  verifyEmail,
+  resendVerificationEmail,
 } from '../controllers/authControllers';
 import { authenticateUser } from '../middlewares/auth.middleware';
 
 const router = Router();
 
 router.post('/register', registerAccount);
+router.post('/verify-email', verifyEmail);
+router.post('/resend-verification', resendVerificationEmail);
 router.post('/login', loginToAccount);
 router.get('/info', authenticateUser, authInfo);
 router.post('/logout', authenticateUser, logout);

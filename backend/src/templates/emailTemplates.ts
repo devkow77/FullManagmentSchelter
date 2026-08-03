@@ -282,3 +282,45 @@ export const newAnimalText = (params: {
   unsubscribeUrl: string;
 }) =>
   `${params.animalName} szuka domu!\n\nTyp: ${params.typeLabel}\nPłeć: ${params.genderLabel}\n\n${params.description}\n\nZobacz więcej: ${params.animalsUrl}\n\nWypisz się: ${params.unsubscribeUrl}`;
+
+export const emailVerificationTemplate = (
+  code: string,
+  verifyUrl: string,
+  frontendUrl: string,
+) =>
+  emailLayout(
+    `
+<tr>
+  <td style="padding:40px 40px 24px;text-align:center;">
+    <div style="width:64px;height:64px;margin:0 auto 20px;background-color:${COLORS.green100};border-radius:50%;line-height:64px;font-size:28px;">🔐</div>
+    <h2 style="margin:0 0 12px;font-size:22px;font-weight:700;color:${COLORS.green900};">Potwierdź swój adres email</h2>
+    <p style="margin:0;font-size:15px;color:${COLORS.gray600};line-height:1.7;max-width:420px;margin-left:auto;margin-right:auto;">
+      Aby dokończyć rejestrację, wpisz poniższy kod na stronie weryfikacji albo skorzystaj z przycisku poniżej.
+    </p>
+  </td>
+</tr>
+<tr>
+  <td style="padding:0 40px 28px;text-align:center;">
+    <p style="margin:0 0 12px;font-size:13px;font-weight:600;color:${COLORS.green800};text-transform:uppercase;letter-spacing:0.08em;">Twój kod weryfikacyjny</p>
+    <div style="display:inline-block;background-color:${COLORS.green50};border:2px dashed ${COLORS.green600};border-radius:12px;padding:16px 28px;">
+      <span style="font-size:32px;font-weight:700;letter-spacing:0.35em;color:${COLORS.green900};font-family:'Courier New',Courier,monospace;">${escapeHtml(code)}</span>
+    </div>
+    <p style="margin:16px 0 0;font-size:13px;color:${COLORS.gray500};">Kod jest ważny przez 15 minut.</p>
+  </td>
+</tr>
+${ctaButton(verifyUrl, 'Przejdź do weryfikacji')}
+<tr>
+  <td style="padding:0 40px 32px;text-align:center;">
+    <p style="margin:0;font-size:12px;color:${COLORS.gray400};line-height:1.6;">
+      Jeśli to nie Ty zakładałeś konto, zignoruj tę wiadomość.
+    </p>
+  </td>
+</tr>
+`,
+    `Twój kod weryfikacyjny: ${code}`,
+    frontendUrl,
+  );
+
+export const emailVerificationText = (code: string, verifyUrl: string) =>
+  `Potwierdź swój adres email\n\nTwój kod weryfikacyjny: ${code}\n\nKod jest ważny przez 15 minut.\n\nMożesz też otworzyć stronę weryfikacji: ${verifyUrl}\n\nJeśli to nie Ty zakładałeś konto, zignoruj tę wiadomość.`;
+

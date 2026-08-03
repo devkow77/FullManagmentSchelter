@@ -20,9 +20,10 @@ const app = express();
 app.use(
   cors({
     origin:
-      process.env.NODE_ENV === 'production'
+      process.env.FRONTEND_URL ??
+      (process.env.NODE_ENV === 'production'
         ? 'https://shelter-with-ai-chatbox.vercel.app'
-        : 'http://localhost:5173',
+        : 'http://localhost:5174'),
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
     credentials: true,
   }),

@@ -621,6 +621,7 @@ export const createUser = async (req: Request, res: Response) => {
       data: {
         ...userData,
         password: hashedPassword,
+        isEmailVerified: true,
       },
       select: userDetailSelect,
     });

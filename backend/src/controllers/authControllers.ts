@@ -1,6 +1,11 @@
-import { type Request, type Response } from 'express';
+﻿import { type Request, type Response } from 'express';
 import prisma from '../prisma';
-import { loginSchema, registerSchema } from '../validators/auth.validator';
+import {
+  loginSchema,
+  registerSchema,
+  resendVerificationSchema,
+  verifyEmailSchema,
+} from '../validators/auth.validator';
 import { StatusCodes } from 'http-status-codes';
 import bcrypt from 'bcrypt';
 import { generateToken } from '../utils/jwt';
@@ -8,6 +13,21 @@ import { AuthRequest } from '../middlewares/auth.middleware';
 import speakeasy from 'speakeasy';
 import QRCode from 'qrcode';
 import jwt from 'jsonwebtoken';
+import { sendEmailVerification } from '../services/emailService';
+
+const EMAIL_CODE_TTL_MS = 15 * 60 * 1000;
+
+const createVerificationCode = () =>
+  String(Math.floor(100_000 + Math.random() * 900_000));
+
+const buildVerificationPayload = () => {
+  const code = createVerificationCode();
+  return {
+    code,
+    emailVerificationCode: code,
+    emailVerificationExpires: new Date(Date.now() + EMAIL_CODE_TTL_MS),
+  };
+};
 
 // 1. Rejestracja nowego konta użytkownika
 export const registerAccount = async (req: Request, res: Response) => {
@@ -19,15 +39,36 @@ export const registerAccount = async (req: Request, res: Response) => {
       .json({ msg: 'Nieprawidłowy format danych!' });
   }
 
-  const { fullName, email, password } = req.body;
+  const { fullName, email, password } = parsedBody.data;
 
   try {
     const existingUser = await prisma.user.findUnique({ where: { email } });
+    const verification = buildVerificationPayload();
 
     if (existingUser) {
-      return res
-        .status(StatusCodes.CONFLICT)
-        .json({ msg: 'Konto o podanym emailu już istnieje!' });
+      if (existingUser.isEmailVerified) {
+        return res
+          .status(StatusCodes.CONFLICT)
+          .json({ msg: 'Konto o podanym emailu już istnieje!' });
+      }
+
+      await prisma.user.update({
+        where: { id: existingUser.id },
+        data: {
+          fullName,
+          password: await bcrypt.hash(password, 10),
+          emailVerificationCode: verification.emailVerificationCode,
+          emailVerificationExpires: verification.emailVerificationExpires,
+        },
+      });
+
+      await sendEmailVerification(email, verification.code);
+
+      return res.status(StatusCodes.OK).json({
+        msg: 'Na podany adres email wysłano kod weryfikacyjny.',
+        email,
+        requiresEmailVerification: true,
+      });
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
@@ -37,14 +78,123 @@ export const registerAccount = async (req: Request, res: Response) => {
         fullName,
         email,
         password: hashedPassword,
+        isEmailVerified: false,
+        emailVerificationCode: verification.emailVerificationCode,
+        emailVerificationExpires: verification.emailVerificationExpires,
       },
     });
 
-    return res
-      .status(StatusCodes.CREATED)
-      .json({ msg: 'Utworzono pomyślnie nowego użytkownika!' });
+    await sendEmailVerification(email, verification.code);
+
+    return res.status(StatusCodes.CREATED).json({
+      msg: 'Na podany adres email wysłano kod weryfikacyjny.',
+      email,
+      requiresEmailVerification: true,
+    });
   } catch (err) {
-    res
+    console.error('[registerAccount]', err);
+    return res
+      .status(StatusCodes.INTERNAL_SERVER_ERROR)
+      .json({ msg: 'Wewnętrzny błąd serwera!' });
+  }
+};
+
+export const verifyEmail = async (req: Request, res: Response) => {
+  const parsedBody = verifyEmailSchema.safeParse(req.body);
+
+  if (!parsedBody.success) {
+    return res
+      .status(StatusCodes.BAD_REQUEST)
+      .json({ msg: 'Nieprawidłowy format danych!' });
+  }
+
+  const { email, code } = parsedBody.data;
+
+  try {
+    const user = await prisma.user.findUnique({ where: { email } });
+
+    if (!user || user.isEmailVerified) {
+      return res.status(StatusCodes.BAD_REQUEST).json({
+        msg: user?.isEmailVerified
+          ? 'Ten adres email jest już zweryfikowany.'
+          : 'Nie znaleziono konta do weryfikacji.',
+      });
+    }
+
+    if (
+      !user.emailVerificationCode ||
+      !user.emailVerificationExpires ||
+      user.emailVerificationExpires.getTime() < Date.now()
+    ) {
+      return res.status(StatusCodes.BAD_REQUEST).json({
+        msg: 'Kod weryfikacyjny wygasł. Wyślij nowy kod.',
+      });
+    }
+
+    if (user.emailVerificationCode !== code) {
+      return res.status(StatusCodes.BAD_REQUEST).json({
+        msg: 'Nieprawidłowy kod weryfikacyjny.',
+      });
+    }
+
+    await prisma.user.update({
+      where: { id: user.id },
+      data: {
+        isEmailVerified: true,
+        emailVerificationCode: null,
+        emailVerificationExpires: null,
+      },
+    });
+
+    return res.status(StatusCodes.OK).json({
+      msg: 'Adres email został potwierdzony. Możesz się zalogować.',
+    });
+  } catch (err) {
+    console.error('[verifyEmail]', err);
+    return res
+      .status(StatusCodes.INTERNAL_SERVER_ERROR)
+      .json({ msg: 'Wewnętrzny błąd serwera!' });
+  }
+};
+
+export const resendVerificationEmail = async (req: Request, res: Response) => {
+  const parsedBody = resendVerificationSchema.safeParse(req.body);
+
+  if (!parsedBody.success) {
+    return res
+      .status(StatusCodes.BAD_REQUEST)
+      .json({ msg: 'Nieprawidłowy format danych!' });
+  }
+
+  const { email } = parsedBody.data;
+
+  try {
+    const user = await prisma.user.findUnique({ where: { email } });
+
+    if (!user || user.isEmailVerified) {
+      return res.status(StatusCodes.OK).json({
+        msg: 'Jeśli konto wymaga weryfikacji, wysłaliśmy nowy kod na podany adres email.',
+      });
+    }
+
+    const verification = buildVerificationPayload();
+
+    await prisma.user.update({
+      where: { id: user.id },
+      data: {
+        emailVerificationCode: verification.emailVerificationCode,
+        emailVerificationExpires: verification.emailVerificationExpires,
+      },
+    });
+
+    await sendEmailVerification(email, verification.code);
+
+    return res.status(StatusCodes.OK).json({
+      msg: 'Jeśli konto wymaga weryfikacji, wysłaliśmy nowy kod na podany adres email.',
+    });
+  } catch (err) {
+    console.error('[resendVerificationEmail]', err);
+    return res
       .status(StatusCodes.INTERNAL_SERVER_ERROR)
       .json({ msg: 'Wewnętrzny błąd serwera!' });
   }
@@ -60,12 +210,11 @@ export const loginToAccount = async (req: Request, res: Response) => {
       .json({ msg: 'Niepoprawny format danych!' });
   }
 
-  const { email, password } = parsedBody.data; // Używaj danych zwalidowanych przez Zod
+  const { email, password } = parsedBody.data;
 
   try {
     const existingUser = await prisma.user.findUnique({ where: { email } });
 
-    // Generyczny komunikat błędu (nie podpowiadamy, czy zawiódł mail czy hasło)
     if (!existingUser) {
       return res
         .status(StatusCodes.UNAUTHORIZED)
@@ -80,25 +229,36 @@ export const loginToAccount = async (req: Request, res: Response) => {
         .json({ msg: 'Niepoprawny email lub hasło!' });
     }
 
+    if (!existingUser.isEmailVerified) {
+      return res.status(StatusCodes.FORBIDDEN).json({
+        msg: 'Potwierdź adres email przed logowaniem.',
+        requiresEmailVerification: true,
+        email: existingUser.email,
+      });
+    }
+
     if (existingUser.isBanned) {
       return res
         .status(StatusCodes.FORBIDDEN)
         .json({ msg: 'Twoje konto zostało zablokowane!' });
     }
 
-    // Jeżeli użytkownik ma 2FA włączone
-    if (existingUser.twoFactorEnabled){
-      const tempToken = jwt.sign({userId: existingUser.id, twoFactorEnabled: true}, process.env.JWT_SECRET!, {expiresIn: '5m'});
-      return res.status(StatusCodes.OK).json({requires2FA: true, tempToken})
+    if (existingUser.twoFactorEnabled) {
+      const tempToken = jwt.sign(
+        { userId: existingUser.id, twoFactorEnabled: true },
+        process.env.JWT_SECRET!,
+        { expiresIn: '5m' },
+      );
+      return res
+        .status(StatusCodes.OK)
+        .json({ requires2FA: true, tempToken });
     }
 
-    // Etap logowania bez 2FA
     const token = generateToken({
       userId: existingUser.id,
       userRole: existingUser.role,
     });
 
-    // Wyciągamy dane bez hasła
     const userResponse = {
       id: existingUser.id,
       fullName: existingUser.fullName,
@@ -112,7 +272,7 @@ export const loginToAccount = async (req: Request, res: Response) => {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
         sameSite: 'strict',
-        maxAge: 1000 * 3600 * 24, // Zwiększyłem do 24h, żeby sesja nie wygasła za szybko
+        maxAge: 1000 * 3600 * 24,
         path: '/',
       })
       .status(StatusCodes.OK)
@@ -120,8 +280,8 @@ export const loginToAccount = async (req: Request, res: Response) => {
         user: userResponse,
       });
   } catch (err) {
-    console.error(err); // Zawsze loguj błędy na serwerze!
-    res
+    console.error('[loginToAccount]', err);
+    return res
       .status(StatusCodes.INTERNAL_SERVER_ERROR)
       .json({ msg: 'Wewnętrzny błąd serwera!' });
   }
@@ -164,7 +324,7 @@ export const authInfo = async (req: AuthRequest, res: Response) => {
 };
 
 // 4. Wylogowanie użytkownika (usuniecie tokenu)
-export const logout = (req: Request, res: Response) => {
+export const logout = (_req: Request, res: Response) => {
   res
     .clearCookie('token', {
       httpOnly: true,
@@ -239,9 +399,15 @@ export const verifyTwoFactorCode = async (req: Request, res: Response) => {
   const token = req.cookies.token;
   const { code } = req.body;
 
-  if (!token) return res.status(StatusCodes.UNAUTHORIZED).json({ msg: 'Brak tokenu uwierzytelniającego' });
+  if (!token)
+    return res
+      .status(StatusCodes.UNAUTHORIZED)
+      .json({ msg: 'Brak tokenu uwierzytelniającego' });
 
-  if (!code) return res.status(StatusCodes.BAD_REQUEST).json({ msg: 'Kod TOTP jest wymagany' });
+  if (!code)
+    return res
+      .status(StatusCodes.BAD_REQUEST)
+      .json({ msg: 'Kod TOTP jest wymagany' });
 
   const payload = jwt.verify(token, process.env.JWT_SECRET!) as {
     userId: number;
@@ -249,7 +415,9 @@ export const verifyTwoFactorCode = async (req: Request, res: Response) => {
 
   const user = await prisma.user.findUnique({ where: { id: payload.userId } });
   if (!user || !user.twoFactorSecret)
-    return res.status(StatusCodes.BAD_REQUEST).json({ msg: '2FA nie zostało zainicjalizowane' });
+    return res
+      .status(StatusCodes.BAD_REQUEST)
+      .json({ msg: '2FA nie zostało zainicjalizowane' });
 
   const verified = speakeasy.totp.verify({
     secret: user.twoFactorSecret,
@@ -258,14 +426,21 @@ export const verifyTwoFactorCode = async (req: Request, res: Response) => {
     window: 1,
   });
 
-  if (!verified) return res.status(StatusCodes.BAD_REQUEST).json({ msg: 'Nieprawidłowy kod TOTP' });
+  if (!verified)
+    return res
+      .status(StatusCodes.BAD_REQUEST)
+      .json({ msg: 'Nieprawidłowy kod TOTP' });
 
   await prisma.user.update({
     where: { id: user.id },
     data: { twoFactorEnabled: true },
   });
 
-  res.status(StatusCodes.OK).json({ msg: 'Uwierzytelnianie dwuetapowe włączone, nastąpi wylogowanie z konta' });
+  res
+    .status(StatusCodes.OK)
+    .json({
+      msg: 'Uwierzytelnianie dwuetapowe włączone, nastąpi wylogowanie z konta',
+    });
 };
 
 // 7. Wyłącz 2FA
@@ -310,7 +485,9 @@ export const loginWithTotp = async (req: Request, res: Response) => {
   }
 
   if (!payload.twoFactorEnabled) {
-    return res.status(StatusCodes.UNAUTHORIZED).json({ msg: 'Nieprawidłowy token' });
+    return res
+      .status(StatusCodes.UNAUTHORIZED)
+      .json({ msg: 'Nieprawidłowy token' });
   }
 
   const user = await prisma.user.findUnique({
@@ -335,7 +512,9 @@ export const loginWithTotp = async (req: Request, res: Response) => {
   });
 
   if (!verified) {
-    return res.status(StatusCodes.BAD_REQUEST).json({ msg: 'Nieprawidłowy kod' });
+    return res
+      .status(StatusCodes.BAD_REQUEST)
+      .json({ msg: 'Nieprawidłowy kod' });
   }
 
   const token = generateToken({ userId: user.id, userRole: user.role });

@@ -36,3 +36,19 @@ export const loginSchema = z.object({
     .regex(/^[^\s@]+@[^\s@]+\.[^\s@]+$/, 'Niepoprawny adres email.'),
   password: z.string().min(1, 'Hasło jest wymagane.'),
 });
+
+export const verifyEmailSchema = z.object({
+  email: z
+    .string()
+    .regex(/^[^\s@]+@[^\s@]+\.[^\s@]+$/, 'Niepoprawny adres email.'),
+  code: z
+    .string()
+    .trim()
+    .regex(/^\d{6}$/, 'Kod musi składać się z 6 cyfr.'),
+});
+
+export const resendVerificationSchema = z.object({
+  email: z
+    .string()
+    .regex(/^[^\s@]+@[^\s@]+\.[^\s@]+$/, 'Niepoprawny adres email.'),
+});

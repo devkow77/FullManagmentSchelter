@@ -1,6 +1,7 @@
 import HomePage from "./home";
 import RegisterPage from "./register";
 import LoginPage from "./login";
+import VerifyEmailPage from "./verify-email";
 import AnimalsPage from "./animals";
 import FoundAnimalsPage from "./found-animals";
 import HowToHelp from "./how-to-help";
@@ -20,6 +21,7 @@ export {
   HomePage,
   RegisterPage,
   LoginPage,
+  VerifyEmailPage,
   AnimalsPage,
   TypeAnimalPage,
   FoundAnimalsPage,

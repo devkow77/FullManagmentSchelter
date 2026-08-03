@@ -5,6 +5,7 @@ import {
   HomePage,
   RegisterPage,
   LoginPage,
+  VerifyEmailPage,
   AnimalsPage,
   TypeAnimalPage,
   FoundAnimalsPage,
@@ -144,6 +145,10 @@ const router = createBrowserRouter([
   {
     path: "/rejestracja",
     element: <RegisterPage />,
+  },
+  {
+    path: "/weryfikacja-email",
+    element: <VerifyEmailPage />,
   },
   {
     path: "/login",

@@ -20,11 +20,15 @@ describe('POST /api/auth/register', () => {
   });
 
   it('Poprawna rejestracja konta', async () => {
-    // Sprawdza utworzenie konta (201) i zahashowane hasło w bazie.
+    // Sprawdza utworzenie konta (201), kod weryfikacyjny i zahashowane hasło.
     const res = await request(app).post('/api/auth/register').send(testUser);
 
     expect(res.status).toBe(StatusCodes.CREATED);
-    expect(res.body.msg).toBe('Utworzono pomyślnie nowego użytkownika!');
+    expect(res.body.msg).toBe(
+      'Na podany adres email wysłano kod weryfikacyjny.',
+    );
+    expect(res.body.requiresEmailVerification).toBe(true);
+    expect(res.body.email).toBe(testUser.email);
 
     const created = await prisma.user.findUnique({
       where: { email: testUser.email },
@@ -33,11 +37,37 @@ describe('POST /api/auth/register', () => {
     expect(created).not.toBeNull();
     expect(created?.fullName).toBe(testUser.fullName);
     expect(created?.role).toBe('UZYTKOWNIK');
+    expect(created?.isEmailVerified).toBe(false);
+    expect(created?.emailVerificationCode).toHaveLength(6);
     expect(created?.password).not.toBe(testUser.password);
   });
 
+  it('Weryfikuje email poprawnym kodem', async () => {
+    // Sprawdza aktywację konta po podaniu kodu z emaila.
+    const user = await prisma.user.findUnique({
+      where: { email: testUser.email },
+    });
+    expect(user?.emailVerificationCode).toBeTruthy();
+
+    const res = await request(app).post('/api/auth/verify-email').send({
+      email: testUser.email,
+      code: user!.emailVerificationCode,
+    });
+
+    expect(res.status).toBe(StatusCodes.OK);
+    expect(res.body.msg).toBe(
+      'Adres email został potwierdzony. Możesz się zalogować.',
+    );
+
+    const verified = await prisma.user.findUnique({
+      where: { email: testUser.email },
+    });
+    expect(verified?.isEmailVerified).toBe(true);
+    expect(verified?.emailVerificationCode).toBeNull();
+  });
+
   it('Brak pozwolenia na rejestrację konta z wykorzystanym emailem', async () => {
-    // Sprawdza konflikt danych / duplikat (409).
+    // Sprawdza konflikt danych / duplikat (409) po weryfikacji.
     const res = await request(app).post('/api/auth/register').send(testUser);
 
     expect(res.status).toBe(StatusCodes.CONFLICT);
@@ -146,6 +176,15 @@ describe('POST /api/auth/login', () => {
       const res = await request(app).post('/api/auth/register').send(testUser);
       expect(res.status).toBe(StatusCodes.CREATED);
     }
+
+    await prisma.user.update({
+      where: { email: testUser.email },
+      data: {
+        isEmailVerified: true,
+        emailVerificationCode: null,
+        emailVerificationExpires: null,
+      },
+    });
   });
 
   it('Poprawne logowanie', async () => {

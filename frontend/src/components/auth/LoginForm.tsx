@@ -60,7 +60,27 @@ const LoginForm = ({ on2FARequired }: LoginFormProps) => {
       navigate("/");
     } catch (err: unknown) {
       if (err instanceof AxiosError) {
-        toast.error(err.response?.data.msg);
+        const payload = err.response?.data as
+          | {
+              msg?: string;
+              requiresEmailVerification?: boolean;
+              email?: string;
+            }
+          | undefined;
+
+        if (
+          err.response?.status === 403 &&
+          payload?.requiresEmailVerification &&
+          payload.email
+        ) {
+          toast.error(payload.msg ?? "Potwierdź adres email przed logowaniem.");
+          navigate(
+            `/weryfikacja-email?email=${encodeURIComponent(payload.email)}`,
+          );
+          return;
+        }
+
+        toast.error(payload?.msg ?? "Wystąpił błąd logowania");
       } else {
         toast.error("Wystąpił nieoczekiwany błąd");
       }

@@ -13,6 +13,8 @@ import {
   subscriptionConfirmationText,
   unsubscribeConfirmationTemplate,
   unsubscribeConfirmationText,
+  emailVerificationTemplate,
+  emailVerificationText,
 } from '../templates/emailTemplates';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -49,7 +51,7 @@ const getFrontendUrl = () =>
   process.env.FRONTEND_URL ??
   (process.env.NODE_ENV === 'production'
     ? 'https://shelter-with-ai-chatbox.vercel.app'
-    : 'http://localhost:5173');
+    : 'http://localhost:5174');
 
 const getLogoAttachment = () => ({
   filename: 'logo.png',
@@ -174,5 +176,28 @@ export const triggerNewAnimalNotification = (
 
   void notifySubscribersAboutNewAnimal(animal as Animal).catch((err) => {
     console.error('Błąd wysyłki newslettera o nowym zwierzęciu:', err);
+  });
+};
+
+export const sendEmailVerification = async (email: string, code: string) => {
+  const frontendUrl = getFrontendUrl();
+  const verifyUrl = `${frontendUrl}/weryfikacja-email?email=${encodeURIComponent(email)}`;
+
+  if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
+    console.warn(
+      `[email] Pominięto wysyłkę weryfikacji (brak EMAIL_USER/EMAIL_PASS). Kod dla ${email}: ${code}`,
+    );
+    return;
+  }
+
+  const transporter = createEmailTransporter();
+
+  await transporter.sendMail({
+    from: getFromAddress(),
+    to: email,
+    subject: 'Potwierdź swój adres email — Schronisko',
+    text: emailVerificationText(code, verifyUrl),
+    html: emailVerificationTemplate(code, verifyUrl, frontendUrl),
+    attachments: [getLogoAttachment()],
   });
 };
