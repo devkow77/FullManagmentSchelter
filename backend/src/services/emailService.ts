@@ -15,6 +15,8 @@ import {
   unsubscribeConfirmationText,
   emailVerificationTemplate,
   emailVerificationText,
+  passwordResetTemplate,
+  passwordResetText,
 } from '../templates/emailTemplates';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -198,6 +200,32 @@ export const sendEmailVerification = async (email: string, code: string) => {
     subject: 'Potwierdź swój adres email — Schronisko',
     text: emailVerificationText(code, verifyUrl),
     html: emailVerificationTemplate(code, verifyUrl, frontendUrl),
+    attachments: [getLogoAttachment()],
+  });
+};
+
+export const sendPasswordResetEmail = async (
+  email: string,
+  token: string,
+) => {
+  const frontendUrl = getFrontendUrl();
+  const resetUrl = `${frontendUrl}/reset-hasla/${token}`;
+
+  if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
+    console.warn(
+      `[email] Pominięto wysyłkę resetu hasła (brak EMAIL_USER/EMAIL_PASS). Link dla ${email}: ${resetUrl}`,
+    );
+    return;
+  }
+
+  const transporter = createEmailTransporter();
+
+  await transporter.sendMail({
+    from: getFromAddress(),
+    to: email,
+    subject: 'Reset hasła — Schronisko',
+    text: passwordResetText(resetUrl),
+    html: passwordResetTemplate(resetUrl, frontendUrl),
     attachments: [getLogoAttachment()],
   });
 };

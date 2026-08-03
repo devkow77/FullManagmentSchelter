@@ -125,12 +125,20 @@ const LoginForm = ({ on2FARequired }: LoginFormProps) => {
           {isSubmitting ? "Logowanie..." : "Zaloguj się"}
         </Button>
 
-        <p className="text-sm lg:text-base">
-          Nie masz konta?{" "}
-          <Link to="/rejestracja" className="font-semibold">
-            Zarejestruj się
-          </Link>
-        </p>
+        <div className="space-y-1 text-sm lg:text-base">
+          <p>
+            Nie masz konta?{" "}
+            <Link to="/rejestracja" className="font-semibold">
+              Zarejestruj się
+            </Link>
+          </p>
+          <p>
+            Nie pamiętasz hasła?{" "}
+            <Link to="/reset-hasla" className="font-semibold">
+              Zresetuj hasło
+            </Link>
+          </p>
+        </div>
       </div>
     </form>
   );

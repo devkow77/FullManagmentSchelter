@@ -10,6 +10,8 @@ import {
   loginWithTotp,
   verifyEmail,
   resendVerificationEmail,
+  forgotPassword,
+  resetPassword,
 } from '../controllers/authControllers';
 import { authenticateUser } from '../middlewares/auth.middleware';
 
@@ -18,6 +20,8 @@ const router = Router();
 router.post('/register', registerAccount);
 router.post('/verify-email', verifyEmail);
 router.post('/resend-verification', resendVerificationEmail);
+router.post('/forgot-password', forgotPassword);
+router.post('/reset-password', resetPassword);
 router.post('/login', loginToAccount);
 router.get('/info', authenticateUser, authInfo);
 router.post('/logout', authenticateUser, logout);

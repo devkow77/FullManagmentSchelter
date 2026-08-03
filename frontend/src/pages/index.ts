@@ -2,6 +2,8 @@ import HomePage from "./home";
 import RegisterPage from "./register";
 import LoginPage from "./login";
 import VerifyEmailPage from "./verify-email";
+import ForgotPasswordPage from "./forgot-password";
+import ResetPasswordPage from "./reset-password";
 import AnimalsPage from "./animals";
 import FoundAnimalsPage from "./found-animals";
 import HowToHelp from "./how-to-help";
@@ -22,6 +24,8 @@ export {
   RegisterPage,
   LoginPage,
   VerifyEmailPage,
+  ForgotPasswordPage,
+  ResetPasswordPage,
   AnimalsPage,
   TypeAnimalPage,
   FoundAnimalsPage,

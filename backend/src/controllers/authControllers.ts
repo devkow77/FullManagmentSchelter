@@ -1,9 +1,11 @@
 ﻿import { type Request, type Response } from 'express';
 import prisma from '../prisma';
 import {
+  forgotPasswordSchema,
   loginSchema,
   registerSchema,
   resendVerificationSchema,
+  resetPasswordSchema,
   verifyEmailSchema,
 } from '../validators/auth.validator';
 import { StatusCodes } from 'http-status-codes';
@@ -13,9 +15,14 @@ import { AuthRequest } from '../middlewares/auth.middleware';
 import speakeasy from 'speakeasy';
 import QRCode from 'qrcode';
 import jwt from 'jsonwebtoken';
-import { sendEmailVerification } from '../services/emailService';
+import crypto from 'crypto';
+import {
+  sendEmailVerification,
+  sendPasswordResetEmail,
+} from '../services/emailService';
 
 const EMAIL_CODE_TTL_MS = 15 * 60 * 1000;
+const PASSWORD_RESET_TTL_MS = 15 * 60 * 1000;
 
 const createVerificationCode = () =>
   String(Math.floor(100_000 + Math.random() * 900_000));
@@ -194,6 +201,90 @@ export const resendVerificationEmail = async (req: Request, res: Response) => {
     });
   } catch (err) {
     console.error('[resendVerificationEmail]', err);
+    return res
+      .status(StatusCodes.INTERNAL_SERVER_ERROR)
+      .json({ msg: 'Wewnętrzny błąd serwera!' });
+  }
+};
+
+export const forgotPassword = async (req: Request, res: Response) => {
+  const parsedBody = forgotPasswordSchema.safeParse(req.body);
+
+  if (!parsedBody.success) {
+    return res
+      .status(StatusCodes.BAD_REQUEST)
+      .json({ msg: 'Nieprawidłowy format danych!' });
+  }
+
+  const { email } = parsedBody.data;
+  const genericMsg =
+    'Jeśli konto o podanym adresie istnieje, wysłaliśmy link do resetu hasła.';
+
+  try {
+    const user = await prisma.user.findUnique({ where: { email } });
+
+    if (user && user.isEmailVerified && !user.isBanned) {
+      const token = crypto.randomBytes(32).toString('hex');
+
+      await prisma.user.update({
+        where: { id: user.id },
+        data: {
+          passwordResetToken: token,
+          passwordResetExpires: new Date(Date.now() + PASSWORD_RESET_TTL_MS),
+        },
+      });
+
+      await sendPasswordResetEmail(email, token);
+    }
+
+    return res.status(StatusCodes.OK).json({ msg: genericMsg });
+  } catch (err) {
+    console.error('[forgotPassword]', err);
+    return res
+      .status(StatusCodes.INTERNAL_SERVER_ERROR)
+      .json({ msg: 'Wewnętrzny błąd serwera!' });
+  }
+};
+
+export const resetPassword = async (req: Request, res: Response) => {
+  const parsedBody = resetPasswordSchema.safeParse(req.body);
+
+  if (!parsedBody.success) {
+    return res
+      .status(StatusCodes.BAD_REQUEST)
+      .json({ msg: 'Nieprawidłowy format danych!' });
+  }
+
+  const { token, password } = parsedBody.data;
+
+  try {
+    const user = await prisma.user.findFirst({
+      where: {
+        passwordResetToken: token,
+        passwordResetExpires: { gt: new Date() },
+      },
+    });
+
+    if (!user) {
+      return res.status(StatusCodes.BAD_REQUEST).json({
+        msg: 'Link do resetu hasła jest nieprawidłowy lub wygasł.',
+      });
+    }
+
+    await prisma.user.update({
+      where: { id: user.id },
+      data: {
+        password: await bcrypt.hash(password, 10),
+        passwordResetToken: null,
+        passwordResetExpires: null,
+      },
+    });
+
+    return res.status(StatusCodes.OK).json({
+      msg: 'Hasło zostało zmienione. Możesz się zalogować.',
+    });
+  } catch (err) {
+    console.error('[resetPassword]', err);
     return res
       .status(StatusCodes.INTERNAL_SERVER_ERROR)
       .json({ msg: 'Wewnętrzny błąd serwera!' });

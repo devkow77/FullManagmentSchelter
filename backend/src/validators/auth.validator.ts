@@ -52,3 +52,26 @@ export const resendVerificationSchema = z.object({
     .string()
     .regex(/^[^\s@]+@[^\s@]+\.[^\s@]+$/, 'Niepoprawny adres email.'),
 });
+
+export const forgotPasswordSchema = z.object({
+  email: z
+    .string()
+    .regex(/^[^\s@]+@[^\s@]+\.[^\s@]+$/, 'Niepoprawny adres email.'),
+});
+
+export const resetPasswordSchema = z
+  .object({
+    token: z.string().min(1, 'Token jest wymagany.'),
+    password: z
+      .string()
+      .min(8, 'Hasło musi mieć min. 8 znaków')
+      .regex(
+        /^(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).+$/,
+        'Hasło musi zawierać min. 1 wielką literę, 1 cyfrę i 1 znak specjalny.',
+      ),
+    confirmPassword: z.string(),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: 'Hasła muszą być takie same.',
+    path: ['confirmPassword'],
+  });

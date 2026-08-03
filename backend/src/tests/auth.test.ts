@@ -3,6 +3,7 @@ import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import app from '../app';
 import prisma from '../prisma';
 import { StatusCodes } from 'http-status-codes';
+import bcrypt from 'bcrypt';
 
 const testUser = {
   fullName: 'Jan Kowalski',
@@ -270,6 +271,77 @@ describe('POST /api/auth/login', () => {
       where: { email: testUser.email },
       data: { isBanned: false },
     });
+  });
+});
+
+describe('POST /api/auth/forgot-password i /reset-password', () => {
+  const newPassword = 'NoweHaslo99!';
+
+  it('Wysyła generyczną odpowiedź i ustawia token resetu', async () => {
+    // Sprawdza, że dla istniejącego konta powstaje token resetu hasła.
+    const res = await request(app).post('/api/auth/forgot-password').send({
+      email: testUser.email,
+    });
+
+    expect(res.status).toBe(StatusCodes.OK);
+    expect(res.body.msg).toBe(
+      'Jeśli konto o podanym adresie istnieje, wysłaliśmy link do resetu hasła.',
+    );
+
+    const user = await prisma.user.findUnique({
+      where: { email: testUser.email },
+    });
+    expect(user?.passwordResetToken).toBeTruthy();
+    expect(user?.passwordResetExpires).toBeTruthy();
+  });
+
+  it('Zmienia hasło poprawnym tokenem', async () => {
+    // Sprawdza ustawienie nowego hasła i możliwość logowania.
+    const user = await prisma.user.findUnique({
+      where: { email: testUser.email },
+    });
+    expect(user?.passwordResetToken).toBeTruthy();
+
+    const res = await request(app).post('/api/auth/reset-password').send({
+      token: user!.passwordResetToken,
+      password: newPassword,
+      confirmPassword: newPassword,
+    });
+
+    expect(res.status).toBe(StatusCodes.OK);
+    expect(res.body.msg).toBe(
+      'Hasło zostało zmienione. Możesz się zalogować.',
+    );
+
+    const loginRes = await request(app).post('/api/auth/login').send({
+      email: testUser.email,
+      password: newPassword,
+    });
+    expect(loginRes.status).toBe(StatusCodes.OK);
+
+    // Przywróć hasło testowe na potrzeby kolejnych testów.
+    await prisma.user.update({
+      where: { email: testUser.email },
+      data: {
+        password: await bcrypt.hash(testUser.password, 10),
+        passwordResetToken: null,
+        passwordResetExpires: null,
+      },
+    });
+  });
+
+  it('Odrzuca wygasły lub nieprawidłowy token', async () => {
+    // Sprawdza walidację tokenu resetu.
+    const res = await request(app).post('/api/auth/reset-password').send({
+      token: 'nieistniejacy-token',
+      password: newPassword,
+      confirmPassword: newPassword,
+    });
+
+    expect(res.status).toBe(StatusCodes.BAD_REQUEST);
+    expect(res.body.msg).toBe(
+      'Link do resetu hasła jest nieprawidłowy lub wygasł.',
+    );
   });
 });
 

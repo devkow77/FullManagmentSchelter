@@ -324,3 +324,37 @@ ${ctaButton(verifyUrl, 'Przejdź do weryfikacji')}
 export const emailVerificationText = (code: string, verifyUrl: string) =>
   `Potwierdź swój adres email\n\nTwój kod weryfikacyjny: ${code}\n\nKod jest ważny przez 15 minut.\n\nMożesz też otworzyć stronę weryfikacji: ${verifyUrl}\n\nJeśli to nie Ty zakładałeś konto, zignoruj tę wiadomość.`;
 
+export const passwordResetTemplate = (
+  resetUrl: string,
+  frontendUrl: string,
+) =>
+  emailLayout(
+    `
+<tr>
+  <td style="padding:40px 40px 24px;text-align:center;">
+    <div style="width:64px;height:64px;margin:0 auto 20px;background-color:${COLORS.green100};border-radius:50%;line-height:64px;font-size:28px;">🔑</div>
+    <h2 style="margin:0 0 12px;font-size:22px;font-weight:700;color:${COLORS.green900};">Reset hasła</h2>
+    <p style="margin:0;font-size:15px;color:${COLORS.gray600};line-height:1.7;max-width:420px;margin-left:auto;margin-right:auto;">
+      Otrzymaliśmy prośbę o zresetowanie hasła do Twojego konta. Kliknij przycisk poniżej, aby ustawić nowe hasło.
+    </p>
+  </td>
+</tr>
+${ctaButton(resetUrl, 'Ustaw nowe hasło')}
+<tr>
+  <td style="padding:0 40px 32px;text-align:center;">
+    <p style="margin:0 0 8px;font-size:13px;color:${COLORS.gray500};line-height:1.6;">
+      Link jest ważny przez 15 minut.
+    </p>
+    <p style="margin:0;font-size:12px;color:${COLORS.gray400};line-height:1.6;">
+      Jeśli to nie Ty prosiłeś o reset hasła, zignoruj tę wiadomość — Twoje hasło pozostanie bez zmian.
+    </p>
+  </td>
+</tr>
+`,
+    'Link do zresetowania hasła w Schronisku',
+    frontendUrl,
+  );
+
+export const passwordResetText = (resetUrl: string) =>
+  `Reset hasła\n\nOtrzymaliśmy prośbę o zresetowanie hasła do Twojego konta.\n\nUstaw nowe hasło tutaj: ${resetUrl}\n\nLink jest ważny przez 15 minut.\n\nJeśli to nie Ty prosiłeś o reset hasła, zignoruj tę wiadomość.`;
+

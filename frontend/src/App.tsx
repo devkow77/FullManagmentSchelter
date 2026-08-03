@@ -6,6 +6,8 @@ import {
   RegisterPage,
   LoginPage,
   VerifyEmailPage,
+  ForgotPasswordPage,
+  ResetPasswordPage,
   AnimalsPage,
   TypeAnimalPage,
   FoundAnimalsPage,
@@ -149,6 +151,14 @@ const router = createBrowserRouter([
   {
     path: "/weryfikacja-email",
     element: <VerifyEmailPage />,
+  },
+  {
+    path: "/reset-hasla",
+    element: <ForgotPasswordPage />,
+  },
+  {
+    path: "/reset-hasla/:token",
+    element: <ResetPasswordPage />,
   },
   {
     path: "/login",

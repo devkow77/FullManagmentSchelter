@@ -3,6 +3,8 @@ import LoginForm from "./LoginForm";
 import TotpLoginForm from "./TotpLoginForm";
 import RegisterForm from "./RegisterForm";
 import VerifyEmailForm from "./VerifyEmailForm";
+import ForgotPasswordForm from "./ForgotPasswordForm";
+import ResetPasswordForm from "./ResetPasswordForm";
 
 export {
   ProtectedRoute,
@@ -10,4 +12,6 @@ export {
   TotpLoginForm,
   RegisterForm,
   VerifyEmailForm,
+  ForgotPasswordForm,
+  ResetPasswordForm,
 };
