@@ -52,7 +52,7 @@ const animalsSeed = async () => {
       dateOfBirth: yearsAgo(4),
       description:
         'Burek, nr ewid. 2025/112. Samiec, ok. 4 lata, mieszaniec typu owczarek, waga ok. 30 kg. Znaleziony przy drodze w okolicach Zwięczycy — bez obroży, chip nieodnaleziony. Od początku pobytu otwarty na kontakt z ludźmi, wita opiekunów merdaniem ogona, chętnie spaceruje na smyczy. Lubi aportować piłkę, potrzebuje codziennej dawki ruchu. Szuka domu z ogrodem lub aktywnego opiekuna. Dobrze dogaduje się z innymi psami po krótkim okresie poznania. Zaszczepiony, odrobaczony, kastracja wykonana.',
-      foundAt: new Date('2025-11-01'),
+      foundAt: new Date('2026-01-08'),
       foundLocation: 'okolice Zwięczycy, Rzeszów',
       imageUrl: [] as string[],
     },
@@ -67,7 +67,7 @@ const animalsSeed = async () => {
       dateOfBirth: yearsAgo(2),
       description:
         'Luna, nr ewid. 2025/198. Kotka, ok. 2 lata, umaszczenie srebrzystoszare. Oddana po śmierci opiekunki — rodzina nie mogła jej zatrzymać. Spokojna, lubi przytulanie, najchętniej spędza czas na kolanach albo w kocu. Nie wymaga ciągłej uwagi, ceni codzienny rytuał głaskania. Idealna do mieszkania — nie drapuje mebli, korzysta z kuwety bez zarzutu. Preferuje dom bez małych dzieci; z czasem może zaakceptować spokojnego towarzysza. Sterylizacja, chip, szczepienia — aktualne.',
-      foundAt: new Date('2025-12-10'),
+      foundAt: new Date('2026-01-15'),
       foundLocation: 'Rzeszów, oddana przez rodzinę',
       imageUrl: [],
     },
@@ -82,7 +82,7 @@ const animalsSeed = async () => {
       dateOfBirth: yearsAgo(1),
       description:
         'Puszek, nr ewid. 2026/071. Królica miniaturowa, ok. roku. Znaleziona w kartonie pod blokiem — prawdopodobnie porzucona. Na początku bardzo wycofana, chowała się w budce; po kilku dniach wychodzi po smakołyki i pozwala się głaskać po grzbiecie. W trakcie obserwacji weterynaryjnej przed kwalifikacją do adopcji. Potrzebuje przestronnego wybiegu, stałego dostępu do siana i spokojnego otoczenia. Nie jako „zabawka” dla małych dzieci.',
-      foundAt: new Date(),
+      foundAt: new Date('2026-01-22'),
       foundLocation: 'ul. Dąbrowskiego, Rzeszów',
       imageUrl: [],
     },
@@ -97,7 +97,7 @@ const animalsSeed = async () => {
       dateOfBirth: yearsAgo(1),
       description:
         'Chomi, nr ewid. 2026/073. Chomik syryjski, ok. roku. Przyniesiony przez przechodnia — zauważony w piwnicy bloku. Aktywny wieczorami (kołowrotek, kopanie, zbieranie zapasów), w dzień głównie śpi. Szuka opiekuna świadomego trybu życia gryzoni nocnych. Zdrowy, bez widocznych problemów skórnych. Klatka/terrarium minimum 80×50 cm.',
-      foundAt: new Date(),
+      foundAt: new Date('2026-01-29'),
       foundLocation: 'ul. Hetmańska, Rzeszów',
       imageUrl: [],
     },
@@ -112,7 +112,7 @@ const animalsSeed = async () => {
       dateOfBirth: yearsAgo(10),
       description:
         'Tadek, nr ewid. 2025/101. Żółw stepowy, ok. 10 lat. Oddany przez rodzinę bez odpowiedniego terrarium (brak lampy UVB). Spokojny, nieagresywny, dobrze znosi obsługę przy karmieniu. Potrzebuje lampy UVB, strefy ciepła oraz diety bogatej w zieleninę. Adopcja tylko dla osób pełnoletnich — zobowiązanie na wiele lat. Stan skorupy i aktywności dobry.',
-      foundAt: new Date('2025-09-01'),
+      foundAt: new Date('2026-02-05'),
       foundLocation: 'Rzeszów, oddany',
       imageUrl: [],
     },
@@ -127,7 +127,7 @@ const animalsSeed = async () => {
       dateOfBirth: yearsAgo(3),
       description:
         'Fela, nr ewid. 2025/155. Fretka, ok. 3 lata. Oddana z powodu alergii u dziecka. Energiczna, ciekawska, uwielbia zabawki i tunele. Potrzebuje codziennego czasu poza klatką pod nadzorem oraz zabezpieczonego mieszkania. Szuka doświadczonego opiekuna — nie dla początkujących ani małych dzieci. Sterylizacja i szczepienia aktualne.',
-      foundAt: new Date('2025-10-15'),
+      foundAt: new Date('2026-02-12'),
       foundLocation: 'Rzeszów, oddana z powodu alergii',
       imageUrl: [],
     },
@@ -142,7 +142,7 @@ const animalsSeed = async () => {
       dateOfBirth: yearsAgo(6),
       description:
         'Azor, nr ewid. 2025/078. Samiec, ok. 6 lat, pies średniej wielkości, waga ok. 20 kg. Znaleziony wychudzony na obrzeżach miasta. Mimo trudnego startu łagodny, przywiązuje się do opiekunów. Obecnie wraca do zdrowia po leczeniu gastroenterologicznym — wymaga kontroli i diety weterynaryjnej. W trakcie procesu adopcyjnego. Idealny do spokojnego domu. Nie powinien zostać sam na dłużej w okresie rekonwalescencji.',
-      foundAt: new Date('2025-06-01'),
+      foundAt: new Date('2026-02-19'),
       foundLocation: 'okolice Zalesia, Rzeszów',
       nextVisitDate: new Date('2026-06-15'),
       imageUrl: [],
@@ -158,7 +158,7 @@ const animalsSeed = async () => {
       dateOfBirth: yearsAgo(5),
       description:
         'Mruczek, nr ewid. 2024/045. Kocur dachowiec, ok. 5 lat, umaszczenie rude. Trafił jako kot wolno żyjący; po socjalizacji stał się pieszczochem. Został adoptowany do spokojnego domu. W schronisku wzorowy: nieagresywny wobec innych kotów, kuweta bez zarzutu. Kastracja i chip wykonane przed adopcją.',
-      foundAt: new Date('2024-03-01'),
+      foundAt: new Date('2026-02-26'),
       foundLocation: 'Rzeszów, kot wolno żyjący',
       imageUrl: [],
     },
@@ -173,7 +173,7 @@ const animalsSeed = async () => {
       dateOfBirth: yearsAgo(3),
       description:
         'Reksio, nr ewid. 2025/099. Samiec, ok. 3 lata, mieszaniec o silnej budowie, waga ok. 28 kg. Przywieziony po zgłoszeniu o bezdomnym psie. Energiczny, chętny do kontaktu, ale przebywa w izolacji z powodu zakażenia — wymaga leczenia przed kwalifikacją do adopcji. Po wyleczeniu będzie potrzebował konsekwentnego opiekuna i ruchu. Kontakt z innymi zwierzętami na razie ograniczony.',
-      foundAt: new Date('2025-08-01'),
+      foundAt: new Date('2026-03-04'),
       foundLocation: 'ul. Wiejska, okolice Rzeszowa',
       nextVisitDate: new Date('2026-06-01'),
       imageUrl: [],
@@ -189,7 +189,7 @@ const animalsSeed = async () => {
       dateOfBirth: yearsAgo(2),
       description:
         'Kicia, nr ewid. 2025/091. Kotka, ok. 2 lata. Znaleziona z raną w okolicy biodra. Nieśmiała — potrzebuje ciszy; nie gryzie, raczej się chowa. Czeka na zabieg ortopedyczny; po operacji wymaga spokojnego domu i ograniczenia ruchu. Szukamy opiekuna gotowego na opiekę pooperacyjną i wizyty kontrolne.',
-      foundAt: new Date('2025-07-20'),
+      foundAt: new Date('2026-03-11'),
       foundLocation: 'os. Przybyszówka, Rzeszów',
       nextVisitDate: new Date('2026-06-20'),
       imageUrl: [],
@@ -205,7 +205,7 @@ const animalsSeed = async () => {
       dateOfBirth: yearsAgo(3),
       description:
         'Max to trzyletni pies typu labrador-mieszaniec, oddany z powodu wyjazdu właścicieli za granicę. Jest bardzo towarzyski, uwielbia zabawy z piłką i kontakt z ludźmi. Na spacerach ciągnie czasem smycz z ekscytacji — przyda się podstawowe szkolenie. Świetnie sprawdzi się w domu z ogrodem lub u osoby aktywnej. Lubi dzieci w wieku szkolnym, wobec małych psów bywa zbyt żywiołowy, więc polecamy spokojne wprowadzenie. Zdrowy, kastracja i szczepienia aktualne.',
-      foundAt: new Date('2025-10-05'),
+      foundAt: new Date('2026-03-18'),
       foundLocation: 'Słocina, Rzeszów',
       imageUrl: [],
     },
@@ -220,7 +220,7 @@ const animalsSeed = async () => {
       dateOfBirth: yearsAgo(1),
       description:
         'Mila to młoda kotka (ok. roku), urodzona w domu tymczasowym po tym, jak jej mama została znaleziona ciężarna. Od kocięcia jest przyzwyczajona do ludzi — wchodzi na kolana, mruczy i lubi zabawy wędką. Jest ciekawska, ale nie niszczyczy. Idealna do mieszkania, także dla osoby, która pierwszy raz adoptuje kota. Może mieszkać z innym, łagodnym kotem. Sterylizacja wykonana, odrobaczona, zaszczepiona.',
-      foundAt: new Date('2026-01-12'),
+      foundAt: new Date('2026-03-25'),
       foundLocation: 'Nowa Huta, Kraków',
       imageUrl: [],
     },
@@ -235,7 +235,7 @@ const animalsSeed = async () => {
       dateOfBirth: yearsAgo(7),
       description:
         'Bruno to siedmioletni senior o spokojnym temperamencie, oddany po śmierci opiekuna. Nie wymaga intensywnego ruchu — wystarczą spokojne spacery i wygodne legowisko. Jest łagodny wobec ludzi, nie szczeka bez powodu, dobrze znosi samotność w ciągu dnia. Idealny do domu lub mieszkania z balkonem, dla osoby dorosłej lub starszej. Nie sprawdzi się jako pies stróżujący — to raczej kanapowiec z sercem. Badania wieku senioralnego w normie, kastracja wykonana.',
-      foundAt: new Date('2025-05-18'),
+      foundAt: new Date('2026-04-02'),
       foundLocation: 'Bemowo, Warszawa',
       imageUrl: [],
     },
@@ -250,7 +250,7 @@ const animalsSeed = async () => {
       dateOfBirth: yearsAgo(4),
       description:
         'Filemon to około czteroletni kocur, schwytany w klatkę żywołowną przy bloku. Jest jeszcze nieśmiały — w boksu chowa się za legowiskiem i obserwuje z dystansu. Pozwala się już głaskać przy karmieniu, ale potrzebuje czasu na pełne oswojenie. Obecnie w trakcie badań i obserwacji przed kwalifikacją do adopcji. Szukamy cierpliwego domu, w którym nikt nie będzie go forsował do kontaktu. Prawdopodobnie sprawdzi się jako jedyny kot w spokojnym mieszkaniu.',
-      foundAt: new Date('2026-02-01'),
+      foundAt: new Date('2026-04-09'),
       foundLocation: 'ul. Narutowicza, Lublin',
       imageUrl: [],
     },
@@ -265,7 +265,7 @@ const animalsSeed = async () => {
       dateOfBirth: yearsAgo(2),
       description:
         'Daisy to dwuletnia królica o białym umaszczeniu z szarymi znaczeniami, oddana z powodu przeprowadzki. Jest łagodna, lubi być głaskana po głowie i chętnie bierze smakołyki z ręki. Potrzebuje dużego wybiegu (nie małej klatki!), siana bez ograniczeń oraz towarzystwa człowieka — samotność jej nie służy. Może mieszkać z innym, zaprzyjaźnionym królikiem po kwarantannie. Sterylizacja wykonana. Nie polecamy domów z małymi dziećmi bez stałego nadzoru dorosłych.',
-      foundAt: new Date('2025-11-22'),
+      foundAt: new Date('2026-04-16'),
       foundLocation: 'Wilda, Poznań',
       imageUrl: [],
     },
@@ -280,7 +280,7 @@ const animalsSeed = async () => {
       dateOfBirth: yearsAgo(5),
       description:
         'Rocky to pięcioletni pies znaleziony z kulawizną tylnej łapy. Charakter ma wspaniały — energiczny, przyjazny, uwielbia zabawę. Obecnie jest w trakcie leczenia ortopedycznego i rehabilitacji; adopcja możliwa po zakończeniu terapii lub w trybie adopcji z zobowiązaniem do dalszej opieki weterynaryjnej. Szuka domu, w którym ktoś znajdzie czas na spacery i ćwiczenia. Dobrze reaguje na smakołyki i podstawowe komendy. Chip i szczepienia aktualne.',
-      foundAt: new Date('2025-09-14'),
+      foundAt: new Date('2026-04-23'),
       foundLocation: 'Fabryczna, Wrocław',
       nextVisitDate: new Date('2026-07-10'),
       imageUrl: [],
@@ -296,7 +296,7 @@ const animalsSeed = async () => {
       dateOfBirth: yearsAgo(3),
       description:
         'Bella to trzyletnia kotka o cętkowanym umaszczeniu, oddana z domu, w którym pojawiło się nowe dziecko i zabrakło dla niej uwagi. Jest ciekawska, lubi zabawy interaktywne i obserwowanie ptaków za oknem. Wobec ludzi jest otwarta i przyjazna. Potrzebuje drapaka oraz zabawy kilka razy dziennie, inaczej zaczyna „polować” na sznurówki. Może mieszkać z innym kotem o podobnej energii. Sterylizacja i szczepienia wykonane.',
-      foundAt: new Date('2025-08-30'),
+      foundAt: new Date('2026-05-01'),
       foundLocation: 'Wrzeszcz, Gdańsk',
       imageUrl: [],
     },
@@ -311,7 +311,7 @@ const animalsSeed = async () => {
       dateOfBirth: yearsAgo(1),
       description:
         'Orzech to młody chomik, którego poprzedni opiekun nie miał czasu na prawidłową opiekę — trafił do nas w zbyt małej klatce. U nas dostał przestronne terrarium, kołowrotek i głębokie podłoże do kopania. Jest bardzo aktywny nocą, lubi wbiegać do domku z pełnymi policzkami. Szuka opiekuna, który zapewni mu odpowiednią wielkość klatki (minimum 80×50 cm) i nie będzie go budził w dzień. Zdrowy, sierść lśniąca.',
-      foundAt: new Date('2026-03-05'),
+      foundAt: new Date('2026-05-08'),
       foundLocation: 'Ligota, Katowice',
       imageUrl: [],
     },
@@ -326,7 +326,7 @@ const animalsSeed = async () => {
       dateOfBirth: yearsAgo(8),
       description:
         'Shelly to około ośmioletnia żółwica, znaleziona w ogródku działkowym — prawdopodobnie uciekła lub została porzucona. Jest spokojna, chętnie wychodzi do miski z jedzeniem i lubi wygrzewać się pod lampą. Potrzebuje prawidłowego terrarium lądowego z gradientem temperatur oraz zróżnicowanej diety roślinnej. Adopcja tylko do osób pełnoletnich, świadomych długowieczności żółwi. Po badaniach weterynaryjnych — stan dobry, bez infekcji skorupy.',
-      foundAt: new Date('2025-04-11'),
+      foundAt: new Date('2026-05-15'),
       foundLocation: 'działki przy ul. Ciołkowskiego, Białystok',
       imageUrl: [],
     },
@@ -341,7 +341,7 @@ const animalsSeed = async () => {
       dateOfBirth: yearsAgo(2),
       description:
         'Nala to dwuletnia kotka o kremowym umaszczeniu, która szybko zaskarbiła sobie serca opiekunów w schronisku. Jest pieszczochem — wchodzi na ręce, mruczy i lubi spać przy człowieku. Obecnie jest w trakcie procesu adopcyjnego — przyszła rodzina przeszła już wizytę wstępną. Dobrze dogaduje się z innymi spokojnymi kotami. Sterylizacja, chip i szczepienia wykonane. Czeka na finalizację formalności i odbiór.',
-      foundAt: new Date('2025-12-01'),
+      foundAt: new Date('2026-05-22'),
       foundLocation: 'Niebuszewo, Szczecin',
       imageUrl: [],
     },
@@ -356,7 +356,7 @@ const animalsSeed = async () => {
       dateOfBirth: yearsAgo(2),
       description:
         'Leo to młody, około dwuletni pies dużej rasowości (typ owczarek/mix), oddany z powodu braku czasu na spacery. Ma ogromną potrzebę ruchu i stymulacji umysłowej — nudzi się w kojcu, jeśli nikt z nim nie pracuje. Na spacerach jest radosny, lubi aport i węszenie. Szuka doświadczonego opiekuna, najlepiej z ogrodem i chęcią szkolenia. Nie polecamy jako pierwszy pies ani do małego mieszkania bez codziennego ruchu. Zdrowy, kastracja w planie przed adopcją.',
-      foundAt: new Date('2026-01-28'),
+      foundAt: new Date('2026-05-29'),
       foundLocation: 'Baranówka, Rzeszów',
       imageUrl: [],
     },
@@ -371,7 +371,7 @@ const animalsSeed = async () => {
       dateOfBirth: yearsAgo(6),
       description:
         'Tosia to około sześcioletnia kotka, która długo żyła jako kot wolno żyjący przy śmietniku. Po schwytaniu powoli nabiera zaufania — już wychodzi z budki na głos opiekuna i pozwala się głaskać po bokach. Nie lubi hałasu ani nagłych ruchów. Szuka cichego domu, najlepiej bez małych dzieci i bez innych zwierząt na start. Z czasem może okazać się wspaniałą, wdzięczną towarzyszką. Sterylizacja i badania wykonane, zdrowa.',
-      foundAt: new Date('2025-07-07'),
+      foundAt: new Date('2026-06-05'),
       foundLocation: 'Podgórze, Kraków',
       imageUrl: [],
     },
@@ -386,7 +386,7 @@ const animalsSeed = async () => {
       dateOfBirth: yearsAgo(1),
       description:
         'Hoppek to młody królik, pełen energii — skacze, bryka i uwielbia eksplorować bezpieczny wybieg. Chętnie bierze marchewkę i jabłko z ręki, lubi towarzystwo człowieka. Potrzebuje codziennego ruchu poza klatką oraz zabawy (tunele, kartony). Kastracja wykonana. Polecamy adopcję do osoby, która ma czas na interakcję — to nie jest zwierzę „do oglądania w klatce”. Zdrowy, zęby w dobrym stanie.',
-      foundAt: new Date('2026-02-14'),
+      foundAt: new Date('2026-06-12'),
       foundLocation: 'Ursynów, Warszawa',
       imageUrl: [],
     },
@@ -401,7 +401,7 @@ const animalsSeed = async () => {
       dateOfBirth: yearsAgo(9),
       description:
         'Gucio to dziewięcioletni pies średniej wielkości, który przez lata mieszkał na łańcuchu — został odebrany dzięki interwencji. W schronisku przeszedł metamorfozę: jest spokojny, łagodny i ogromnie wdzięczny za każdy spacer. Został adoptowany do domu z ogrodem, gdzie ma wygodne legowisko i stałą opiekę. Przed adopcją przeszedł pełne badania, kastrację i szczepienia. Historia Gucia pokazuje, że nigdy nie jest za późno na nowy dom.',
-      foundAt: new Date('2024-11-03'),
+      foundAt: new Date('2026-06-19'),
       foundLocation: 'okolice Wrotkowa, Lublin',
       imageUrl: [],
     },
@@ -416,7 +416,7 @@ const animalsSeed = async () => {
       dateOfBirth: yearsAgo(4),
       description:
         'Cleo to czteroletnia kotka, która trafiła do nas z objawami infekcji górnych dróg oddechowych. Jest spokojna i łagodna, mimo złego samopoczucia chętnie przyjmuje leki w smakołyku. Przebywa w izolacji do czasu wyleczenia — adopcja będzie możliwa po uzyskaniu negatywnych wyników kontroli. Szukamy domu gotowego ewentualnie dokończyć leczenie pod okiem weterynarza. Charakter ma złoty — to kotka, która po wyzdrowieniu będzie wspaniałą towarzyszką.',
-      foundAt: new Date('2025-10-20'),
+      foundAt: new Date('2026-06-26'),
       foundLocation: 'Jeżyce, Poznań',
       nextVisitDate: new Date('2026-07-05'),
       imageUrl: [],
@@ -432,7 +432,7 @@ const animalsSeed = async () => {
       dateOfBirth: yearsAgo(1),
       description:
         'Figo to młody, około roczny piesek małej rasowości (typ yorkshire/mix), znaleziony błąkający się przy drodze. Jest żywiołowy, lubi przytulanie i zabawy szarpakiem. Na spacerach jest ciekawy świata, czasem szczeka na inne psy z ekscytacji — przyda się socjalizacja. Idealny do mieszkania dla osoby, która lubi aktywność i ma czas na naukę czystości oraz podstaw posłuszeństwa. Kastracja w planie, szczepienia rozpoczęte.',
-      foundAt: new Date('2026-03-18'),
+      foundAt: new Date('2026-07-03'),
       foundLocation: 'ul. Karkonoska, Wrocław',
       imageUrl: [],
     },
@@ -447,7 +447,7 @@ const animalsSeed = async () => {
       dateOfBirth: yearsAgo(1),
       description:
         'Muffin to nieśmiała chomiczka, oddana przez dziecko, któremu szybko znudziła się opieka. Na początku unikała dłoni, teraz wychodzi po słonecznik i pozwala się delikatnie podnieść. Preferuje spokojne otoczenie bez głośnych dźwięków. Potrzebuje głębokiego podłoża, domku do chowania się i kołowrotka o odpowiedniej średnicy. Szuka odpowiedzialnego opiekuna — najlepiej nastolatka lub osoby dorosłej, nie małego dziecka.',
-      foundAt: new Date('2026-01-05'),
+      foundAt: new Date('2026-07-10'),
       foundLocation: 'Oliwa, Gdańsk',
       imageUrl: [],
     },
@@ -462,7 +462,7 @@ const animalsSeed = async () => {
       dateOfBirth: yearsAgo(4),
       description:
         'Thor to duży pies o wyglądzie typu amstaff/mix, znaleziony bez obroży przy stacji benzynowej. Mimo imponującej postury jest przyjazny i łagodny wobec ludzi — pozwala się badać i chętnie bierze smakołyki. Obecnie czeka na badania krwi, prześwietlenie oraz okres obserwacji przed kwalifikacją do adopcji. Szukamy odpowiedzialnego opiekuna świadomego stereotypów wobec psów tego typu. Nie wykazuje agresji wobec personelu. Chip nieodnaleziony.',
-      foundAt: new Date('2026-04-02'),
+      foundAt: new Date('2026-07-17'),
       foundLocation: 'okolice DTŚ, Katowice',
       imageUrl: [],
     },
@@ -477,7 +477,7 @@ const animalsSeed = async () => {
       dateOfBirth: yearsAgo(5),
       description:
         'Pusia to pięcioletnia kotka, która mruczy praktycznie bez przerwy — przy głaskaniu, przy karmieniu, a nawet gdy tylko ktoś usiądzie obok boksu. Jest spokojna, lubi krótkie zabawy, a potem długie drzemki. Idealna dla osoby szukającej kanapowego towarzystwa. Dobrze znosi obecność innych kotów. Oddana z domu po rozwodzie właścicieli. Sterylizacja, chip i szczepienia aktualne. Zdrowa, bez problemów behawioralnych.',
-      foundAt: new Date('2025-06-25'),
+      foundAt: new Date('2026-07-24'),
       foundLocation: 'Antoniuk, Białystok',
       imageUrl: [],
     },
@@ -492,7 +492,7 @@ const animalsSeed = async () => {
       dateOfBirth: yearsAgo(12),
       description:
         'Raphael to około dwunastoletni żółw, którego poprzedni właściciel wyjechał za granicę i nie mógł zabrać go ze sobą. Ma spokojny temperament, dobrze zna rytuał karmienia i kąpieli. Wymaga przestronnego terrarium, lampy UVB/UVA oraz diety bogatej w wapń. To zwierzę na lata — adopcja tylko dla osób pełnoletnich z odpowiednim zapleczem. Badanie weterynaryjne: skorupa w dobrym stanie, aktywność prawidłowa.',
-      foundAt: new Date('2025-03-09'),
+      foundAt: new Date('2026-07-31'),
       foundLocation: 'Centrum, Szczecin',
       imageUrl: [],
     },
@@ -507,7 +507,7 @@ const animalsSeed = async () => {
       dateOfBirth: yearsAgo(3),
       description:
         'Lola to trzyletnia suka średniej wielkości, oddana z domu, w którym pojawiło się dziecko z alergią. Jest przyjazna, łagodna i świetnie dogaduje się z dziećmi w wieku szkolnym — lubi zabawę, ale nie jest natarczywa. Na spacerach idzie ładnie na smyczy, nie ucieka. Może mieszkać z innym, zrównoważonym psem. Idealna do domu rodzinnego. Sterylizacja i szczepienia wykonane, zdrowa.',
-      foundAt: new Date('2025-12-18'),
+      foundAt: new Date('2026-08-02'),
       foundLocation: 'Drabinianka, Rzeszów',
       imageUrl: [],
     },
@@ -522,7 +522,7 @@ const animalsSeed = async () => {
       dateOfBirth: yearsAgo(2),
       description:
         'Simba to duży, dwuletni kocur o „lwim” charakterze — pewny siebie, energiczny i zawsze gotowy do zabawy. Uwielbia wysokie drapaki i polowanie na myszki na wędce. Wobec ludzi jest przyjazny, czasem bywa natarczywy w domaganiu się uwagi. Najlepiej sprawdzi się w domu, gdzie ktoś lubi aktywnie bawić się z kotem. Może mieszkać z innym kotem o podobnej energii. Kastracja wykonana, zdrowy.',
-      foundAt: new Date('2026-02-22'),
+      foundAt: new Date('2026-08-03'),
       foundLocation: 'Krowodrza, Kraków',
       imageUrl: [],
     },
@@ -537,7 +537,7 @@ const animalsSeed = async () => {
       dateOfBirth: yearsAgo(2),
       description:
         'Bambina to królica znaleziona na klatce schodowej w osłabionym stanie. Jest nieśmiała i wycofana — potrzebuje spokoju oraz leczenia (obecnie pod opieką weterynarza, problemy żołądkowo-jelitowe). Po wyzdrowieniu będzie szukała cichego domu z odpowiednią dietą (siano jako podstawa!). Na razie nie jest dostępna do adopcji — trwa diagnostyka i obserwacja. Każda złotówka na leczenie pomaga.',
-      foundAt: new Date('2026-04-10'),
+      foundAt: new Date('2026-08-04'),
       foundLocation: 'ul. Ząbkowska, Warszawa',
       nextVisitDate: new Date('2026-07-15'),
       imageUrl: [],
@@ -553,7 +553,7 @@ const animalsSeed = async () => {
       dateOfBirth: yearsAgo(3),
       description:
         'Diego to trzyletni fretka-samiec, oddany przez opiekuna, który nie przewidział, jak wymagające jest to zwierzę. Jest energiczny, przyjazny i uwielbia zabawy z piłeczkami oraz chowanie się w rękawach bluz. Potrzebuje codziennego wypuszczenia pod nadzorem, klatki wielopoziomowej i diety mięsnej odpowiedniej dla fretek. Szuka wyłącznie doświadczonego opiekuna — nie oddajemy do domów z małymi dziećmi. Kastracja i szczepienia aktualne.',
-      foundAt: new Date('2025-09-28'),
+      foundAt: new Date('2026-01-08'),
       foundLocation: 'Czechów, Lublin',
       imageUrl: [],
     },
@@ -568,7 +568,7 @@ const animalsSeed = async () => {
       dateOfBirth: yearsAgo(7),
       description:
         'Hania to siedmioletnia kotka, u której wykryto problem stomatologiczny wymagający zabiegu pod narkozą. Jest spokojna, łagodna i bardzo przytulaśna — mimo dyskomfortu nadal szuka kontaktu z człowiekiem. Czeka na operację i spokojny dom, najlepiej u osoby, która zapewni opiekę po zabiegu (miękka karma, leki, kontrola). Po wyzdrowieniu będzie wspaniałą, dojrzałą towarzyszką. Chip i szczepienia aktualne.',
-      foundAt: new Date('2025-08-08'),
+      foundAt: new Date('2026-01-15'),
       foundLocation: 'Grunwald, Poznań',
       nextVisitDate: new Date('2026-07-20'),
       imageUrl: [],
@@ -584,7 +584,7 @@ const animalsSeed = async () => {
       dateOfBirth: yearsAgo(8),
       description:
         'Borys to ośmioletni pies rodzinny, oddany po rozstaniu właścicieli — żaden z nich nie mógł go zabrać. Jest zrównoważony, przyjazny i dobrze wychowany: zna komendy siad/leżeć, nie niszczy w domu, ładnie chodzi na smyczy. Lubi spokojne spacery i towarzystwo człowieka na kanapie. Idealny do domu rodzinnego, także z dziećmi w wieku szkolnym. Kastracja i badania senioralne w normie. Szuka ostatecznego, kochającego domu.',
-      foundAt: new Date('2025-05-02'),
+      foundAt: new Date('2026-01-22'),
       foundLocation: 'Psie Pole, Wrocław',
       imageUrl: [],
     },
@@ -599,7 +599,7 @@ const animalsSeed = async () => {
       dateOfBirth: yearsAgo(1),
       description:
         'Kiwi to energiczna chomiczka, która uwielbia zbierać zapasy i biegać w kołowrotku do późna w nocy. Jest ciekawska — sprawdza każdy zakątek terrarium. Dobrze znosi delikatną obsługę, gdy sama wyjdzie z domku. Szuka opiekuna, który zapewni jej odpowiednią przestrzeń i nie będzie jej traktował jak zabawki. Karma pełnoporcjowa, siano i świeże warzywa w małych ilościach. Zdrowa, aktywna.',
-      foundAt: new Date('2026-03-27'),
+      foundAt: new Date('2026-01-29'),
       foundLocation: 'Zaspa, Gdańsk',
       imageUrl: [],
     },
@@ -614,7 +614,7 @@ const animalsSeed = async () => {
       dateOfBirth: yearsAgo(3),
       description:
         'Nina to trzyletnia kotka o czarno-białym umaszczeniu, która od pierwszego dnia w schronisku szukała kontaktu z ludźmi. Jest przyjazna, lubi przytulanie i spokojne popołudnia na parapecie. Obecnie finalizowana jest jej adopcja — przyszła opiekunka przeszła pozytywnie rozmowę i czeka na termin odbioru. Nina może mieszkać sama lub z innym spokojnym kotem. Sterylizacja i szczepienia wykonane.',
-      foundAt: new Date('2025-11-11'),
+      foundAt: new Date('2026-02-05'),
       foundLocation: 'Załęże, Katowice',
       imageUrl: [],
     },
@@ -629,7 +629,7 @@ const animalsSeed = async () => {
       dateOfBirth: yearsAgo(4),
       description:
         'Odin to czteroletni pies pełen energii, oddany z mieszkania w bloku — poprzedni opiekun nie miał siły na jego potrzeby ruchowe. Uwielbia długie spacery, bieganie za piłką i naukę sztuczek. Jest przyjazny wobec ludzi, wobec nieznanych psów bywa początkowo sztywny — potrzebuje spokojnego wprowadzania. Szuka aktywnej osoby lub pary, najlepiej z dostępem do terenu spacerowego. Zdrowy, kastracja wykonana.',
-      foundAt: new Date('2026-01-19'),
+      foundAt: new Date('2026-02-12'),
       foundLocation: 'Wygoda, Białystok',
       imageUrl: [],
     },
@@ -644,7 +644,7 @@ const animalsSeed = async () => {
       dateOfBirth: yearsAgo(1),
       description:
         'Zuzia to młoda kotka (ok. roku), która trafiła do nas z miotu znalezionego w piwnicy. W domu tymczasowym nauczyła się korzystać z kuwety, drapaka i zabawy z ludźmi. Jest łagodna, spokojna jak na swój wiek i lubi krótkie sesje przytulania. Idealna na pierwszego kota — nie jest lękliwa ani nadmiernie dzika. Może zamieszkać z innym młodym kotem. Sterylizacja wykonana, gotowa do nowego domu.',
-      foundAt: new Date('2026-04-15'),
+      foundAt: new Date('2026-02-19'),
       foundLocation: 'Gumieńce, Szczecin',
       imageUrl: [],
     },
@@ -659,7 +659,7 @@ const animalsSeed = async () => {
       dateOfBirth: yearsAgo(5),
       description:
         'Bary, nr ewid. 2025/184. Samiec, ok. 5 lat, mieszaniec typu labrador × owczarek, waga ok. 32 kg. Oddany przez opiekuna z powodu wyjazdu do pracy za granicę. W schronisku spokojny, nie szczeka bez powodu, chętnie spaceruje na smyczy. Lubi kontakt z człowiekiem, nie wykazuje agresji wobec personelu ani innych psów na spacerach grupowych. Szuka domu z ogrodem lub opiekuna zapewniającego dłuższe spacery. Kastracja, chip, szczepienie przeciw wściekliźnie — aktualne.',
-      foundAt: new Date('2025-11-08'),
+      foundAt: new Date('2026-02-26'),
       foundLocation: 'Przemyśl, oddany przez opiekuna',
       imageUrl: [],
     },
@@ -674,7 +674,7 @@ const animalsSeed = async () => {
       dateOfBirth: yearsAgo(3),
       description:
         'Misza, nr ewid. 2025/201. Kocur dachowiec, ok. 3 lata, umaszczenie czarne. Schwytany w klatkę żywołowną przy bloku na os. Nowe Miasto — sąsiedzi zgłosili, że od miesięcy dokarmiają go przy śmietniku. Po okresie kwarantanny i socjalizacji stał się prawdziwym pieszczochami: mruczy przy głaskaniu, lubi spać na kolanach. Korzysta z kuwety, nie niszczy mebli. Może mieszkać z innym spokojnym kotem. Kastracja, chip, szczepienia FVRCP — wykonane.',
-      foundAt: new Date('2025-12-03'),
+      foundAt: new Date('2026-03-04'),
       foundLocation: 'os. Nowe Miasto, Rzeszów',
       imageUrl: [],
     },
@@ -689,7 +689,7 @@ const animalsSeed = async () => {
       dateOfBirth: yearsAgo(2),
       description:
         'Dżek, nr ewid. 2026/012. Samiec, ok. 2 lata, mieszaniec typu terrier, waga ok. 8 kg. Znaleziony błąkający się przy drodze krajowej — bez obroży, chip nieodnaleziony. Jest żywiołowy, lubi aportować i „polować” na sznurówki. Na smyczy bywa pociągający, zwłaszcza przy innych psach — wymaga konsekwentnego opiekuna i podstawowego szkolenia. Idealny do mieszkania dla osoby aktywnej. Odrobaczony, zaszczepiony, kastracja w planie przed adopcją.',
-      foundAt: new Date('2026-01-09'),
+      foundAt: new Date('2026-03-11'),
       foundLocation: 'DK19, okolice Sokołowa Małopolskiego',
       imageUrl: [],
     },
@@ -704,7 +704,7 @@ const animalsSeed = async () => {
       dateOfBirth: yearsAgo(4),
       description:
         'Perła, nr ewid. 2025/156. Kotka, ok. 4 lata, umaszczenie bialo-szare. Oddana po śmierci starszej opiekunki — przez kilka tygodni mieszkała u rodziny, która nie mogła jej zatrzymać. Jest nieśmiała wobec nowych osób: chowa się pod legowiskiem, ale po kilku dniach sama wychodzi i pozwala się głaskać. Preferuje cichy dom bez małych dzieci. Nie lubi hałasu odkurzacza. Sterylizacja i badania krwi — w normie.',
-      foundAt: new Date('2025-09-21'),
+      foundAt: new Date('2026-03-18'),
       foundLocation: 'Jarosław, oddana przez rodzinę',
       imageUrl: [],
     },
@@ -719,7 +719,7 @@ const animalsSeed = async () => {
       dateOfBirth: yearsAgo(6),
       description:
         'Szarik, nr ewid. 2026/088. Samiec, ok. 6 lat, mieszaniec dużej rasowości, waga ok. 35 kg. Przywieziony przez straż miejską — znaleziony przy centrum handlowym bez opieki. Chip nieczytelny, trwa ustalanie właściciela. W izolacji obserwacyjnej: spokojny, pozwala się badać, chętnie bierze smakołyki. Na razie niedostępny do adopcji. W razie braku zgłoszenia właściciela — kwalifikacja do adopcji po pełnych badaniach.',
-      foundAt: new Date('2026-05-02'),
+      foundAt: new Date('2026-03-25'),
       foundLocation: 'Galeria Rzeszów, parking',
       imageUrl: [],
     },
@@ -734,7 +734,7 @@ const animalsSeed = async () => {
       dateOfBirth: yearsAgo(8),
       description:
         'Fiona, nr ewid. 2025/142. Kotka, ok. 8 lat, umaszczenie rude. Trafiła do nas wychudzona, z zapaleniem jamy ustnej. Charakter ma złoty — mimo bólu szuka kontaktu i mruczy przy delikatnym głaskaniu. Obecnie na leczeniu stomatologicznym i diecie mokrej; adopcja możliwa z zobowiązaniem do kontynuacji opieki weterynaryjnej. Szuka spokojnego domu, najlepiej u osoby dorosłej. Chip założony u nas, sterylizacja wykonana wcześniej.',
-      foundAt: new Date('2025-08-14'),
+      foundAt: new Date('2026-04-02'),
       foundLocation: 'ul. Lwowska, Rzeszów',
       nextVisitDate: new Date('2026-08-05'),
       imageUrl: [],
@@ -750,7 +750,7 @@ const animalsSeed = async () => {
       dateOfBirth: yearsAgo(1),
       description:
         'Kajtek, nr ewid. 2026/031. Samiec, ok. 1 rok, mieszaniec średniej wielkości, waga ok. 18 kg. Oddany z domu, w którym pojawiło się dziecko — właściciele nie radzili sobie z energią młodego psa. Kajtek jest radosny, lubi zabawę i kontakt z ludźmi, ale ciągnie na smyczy i podgryza ręce z ekscytacji. Potrzebuje opiekuna gotowego na szkolenie i konsekwencję. Nie polecamy jako pierwszy pies bez wsparcia trenera. Zdrowy, szczepienia podstawowe wykonane, kastracja zaplanowana.',
-      foundAt: new Date('2026-02-18'),
+      foundAt: new Date('2026-04-09'),
       foundLocation: 'Łańcut, oddany przez opiekunów',
       imageUrl: [],
     },
@@ -765,7 +765,7 @@ const animalsSeed = async () => {
       dateOfBirth: yearsAgo(2),
       description:
         'Sonia, nr ewid. 2025/178. Kotka, ok. 2 lata, umaszczenie szylkretowe. Oddana z powodu alergii u dziecka. W schronisku od razu szuka kontaktu — wchodzi na ręce, lubi zabawy wędką. Obecnie w trakcie procesu adopcyjnego: przyszła rodzina przeszła rozmowę wstępną i czeka na termin odbioru. Może mieszkać z innym kotem. Sterylizacja, chip, szczepienia — komplet.',
-      foundAt: new Date('2025-10-27'),
+      foundAt: new Date('2026-04-16'),
       foundLocation: 'Dębica, oddana z powodu alergii',
       imageUrl: [],
     },
@@ -780,7 +780,7 @@ const animalsSeed = async () => {
       dateOfBirth: yearsAgo(10),
       description:
         'Benek, nr ewid. 2025/095. Samiec, ok. 10 lat, mieszaniec, waga ok. 22 kg. Senior oddany po śmierci opiekuna. Nie wymaga intensywnego ruchu — wystarczą krótkie spacery i wygodne legowisko. Jest łagodny, nie niszczy, dobrze znosi samotność w ciągu dnia. Idealny dla osoby starszej lub spokojnego domu. Badania senioralne (krew, USG jamy brzusznej) — bez istotnych odchyleń. Kastracja i szczepienia aktualne. Szuka ostatecznego, ciepłego domu.',
-      foundAt: new Date('2025-06-12'),
+      foundAt: new Date('2026-04-23'),
       foundLocation: 'Krosno, oddany przez rodzinę',
       imageUrl: [],
     },
@@ -795,7 +795,7 @@ const animalsSeed = async () => {
       dateOfBirth: yearsAgo(1),
       description:
         'Misia, nr ewid. 2026/045. Kotka, ok. roku, umaszczenie pręgowane. Urodzona w domu tymczasowym — mama została znaleziona ciężarna przy drodze. Od kocięcia przyzwyczajona do ludzi, dzieci i innych kotów. Jest energiczna, lubi drapak i zabawy interaktywne. Idealna do mieszkania, także dla osoby adoptującej kota pierwszy raz. Sterylizacja wykonana w 6. miesiącu życia, odrobaczona, zaszczepiona.',
-      foundAt: new Date('2026-03-01'),
+      foundAt: new Date('2026-05-01'),
       foundLocation: 'dom tymczasowy, Rzeszów',
       imageUrl: [],
     },
@@ -810,7 +810,7 @@ const animalsSeed = async () => {
       dateOfBirth: yearsAgo(3),
       description:
         'Amor, nr ewid. 2026/067. Samiec, ok. 3 lata, mieszaniec dużej rasowości. Przywieziony z interwencji — trzymany na posesji w złych warunkach. Charakter ma dobry: przyjazny wobec ludzi, chętny do kontaktu. Obecnie w izolacji z powodu zakażenia skóry (grzybica) — wymaga leczenia i ponownej kwalifikacji przed adopcją. Po wyleczeniu będzie potrzebował domu z konsekwentnym opiekunem. Kontakt z innymi zwierzętami na razie zakazany.',
-      foundAt: new Date('2026-04-08'),
+      foundAt: new Date('2026-05-08'),
       foundLocation: 'okolice Głogowa Małopolskiego, interwencja',
       nextVisitDate: new Date('2026-07-28'),
       imageUrl: [],
@@ -826,7 +826,7 @@ const animalsSeed = async () => {
       dateOfBirth: yearsAgo(5),
       description:
         'Klara, nr ewid. 2024/220. Kotka, ok. 5 lat. Trafiła do nas jako kot wolno żyjący, po kilku miesiącach socjalizacji stała się pieszczochem. Została adoptowana do spokojnego domu na obrzeżach miasta. W schronisku była wzorowa: korzystała z kuwety, nieagresywna wobec innych kotów, współpracowała przy zabiegach. Chip, sterylizacja i szczepienia wykonane przed adopcją.',
-      foundAt: new Date('2024-09-15'),
+      foundAt: new Date('2026-05-15'),
       foundLocation: 'Tyczyn, kot wolno żyjący',
       imageUrl: [],
     },
@@ -841,7 +841,7 @@ const animalsSeed = async () => {
       dateOfBirth: yearsAgo(2),
       description:
         'Frodo, nr ewid. 2025/210. Samiec, ok. 2 lata, królik miniaturowy, umaszczenie szare. Oddany z powodu przeprowadzki do małego mieszkania. Jest łagodny, lubi być głaskany po głowie, chętnie bierze smakołyki z ręki. Potrzebuje dużego wybiegu (nie klatki typu „klatka sklepowa”), stałego dostępu do siana i codziennego ruchu. Kastracja wykonana. Nie polecamy domów z małymi dziećmi bez nadzoru dorosłych.',
-      foundAt: new Date('2025-12-20'),
+      foundAt: new Date('2026-05-22'),
       foundLocation: 'Rzeszów, oddany przez opiekuna',
       imageUrl: [],
     },
@@ -856,7 +856,7 @@ const animalsSeed = async () => {
       dateOfBirth: yearsAgo(1),
       description:
         'Pixie, nr ewid. 2026/019. Chomiczka syryjska, ok. roku. Oddana przez dziecko — rodzicom zabrakło czasu na prawidłową opiekę. Trafiła w zbyt małej klatce; u nas dostała przestronne terrarium z głębokim podłożem i kołowrotkiem. Aktywna wieczorem i nocą, w dzień śpi. Szuka opiekuna świadomego trybu życia gryzoni nocnych — nie budzić w dzień. Zdrowa, sierść w dobrym stanie.',
-      foundAt: new Date('2026-01-22'),
+      foundAt: new Date('2026-05-29'),
       foundLocation: 'Stalowa Wola, oddana',
       imageUrl: [],
     },
@@ -871,7 +871,7 @@ const animalsSeed = async () => {
       dateOfBirth: yearsAgo(15),
       description:
         'Zenon, nr ewid. 2025/088. Żółw stepowy, ok. 15 lat. Oddany przez rodzinę, która dostała go „w spadku” i nie miała warunków (brak lampy UVB, zbyt małe terrarium). Jest spokojny, dobrze znosi obsługę przy karmieniu. Potrzebuje prawidłowego terrarium lądowego, gradientu temperatur i diety bogatej w zieleninę oraz wapń. Adopcja tylko dla osób pełnoletnich — to zobowiązanie na wiele lat. Stan skorupy dobry po korekcie warunków.',
-      foundAt: new Date('2025-05-30'),
+      foundAt: new Date('2026-06-05'),
       foundLocation: 'Mielec, oddany',
       imageUrl: [],
     },
@@ -886,7 +886,7 @@ const animalsSeed = async () => {
       dateOfBirth: yearsAgo(3),
       description:
         'Ruda, nr ewid. 2026/055. Kotka, ok. 3 lata, umaszczenie rude. Znaleziona z kulawizną tylnej łapy — podejrzenie starego urazu wymagającego konsultacji ortopedycznej / ewentualnego zabiegu. Jest nieśmiała, nie gryzie — raczej się chowa. Czeka na decyzję lekarza i spokojny dom gotowy na opiekę pooperacyjną (ograniczenie ruchu, leki, kontrole). Po wyzdrowieniu ma szansę być łagodną towarzyszką. Chip założony u nas.',
-      foundAt: new Date('2026-03-22'),
+      foundAt: new Date('2026-06-12'),
       foundLocation: 'ul. Podkarpacka, Rzeszów',
       nextVisitDate: new Date('2026-08-12'),
       imageUrl: [],
@@ -902,7 +902,7 @@ const animalsSeed = async () => {
       dateOfBirth: yearsAgo(2),
       description:
         'King, nr ewid. 2026/041. Samiec, ok. 2 lata, typ amstaff/mix, waga ok. 28 kg. Oddany z powodu braku czasu na spacery i stereotypów sąsiadów. Mimo budowy jest przyjazny wobec ludzi — pozwala się badać, lubi zabawę. Wobec nieznanych psów bywa sztywny na początku; wymaga spokojnego wprowadzania i doświadczonego opiekuna. Szuka odpowiedzialnego domu, najlepiej z ogrodem. Kastracja wykonana, szczepienia aktualne. Chip założony.',
-      foundAt: new Date('2026-02-28'),
+      foundAt: new Date('2026-06-19'),
       foundLocation: 'Rzeszów, oddany przez opiekuna',
       imageUrl: [],
     },
@@ -917,7 +917,7 @@ const animalsSeed = async () => {
       dateOfBirth: yearsAgo(2),
       description:
         'Maja, nr ewid. 2026/092. Kotka, ok. 2 lata, umaszczenie szare. Schwytana w klatkę żywołowną po zgłoszeniu o kocie przy bloku. Jest jeszcze nieśmiała — w boksu obserwuje z dystansu, je przy zamkniętych drzwiach. Pozwala się już delikatnie głaskać przy karmieniu. Obecnie w trakcie badań (FIV/FeLV) i obserwacji przed kwalifikacją do adopcji. Szukamy cierpliwego domu, w którym nikt nie będzie forsował kontaktu.',
-      foundAt: new Date('2026-05-11'),
+      foundAt: new Date('2026-06-26'),
       foundLocation: 'os. Baranówka, Rzeszów',
       imageUrl: [],
     },
@@ -932,7 +932,7 @@ const animalsSeed = async () => {
       dateOfBirth: yearsAgo(4),
       description:
         'Tropik, nr ewid. 2025/165. Fretka-samiec, ok. 4 lata. Oddany z powodu alergii w domu. Jest energiczny, ciekawski, uwielbia tunele i chowanie się w rękawach. Potrzebuje codziennego czasu poza klatką pod nadzorem oraz zabezpieczonego mieszkania. Szuka wyłącznie doświadczonego opiekuna — nie oddajemy do domów z małymi dziećmi ani osobom bez doświadczenia z fretkami. Kastracja i szczepienia aktualne.',
-      foundAt: new Date('2025-10-02'),
+      foundAt: new Date('2026-07-03'),
       foundLocation: 'Rzeszów, oddany z powodu alergii',
       imageUrl: [],
     },
@@ -947,7 +947,7 @@ const animalsSeed = async () => {
       dateOfBirth: yearsAgo(4),
       description:
         'Lusia, nr ewid. 2025/192. Suka, ok. 4 lata, mieszaniec średniej wielkości, waga ok. 16 kg. Oddana po rozstaniu właścicieli — żaden nie mógł jej zabrać. Jest zrównoważona, ładnie chodzi na smyczy, nie niszczy w kojcu. Lubi dzieci w wieku szkolnym (nie jest natarczywa). Może mieszkać z innym, spokojnym psem po wspólnym spacerze zapoznawczym. Sterylizacja i szczepienia wykonane. Szuka stałego, rodzinnego domu.',
-      foundAt: new Date('2025-11-19'),
+      foundAt: new Date('2026-07-10'),
       foundLocation: 'Przeworsk, oddana',
       imageUrl: [],
     },
@@ -962,7 +962,7 @@ const animalsSeed = async () => {
       dateOfBirth: yearsAgo(7),
       description:
         'Bonifacy, nr ewid. 2025/130. Kocur, ok. 7 lat, duży dachowiec o szarym umaszczeniu. Oddany z domu, w którym pojawił się nowy partner alergiczny. Jest spokojnym kanapowcem — lubi krótkie zabawy, potem długie drzemki i głaskanie. Nie wymaga ciągłej uwagi. Dobrze znosi obecność innego spokojnego kota. Kastracja, chip, badania krwi wieku dojrzałego — w normie. Gotowy do adopcji.',
-      foundAt: new Date('2025-07-28'),
+      foundAt: new Date('2026-07-17'),
       foundLocation: 'Rzeszów, oddany',
       imageUrl: [],
     },
@@ -977,7 +977,7 @@ const animalsSeed = async () => {
       dateOfBirth: yearsAgo(9),
       description:
         'Ciapek, nr ewid. 2026/023. Samiec, ok. 9 lat, piesek małej rasowości, waga ok. 6 kg. Znaleziony wychudzony, z problemami dentystycznymi. Mimo wieku i stanu zdrowia jest przyjazny i lubi przytulanie. Obecnie na diecie weterynaryjnej i w trakcie leczenia stomatologicznego — adopcja z zobowiązaniem do dalszej opieki. Idealny do spokojnego mieszkania. Chip założony u nas, kastracja wykonana wcześniej (blizna).',
-      foundAt: new Date('2026-01-30'),
+      foundAt: new Date('2026-07-24'),
       foundLocation: 'ul. Rejtana, Rzeszów',
       nextVisitDate: new Date('2026-08-01'),
       imageUrl: [],
@@ -993,7 +993,7 @@ const animalsSeed = async () => {
       dateOfBirth: yearsAgo(1),
       description:
         'Sarenka, nr ewid. 2026/078. Królica, ok. roku, umaszczenie brązowe. Znaleziona w kartonie przy kontenerze — prawdopodobnie porzucona po świętach. Na początku bardzo wycofana, teraz wychodzi po smakołyki i pozwala się głaskać po grzbiecie. W trakcie obserwacji weterynaryjnej przed kwalifikacją do adopcji. Potrzebuje przestronnego wybiegu, siana bez ograniczeń i spokojnego otoczenia. Nie jako „zabawka” dla małych dzieci.',
-      foundAt: new Date('2026-04-20'),
+      foundAt: new Date('2026-07-31'),
       foundLocation: 'os. Kmity, Rzeszów',
       imageUrl: [],
     },
@@ -1008,7 +1008,7 @@ const animalsSeed = async () => {
       dateOfBirth: yearsAgo(1),
       description:
         'Pestka, nr ewid. 2026/034. Chomik, ok. roku. Oddany przez nastolatka, któremu szybko znudziła się opieka. Jest nieśmiały — woli sam wyjść z domku, niż być wyciągany. Preferuje ciche miejsce z dala od TV i głośników. Potrzebuje głębokiego podłoża, domku i kołowrotka o odpowiedniej średnicy. Szuka odpowiedzialnego opiekuna (nastolatek pod nadzorem lub osoba dorosła).',
-      foundAt: new Date('2026-02-08'),
+      foundAt: new Date('2026-08-02'),
       foundLocation: 'Rzeszów, oddany',
       imageUrl: [],
     },
@@ -1023,7 +1023,7 @@ const animalsSeed = async () => {
       dateOfBirth: yearsAgo(6),
       description:
         'Dama, nr ewid. 2025/171. Suka, ok. 6 lat, mieszaniec dużej rasowości, waga ok. 30 kg. Odebrana z interwencji — trzymana na łańcuchu. W schronisku przeszła ogromną zmianę: jest łagodna, wdzięczna za każdy spacer, nie agresywna. Lubi spokojne spacery i towarzystwo człowieka. Szuka domu z ogrodem i opiekuna, który da jej bezpieczeństwo. Sterylizacja, chip, szczepienia — wykonane. Nie sprawdzi się jako pies stróżujący — to raczej towarzyszka.',
-      foundAt: new Date('2025-10-11'),
+      foundAt: new Date('2026-08-03'),
       foundLocation: 'okolice Strzyżowa, interwencja',
       imageUrl: [],
     },
@@ -1038,7 +1038,7 @@ const animalsSeed = async () => {
       dateOfBirth: yearsAgo(3),
       description:
         'Tygrys, nr ewid. 2025/188. Kocur, ok. 3 lata, umaszczenie pręgowane „tygrysie”. Oddany z domu, w którym zabrakło dla niego uwagi po narodzinach dziecka. Jest ciekawski, lubi zabawy interaktywne i obserwowanie ptaków za oknem. Wobec ludzi otwarty. Potrzebuje drapaka i regularnej zabawy — inaczej zaczyna „polować” na sznurówki. Może mieszkać z innym kotem o podobnej energii. Kastracja i szczepienia aktualne.',
-      foundAt: new Date('2025-11-05'),
+      foundAt: new Date('2026-08-04'),
       foundLocation: 'Rzeszów, oddany',
       imageUrl: [],
     },
@@ -1053,7 +1053,7 @@ const animalsSeed = async () => {
       dateOfBirth: yearsAgo(2),
       description:
         'Punia, nr ewid. 2026/008. Suka, ok. 2 lata, mała rasowość (typ yorkshire/mix), waga ok. 4 kg. Znaleziona bez obroży przy przystanku autobusowym. Jest żywiołowa, lubi przytulanie i zabawy szarpakiem. Obecnie finalizowana adopcja — przyszła opiekunka przeszła pozytywnie rozmowę. Sterylizacja w planie przed odbiorem, szczepienia rozpoczęte. Chip założony w schronisku.',
-      foundAt: new Date('2026-01-05'),
+      foundAt: new Date('2026-01-08'),
       foundLocation: 'przystanek przy ul. Podwisłocze, Rzeszów',
       imageUrl: [],
     },
@@ -1068,7 +1068,7 @@ const animalsSeed = async () => {
       dateOfBirth: yearsAgo(4),
       description:
         'Pirat, nr ewid. 2025/149. Kocur, ok. 4 lata — brakuje mu jednego oka (stary uraz, zagojony, nie wymaga leczenia). Charakter ma łagodny i przyjazny; nie jest przez to mniej sprawny w codziennym życiu. Lubi głaskanie i spokojne popołudnia na parapecie. Szuka domu, w którym ktoś zaakceptuje jego wygląd. Kastracja, chip, szczepienia — komplet. Testy FIV/FeLV ujemne.',
-      foundAt: new Date('2025-09-03'),
+      foundAt: new Date('2026-01-15'),
       foundLocation: 'ul. Krakowska, Rzeszów',
       imageUrl: [],
     },
@@ -1083,7 +1083,7 @@ const animalsSeed = async () => {
       dateOfBirth: yearsAgo(1),
       description:
         'Momo, nr ewid. 2026/052. Samiec, ok. roku, królik. Pełen energii — skacze, bryka, eksploruje wybieg. Chętnie bierze marchewkę z ręki. Potrzebuje codziennego ruchu poza klatką oraz zabawy (tunele, kartony). Kastracja wykonana, zęby w dobrym stanie. Polecamy osobie, która ma czas na interakcję — to nie jest zwierzę „do oglądania w klatce”.',
-      foundAt: new Date('2026-03-14'),
+      foundAt: new Date('2026-01-22'),
       foundLocation: 'Rzeszów, oddany',
       imageUrl: [],
     },
@@ -1098,7 +1098,7 @@ const animalsSeed = async () => {
       dateOfBirth: yearsAgo(3),
       description:
         'Ares, nr ewid. 2026/060. Samiec, ok. 3 lata, mieszaniec typu owczarek, waga ok. 34 kg. Oddany z mieszkania w bloku — poprzedni opiekun nie miał siły na jego potrzeby ruchowe. Uwielbia długie spacery, aport i węszenie. Jest przyjazny wobec ludzi. Szuka aktywnej osoby lub pary, najlepiej z dostępem do terenu spacerowego / ogrodu. Nie polecamy do małego mieszkania bez codziennego ruchu. Zdrowy, kastracja wykonana.',
-      foundAt: new Date('2026-03-28'),
+      foundAt: new Date('2026-01-29'),
       foundLocation: 'Rzeszów, oddany z bloku',
       imageUrl: [],
     },

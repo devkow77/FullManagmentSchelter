@@ -210,7 +210,12 @@ const ContactPage = () => {
               Jesteś zalogowany jako{" "}
               {user.role === "ADMINISTRATOR" ? "administrator" : "pracownik"}.
               Aby zarządzać wiadomościami, przejdź do panelu{" "}
-              <Link to="/wiadomosci" className="font-semibold">
+              <Link
+                to={import.meta.env.VITE_TEAM_CHAT_URL as string}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="font-semibold"
+              >
                 wiadomości
               </Link>
               .

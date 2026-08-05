@@ -7,6 +7,7 @@ import {
   CalendarSync,
   Columns4,
   Package,
+  MessageCircle,
 } from "lucide-react";
 import { Link, useLocation } from "react-router";
 import { useQuery } from "@tanstack/react-query";
@@ -96,6 +97,15 @@ const workerOptions: WorkerOptions[] = [
     href: `${import.meta.env.VITE_STRIPE_CMS_ADMIN_URL}/admin`,
     name: "Zarządzaj blogiem",
   },
+  ...(import.meta.env.VITE_TEAM_CHAT_URL
+    ? [
+        {
+          icon: MessageCircle,
+          href: import.meta.env.VITE_TEAM_CHAT_URL as string,
+          name: "Komunikator",
+        },
+      ]
+    : []),
 ];
 
 const getCardClassName = (

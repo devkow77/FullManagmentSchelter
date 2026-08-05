@@ -63,7 +63,7 @@ export const getShelterStats = async (_req: Request, res: Response) => {
       animalsByStatus,
       animalsByType,
       animalsByHealth,
-      animalsCreated,
+      animalsFound,
       adoptionTotal,
       adoptionsByStatus,
       adoptionsCreated,
@@ -97,7 +97,7 @@ export const getShelterStats = async (_req: Request, res: Response) => {
       }),
       prisma.animal.findMany({
         where: {
-          createdAt: {
+          foundAt: {
             gte: new Date(
               new Date().getFullYear(),
               new Date().getMonth() - 5,
@@ -105,7 +105,7 @@ export const getShelterStats = async (_req: Request, res: Response) => {
             ),
           },
         },
-        select: { createdAt: true },
+        select: { foundAt: true },
       }),
       prisma.adoption.count(),
       prisma.adoption.groupBy({
@@ -171,8 +171,8 @@ export const getShelterStats = async (_req: Request, res: Response) => {
     ]);
 
     const animalsMonthWindow = buildLastSixMonths();
-    for (const animal of animalsCreated) {
-      const key = `${animal.createdAt.getFullYear()}-${animal.createdAt.getMonth()}`;
+    for (const animal of animalsFound) {
+      const key = `${animal.foundAt.getFullYear()}-${animal.foundAt.getMonth()}`;
       const index = animalsMonthWindow.monthIndex.get(key);
       if (index !== undefined) {
         animalsMonthWindow.months[index]!.count += 1;

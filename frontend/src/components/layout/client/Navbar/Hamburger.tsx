@@ -124,7 +124,7 @@ const Hamburger = () => {
       ) : null}
 
       {isOpen ? (
-        <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto overscroll-none bg-white dark:bg-black dark:text-white xl:hidden">
+        <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto overscroll-none bg-white xl:hidden dark:bg-black dark:text-white">
           <HamburgerButton
             isOpen
             onClick={handleClick}
@@ -137,8 +137,8 @@ const Hamburger = () => {
               </Link>
             </li>
             <li>
-              <Link to="/o-nas" onClick={closeMenu}>
-                O nas
+              <Link to="/znalezione-zwierzeta" onClick={closeMenu}>
+                Znalezione zwierzęta
               </Link>
             </li>
             <li className="space-y-4">
@@ -178,6 +178,11 @@ const Hamburger = () => {
             <li>
               <Link to="/kontakt" onClick={closeMenu}>
                 Kontakt
+              </Link>
+            </li>
+            <li>
+              <Link to="/ulubione-zwierzeta" onClick={closeMenu}>
+                Ulubione zwierzęta
               </Link>
             </li>
           </ul>

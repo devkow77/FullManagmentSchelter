@@ -124,7 +124,7 @@ const Hamburger = () => {
       ) : null}
 
       {isOpen ? (
-        <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto overscroll-none bg-white dark:bg-black dark:text-white xl:hidden">
+        <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto overscroll-none bg-white xl:hidden dark:bg-black dark:text-white">
           <HamburgerButton
             isOpen
             onClick={handleClick}
@@ -136,13 +136,17 @@ const Hamburger = () => {
                 Strona główna
               </Link>
             </li>
+            <li>
+              <Link to="/znalezione-zwierzeta" onClick={closeMenu}>
+                Znalezione zwierzęta
+              </Link>
+            </li>
             <li className="space-y-4">
               <button
                 onClick={toggleAnimals}
                 className="flex w-full items-center justify-center"
               >
-                Zarządzanie zwierzętami{" "}
-                {isAnimalsOpen ? <ChevronUp /> : <ChevronDown />}
+                Zwierzęta {isAnimalsOpen ? <ChevronUp /> : <ChevronDown />}
               </button>
               {isAnimalsOpen ? (
                 <ul className="space-y-4">
@@ -157,6 +161,11 @@ const Hamburger = () => {
               ) : null}
             </li>
             <li>
+              <Link to="/jak-pomoc" onClick={closeMenu}>
+                Jak pomóc?
+              </Link>
+            </li>
+            <li>
               <Link to="/blog" onClick={closeMenu}>
                 Blog
               </Link>
@@ -164,6 +173,25 @@ const Hamburger = () => {
             <li>
               <Link to="/faq" onClick={closeMenu}>
                 Faq
+              </Link>
+            </li>
+            <li>
+              <Link to="/kontakt" onClick={closeMenu}>
+                Kontakt
+              </Link>
+            </li>
+            <li>
+              <Link to="/ulubione-zwierzeta" onClick={closeMenu}>
+                Ulubione zwierzęta
+              </Link>
+            </li>
+            <li>
+              <Link
+                to="/admin/konto"
+                onClick={closeMenu}
+                className="text-red-600"
+              >
+                Panel administratora
               </Link>
             </li>
           </ul>
