@@ -128,6 +128,7 @@ const DesktopMenu = () => {
           <NavigationMenuLink asChild>
             <Link to="/ulubione-zwierzeta" className="font-medium text-red-600">
               <Heart className="size-4 fill-red-600 text-red-600" /> Ulubione
+              zwierzeta
             </Link>
           </NavigationMenuLink>
         </NavigationMenuItem>

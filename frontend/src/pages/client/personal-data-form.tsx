@@ -1,50 +1,26 @@
-"use client";
-
 import { toast } from "sonner";
-import { useLocation, useNavigate, useParams } from "react-router";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useNavigate } from "react-router";
+import { useEffect, useRef, useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm, Controller } from "react-hook-form";
-import {
-  Button,
-  Container,
-  Input,
-  Label,
-  Textarea,
-  Table,
-  TableBody,
-  TableCaption,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui";
+import { Button, Container, Input, Label } from "@/components/ui";
 import axios from "axios";
 import { Plus, Trash } from "lucide-react";
 import { supabase } from "@/lib/supabase";
+import { SingleValueSelector } from "@/components/shared";
 import {
-  MultiValueSelector,
-  SingleValueSelector,
-  TableRowActions,
-  FilterToolbar,
-  DashboardTableFooter,
-} from "@/components/shared";
-import {
-  editUserSchema,
-  type EditUserFormData,
+  editOwnProfileSchema,
+  type EditOwnProfileFormData,
   getMaxDateOfBirth,
 } from "@/schemas/user.schema";
-import { userRoleValues, userGenderValues } from "@/constants/user.constants";
-import { adoptionStatusOptions } from "@/constants/adoption.constants";
-import type { Adoption } from "@/types/adoption";
-import { formatAdoptionStatus, styleAdoptionStatus } from "@/lib/utils";
+import { userGenderValues } from "@/constants/user.constants";
+import { useAuth } from "@/context/AuthContext";
 
-type AppUser = {
+type OwnProfile = {
   id: number;
   fullName: string;
   email: string;
   gender: string;
-  role: string;
   phoneNumber: string | null;
   city: string | null;
   postalCode: string | null;
@@ -52,8 +28,6 @@ type AppUser = {
   dateOfBirth: string | null;
   hasChildren: boolean;
   hasOtherAnimals: boolean;
-  isBanned: boolean;
-  adminNote: string | null;
   imageUrl: string | null;
   twoFactorEnabled: boolean;
   createdAt: string;
@@ -64,19 +38,9 @@ const formatDateInput = (value: string | Date | null | undefined) => {
   return new Date(value).toISOString().split("T")[0];
 };
 
-const RETURN_PATHS = ["/admin/pracownicy", "/admin/uzytkownicy"] as const;
-type ReturnPath = (typeof RETURN_PATHS)[number];
-
-const EditUserPage = () => {
-  const { id } = useParams();
+const PersonalDataFormPage = () => {
   const navigate = useNavigate();
-  const location = useLocation();
-
-  const returnTo: ReturnPath =
-    RETURN_PATHS.find(
-      (path) =>
-        path === (location.state as { returnTo?: string } | null)?.returnTo,
-    ) ?? "/admin/uzytkownicy";
+  const { user, setUser } = useAuth();
 
   const {
     register,
@@ -87,11 +51,10 @@ const EditUserPage = () => {
     setValue,
     formState: { isSubmitting, errors },
   } = useForm({
-    resolver: zodResolver(editUserSchema),
+    resolver: zodResolver(editOwnProfileSchema),
     defaultValues: {
       fullName: "",
       gender: "MEZCZYZNA",
-      role: "UZYTKOWNIK",
       phoneNumber: "",
       city: "",
       postalCode: "",
@@ -99,8 +62,6 @@ const EditUserPage = () => {
       dateOfBirth: null,
       hasChildren: false,
       hasOtherAnimals: false,
-      isBanned: false,
-      adminNote: "",
       imageUrl: "",
     },
   });
@@ -116,33 +77,26 @@ const EditUserPage = () => {
     createdAt: "",
   });
 
-  const [adoptions, setAdoptions] = useState<Adoption[]>([]);
-  const [selectedAdoptionStatuses, setSelectedAdoptionStatuses] = useState<
-    string[]
-  >([]);
-
   const existingImage = watch("imageUrl");
-  const userRole = watch("role");
 
   const previewImage = pendingFile
     ? URL.createObjectURL(pendingFile)
     : existingImage || null;
 
   useEffect(() => {
-    document.title = "Edytuj dane | Schronisko";
+    document.title = "Formularz danych osobowych | Schronisko";
   }, []);
 
   useEffect(() => {
-    const fetchUser = async () => {
+    const fetchProfile = async () => {
       try {
-        const res = await axios.get<AppUser>(`/api/users/${id}`, {
+        const res = await axios.get<OwnProfile>("/api/users/me", {
           withCredentials: true,
         });
 
         reset({
           fullName: res.data.fullName,
-          gender: res.data.gender as EditUserFormData["gender"],
-          role: res.data.role as EditUserFormData["role"],
+          gender: res.data.gender as EditOwnProfileFormData["gender"],
           phoneNumber: res.data.phoneNumber ?? "",
           city: res.data.city ?? "",
           postalCode: res.data.postalCode ?? "",
@@ -150,8 +104,6 @@ const EditUserPage = () => {
           dateOfBirth: formatDateInput(res.data.dateOfBirth) ?? null,
           hasChildren: res.data.hasChildren,
           hasOtherAnimals: res.data.hasOtherAnimals,
-          isBanned: res.data.isBanned,
-          adminNote: res.data.adminNote ?? "",
           imageUrl: res.data.imageUrl ?? "",
         });
 
@@ -162,46 +114,13 @@ const EditUserPage = () => {
           createdAt: res.data.createdAt,
         });
       } catch {
-        toast.error("Nie udało się pobrać danych użytkownika.");
-        navigate(returnTo);
+        toast.error("Nie udało się pobrać danych profilu.");
+        navigate("/konto");
       }
     };
 
-    if (id) fetchUser();
-  }, [id, reset, navigate, returnTo]);
-
-  useEffect(() => {
-    const fetchAdoptions = async () => {
-      try {
-        const res = await axios.get<Adoption[]>(`/api/adoptions?userId=${id}`, {
-          withCredentials: true,
-        });
-        setAdoptions(res.data);
-      } catch {
-        toast.error("Nie udało się pobrać adopcji użytkownika.");
-      }
-    };
-
-    if (id && userRole === "UZYTKOWNIK") {
-      fetchAdoptions();
-    } else {
-      setAdoptions([]);
-    }
-  }, [id, userRole]);
-
-  const filteredAdoptions = useMemo(() => {
-    return adoptions.filter((adoption) => {
-      const matchesStatus =
-        selectedAdoptionStatuses.length === 0 ||
-        selectedAdoptionStatuses.includes(adoption.status);
-
-      return matchesStatus;
-    });
-  }, [adoptions, selectedAdoptionStatuses]);
-
-  const resetAdoptionFilters = () => {
-    setSelectedAdoptionStatuses([]);
-  };
+    fetchProfile();
+  }, [reset, navigate]);
 
   useEffect(() => {
     if (!pendingFile) return;
@@ -211,12 +130,12 @@ const EditUserPage = () => {
     return () => URL.revokeObjectURL(url);
   }, [pendingFile]);
 
-  const onSubmit = async (data: EditUserFormData) => {
+  const onSubmit = async (data: EditOwnProfileFormData) => {
     try {
       let uploadedUrl: string | null = data.imageUrl || null;
 
-      if (pendingFile) {
-        const filePath = `${id}/${Date.now()}-${pendingFile.name}`;
+      if (pendingFile && user?.id) {
+        const filePath = `${user.id}/${Date.now()}-${pendingFile.name}`;
 
         const { error } = await supabase.storage
           .from("users")
@@ -242,8 +161,8 @@ const EditUserPage = () => {
         await supabase.storage.from("users").remove([path]);
       }
 
-      await axios.patch(
-        `/api/users/${id}`,
+      const res = await axios.patch<OwnProfile>(
+        "/api/users/me",
         {
           ...data,
           imageUrl: uploadedUrl,
@@ -251,8 +170,15 @@ const EditUserPage = () => {
         { withCredentials: true },
       );
 
-      toast.success("Dane użytkownika zostały zaktualizowane");
-      navigate(returnTo);
+      if (user) {
+        setUser({
+          ...user,
+          fullName: res.data.fullName,
+        });
+      }
+
+      toast.success("Dane zostały zaktualizowane");
+      navigate("/konto");
     } catch (err) {
       console.error(err);
 
@@ -290,23 +216,26 @@ const EditUserPage = () => {
       <Container className="mb-6 space-y-12 md:mb-10 md:space-y-16">
         <div className="space-y-2">
           <h1
-            id="edit-user-heading"
+            id="personal-data-heading"
             className="text-3xl font-bold text-green-900 md:text-5xl"
           >
-            Edytuj dane
+            Formularz danych osobowych
           </h1>
           <p className="text-sm leading-6 font-medium md:text-base md:leading-7">
-            Wprowadź zmiany w profilu użytkownika poniżej. Pamiętaj, aby zapisać
+            Uzupełnij lub zaktualizuj swoje dane poniżej. Pamiętaj, aby zapisać
             po zakończeniu edycji.
           </p>
         </div>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+        <form
+          onSubmit={handleSubmit(onSubmit)}
+          className="space-y-6"
+          noValidate
+        >
           <div className="space-y-6">
             <Label>Zdjęcie profilowe</Label>
 
             <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
-              {/* ZDJĘCIE */}
               <div className="relative aspect-square overflow-hidden rounded-2xl bg-gray-100">
                 {previewImage ? (
                   <>
@@ -333,7 +262,6 @@ const EditUserPage = () => {
                 )}
               </div>
 
-              {/* WERYFIKACJA 2FA & KONTO UTWORZONE */}
               <div className="space-y-4">
                 <div className="space-y-2">
                   <Label>Weryfikacja 2FA</Label>
@@ -367,7 +295,6 @@ const EditUserPage = () => {
           </div>
 
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {/* IMIĘ I NAZWISKO */}
             <div className="space-y-2">
               <Label htmlFor="fullName">Imię i nazwisko</Label>
               <Input
@@ -375,6 +302,7 @@ const EditUserPage = () => {
                 {...register("fullName")}
                 placeholder="Podaj imię i nazwisko..."
                 className={errors.fullName ? "bg-red-600/20" : ""}
+                aria-invalid={Boolean(errors.fullName)}
               />
               {errors.fullName && (
                 <p className="text-xs font-medium text-red-600 lg:text-sm">
@@ -383,7 +311,6 @@ const EditUserPage = () => {
               )}
             </div>
 
-            {/* EMAIL */}
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
               <Input
@@ -396,7 +323,6 @@ const EditUserPage = () => {
               />
             </div>
 
-            {/* NUMER TELEFONU */}
             <div className="space-y-2">
               <Label htmlFor="phoneNumber">Numer telefonu</Label>
               <Input
@@ -404,6 +330,7 @@ const EditUserPage = () => {
                 {...register("phoneNumber")}
                 placeholder="np. 500123456"
                 className={errors.phoneNumber ? "bg-red-600/20" : ""}
+                aria-invalid={Boolean(errors.phoneNumber)}
               />
               {errors.phoneNumber && (
                 <p className="text-xs font-medium text-red-600 lg:text-sm">
@@ -412,29 +339,6 @@ const EditUserPage = () => {
               )}
             </div>
 
-            {/* ROLA */}
-            <div className="space-y-2">
-              <Label>Rola</Label>
-              <Controller
-                name="role"
-                control={control}
-                render={({ field }) => (
-                  <SingleValueSelector
-                    items={[...userRoleValues]}
-                    placeholder="Wybierz rolę"
-                    value={field.value}
-                    onValueChange={field.onChange}
-                  />
-                )}
-              />
-              {errors.role && (
-                <p className="text-xs font-medium text-red-600 lg:text-sm">
-                  {errors.role.message}
-                </p>
-              )}
-            </div>
-
-            {/* PŁEĆ */}
             <div className="space-y-2">
               <Label>Płeć</Label>
               <Controller
@@ -456,7 +360,6 @@ const EditUserPage = () => {
               )}
             </div>
 
-            {/* DATA URODZENIA */}
             <div className="space-y-2">
               <Label htmlFor="dateOfBirth">Data urodzenia</Label>
               <Input
@@ -465,6 +368,7 @@ const EditUserPage = () => {
                 max={getMaxDateOfBirth()}
                 {...register("dateOfBirth")}
                 className={errors.dateOfBirth ? "bg-red-600/20" : ""}
+                aria-invalid={Boolean(errors.dateOfBirth)}
               />
               {errors.dateOfBirth && (
                 <p className="text-xs font-medium text-red-600 lg:text-sm">
@@ -473,7 +377,6 @@ const EditUserPage = () => {
               )}
             </div>
 
-            {/* MIASTO */}
             <div className="space-y-2">
               <Label htmlFor="city">Miasto</Label>
               <Input
@@ -481,6 +384,7 @@ const EditUserPage = () => {
                 {...register("city")}
                 placeholder="Podaj miasto..."
                 className={errors.city ? "bg-red-600/20" : ""}
+                aria-invalid={Boolean(errors.city)}
               />
               {errors.city && (
                 <p className="text-xs font-medium text-red-600 lg:text-sm">
@@ -489,7 +393,6 @@ const EditUserPage = () => {
               )}
             </div>
 
-            {/* KOD POCZTOWY */}
             <div className="space-y-2">
               <Label htmlFor="postalCode">Kod pocztowy</Label>
               <Input
@@ -497,6 +400,7 @@ const EditUserPage = () => {
                 {...register("postalCode")}
                 placeholder="np. 00-001"
                 className={errors.postalCode ? "bg-red-600/20" : ""}
+                aria-invalid={Boolean(errors.postalCode)}
               />
               {errors.postalCode && (
                 <p className="text-xs font-medium text-red-600 lg:text-sm">
@@ -505,7 +409,6 @@ const EditUserPage = () => {
               )}
             </div>
 
-            {/* ULICA I NUMER */}
             <div className="space-y-2">
               <Label htmlFor="street">Ulica i numer</Label>
               <Input
@@ -513,6 +416,7 @@ const EditUserPage = () => {
                 {...register("street")}
                 placeholder="Podaj adres..."
                 className={errors.street ? "bg-red-600/20" : ""}
+                aria-invalid={Boolean(errors.street)}
               />
               {errors.street && (
                 <p className="text-xs font-medium text-red-600 lg:text-sm">
@@ -521,23 +425,6 @@ const EditUserPage = () => {
               )}
             </div>
 
-            {/* NOTATKA ADMINISTRATORA */}
-            <div className="space-y-2 sm:col-span-2 lg:col-span-3">
-              <Label htmlFor="adminNote">Notatka administratora</Label>
-              <Textarea
-                id="adminNote"
-                {...register("adminNote")}
-                placeholder="Opcjonalna notatka widoczna dla pracowników..."
-                className={`${errors.adminNote ? "bg-red-600/20" : ""} h-50 resize-none`}
-              />
-              {errors.adminNote && (
-                <p className="text-xs font-medium text-red-600 lg:text-sm">
-                  {errors.adminNote.message}
-                </p>
-              )}
-            </div>
-
-            {/* CZY MA DZIECI & INNE ZWIERZĘTA & CZY KONTO JEST ZABLOKOWANE */}
             <div className="flex flex-col gap-3 sm:col-span-2 lg:col-span-3">
               <Label className="flex cursor-pointer items-center gap-2 text-sm font-medium md:text-base">
                 <Input
@@ -556,140 +443,16 @@ const EditUserPage = () => {
                 />
                 Posiada inne zwierzęta
               </Label>
-
-              <Label className="flex cursor-pointer items-center gap-2 text-sm font-medium md:text-base">
-                <Input
-                  type="checkbox"
-                  {...register("isBanned")}
-                  className="size-4 accent-green-600"
-                />
-                Konto zablokowane
-              </Label>
             </div>
           </div>
 
-          <Button type="submit" variant={"success"} disabled={isSubmitting}>
-            {isSubmitting ? "Zapisywanie..." : "Zaktualizuj dane użytkownika"}
+          <Button type="submit" variant="success" disabled={isSubmitting}>
+            {isSubmitting ? "Zapisywanie..." : "Zapisz dane"}
           </Button>
         </form>
-
-        {userRole === "UZYTKOWNIK" && (
-          <section id="adoptions" className="space-y-4">
-            <div className="space-y-2">
-              <h2 className="text-2xl font-bold text-green-900 md:text-3xl">
-                Adopcje
-              </h2>
-              <p className="text-sm leading-6 font-medium md:text-base md:leading-7">
-                Lista adopcji złożonych przez tego użytkownika.
-              </p>
-            </div>
-
-            <FilterToolbar>
-              <MultiValueSelector
-                items={adoptionStatusOptions}
-                placeholder="Status"
-                value={selectedAdoptionStatuses}
-                onValueChange={setSelectedAdoptionStatuses}
-              />
-
-              <Button onClick={resetAdoptionFilters} variant="destructive">
-                Resetuj filtry
-              </Button>
-            </FilterToolbar>
-
-            <Table>
-              <TableCaption>Adopcje użytkownika</TableCaption>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Zwierzę</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Data złożenia</TableHead>
-                  <TableHead>Wiadomość użytkownika</TableHead>
-                  <TableHead>Wiadomość pracownika</TableHead>
-                  <TableHead className="w-0 text-right">Opcje</TableHead>
-                </TableRow>
-              </TableHeader>
-
-              <TableBody>
-                {filteredAdoptions.length ? (
-                  filteredAdoptions.map((adoption) => (
-                    <TableRow
-                      key={adoption.id}
-                      onClick={() =>
-                        navigate(`/admin/adopcje/${adoption.id}/edycja`)
-                      }
-                      className="cursor-pointer"
-                    >
-                      <TableCell>{adoption.animal.name}</TableCell>
-                      <TableCell>
-                        <span
-                          className={`${styleAdoptionStatus(adoption.status)} rounded-2xl px-4 py-2 text-xs`}
-                        >
-                          {formatAdoptionStatus[adoption.status]}
-                        </span>
-                      </TableCell>
-                      <TableCell>
-                        {new Date(adoption.createdAt).toLocaleDateString(
-                          "pl-PL",
-                          {
-                            day: "2-digit",
-                            month: "2-digit",
-                            year: "numeric",
-                          },
-                        )}{" "}
-                        r.
-                      </TableCell>
-                      <TableCell>
-                        {adoption.message
-                          ? `${adoption.message.slice(0, 30)}...`
-                          : "-"}
-                      </TableCell>
-                      <TableCell>
-                        {adoption.employeeNote
-                          ? `${adoption.employeeNote.slice(0, 30)}...`
-                          : "Brak"}
-                      </TableCell>
-                      <TableCell
-                        className="w-0 text-right"
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        <TableRowActions
-                          editTo={`/pracownik/adopcje/${adoption.id}/edycja`}
-                          editLabel="Szczegóły"
-                        />
-                      </TableCell>
-                    </TableRow>
-                  ))
-                ) : (
-                  <TableRow>
-                    <TableCell
-                      colSpan={6}
-                      className="py-5 text-center font-medium"
-                    >
-                      Brak adopcji spełniających wybrane filtry.
-                    </TableCell>
-                  </TableRow>
-                )}
-              </TableBody>
-
-              <DashboardTableFooter
-                columns={[
-                  "always",
-                  "always",
-                  "always",
-                  "always",
-                  "always",
-                  "always",
-                ]}
-                sumLabel="Suma adopcji"
-                sumValue={filteredAdoptions.length}
-              />
-            </Table>
-          </section>
-        )}
       </Container>
     </main>
   );
 };
 
-export default EditUserPage;
+export default PersonalDataFormPage;

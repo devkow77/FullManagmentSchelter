@@ -11,6 +11,9 @@ export type Adoption = {
     fullName: string;
   };
   animal: {
+    id: number;
     name: string;
+    description: string;
+    imageUrl: string[];
   };
 };

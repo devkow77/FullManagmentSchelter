@@ -22,7 +22,7 @@ router.post(
 router.get(
   '/',
   authenticateUser,
-  authorizeRoles(Role.PRACOWNIK, Role.ADMINISTRATOR),
+  authorizeRoles(Role.UZYTKOWNIK, Role.PRACOWNIK, Role.ADMINISTRATOR),
   getAdoptions,
 );
 router.get(

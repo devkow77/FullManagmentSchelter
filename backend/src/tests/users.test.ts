@@ -200,7 +200,10 @@ describe('Zarządzanie użytkownikami - Testy integracyjne', () => {
 
   describe('PATCH /api/users/:id', () => {
     it('Aktualizuje dane utworzonego użytkownika', async () => {
-      // Sprawdza poprawną aktualizację rekordu.
+      // Sprawdza poprawną aktualizację rekordu (email nie podlega zmianie).
+      const before = await adminAgent.get(`/api/users/${createdUserId}`);
+      const originalEmail = before.body.email;
+
       const res = await adminAgent.patch(`/api/users/${createdUserId}`).send({
         fullName: 'Testowy Uzytkownik Zmieniony',
         email: 'test-user-updated@example.com',
@@ -211,7 +214,7 @@ describe('Zarządzanie użytkownikami - Testy integracyjne', () => {
 
       expect(res.status).toBe(StatusCodes.OK);
       expect(res.body.fullName).toBe('Testowy Uzytkownik Zmieniony');
-      expect(res.body.email).toBe('test-user-updated@example.com');
+      expect(res.body.email).toBe(originalEmail);
       expect(res.body.role).toBe('PRACOWNIK');
     });
 
@@ -219,7 +222,6 @@ describe('Zarządzanie użytkownikami - Testy integracyjne', () => {
       // Sprawdza walidację danych wejściowych (400).
       const res = await adminAgent.patch('/api/users/brak-id').send({
         fullName: 'Test',
-        email: 'test2@example.com',
         gender: 'KOBIETA',
         role: 'UZYTKOWNIK',
         imageUrl: null,
@@ -243,7 +245,6 @@ describe('Zarządzanie użytkownikami - Testy integracyjne', () => {
       // Sprawdza brak uprawnień pracownika do edycji (403).
       const res = await workerAgent.patch(`/api/users/${createdUserId}`).send({
         fullName: 'Zabroniona Edycja',
-        email: 'blocked@example.com',
         gender: 'KOBIETA',
         role: 'UZYTKOWNIK',
         imageUrl: null,

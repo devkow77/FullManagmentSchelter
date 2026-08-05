@@ -136,149 +136,149 @@ const AddUserPage = () => {
       showNavbar={false}
     >
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-          <div className="space-y-6">
-            <Label>Zdjęcie (maksymalnie 1)</Label>
+        <div className="space-y-6">
+          <Label>Zdjęcie (maksymalnie 1)</Label>
 
-            <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
-              <div className="relative aspect-square overflow-hidden rounded-full bg-black/20">
-                {previewImage ? (
-                  <>
-                    <span
-                      onClick={handleRemoveImage}
-                      className="absolute top-3 right-3 z-10 cursor-pointer rounded-full bg-white p-2"
-                    >
-                      <Trash className="text-red-600" />
-                    </span>
-
-                    <img
-                      src={previewImage}
-                      alt="user"
-                      className="absolute size-full object-cover"
-                    />
-                  </>
-                ) : (
-                  <div
-                    onClick={() => fileInputRef.current?.click()}
-                    className="flex size-full cursor-pointer items-center justify-center text-gray-400"
+          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
+            <div className="relative aspect-square overflow-hidden rounded-2xl bg-slate-100">
+              {previewImage ? (
+                <>
+                  <span
+                    onClick={handleRemoveImage}
+                    className="absolute top-3 right-3 z-10 cursor-pointer rounded-2xl bg-white p-2"
                   >
-                    <Plus size={26} />
-                  </div>
-                )}
-              </div>
+                    <Trash className="text-red-600" />
+                  </span>
 
-              <input
-                type="file"
-                ref={fileInputRef}
-                accept="image/*"
-                hidden
-                onChange={handleFileUpload}
-              />
+                  <img
+                    src={previewImage}
+                    alt="user"
+                    className="absolute size-full object-cover"
+                  />
+                </>
+              ) : (
+                <div
+                  onClick={() => fileInputRef.current?.click()}
+                  className="flex size-full cursor-pointer items-center justify-center text-gray-400"
+                >
+                  <Plus size={26} />
+                </div>
+              )}
             </div>
+
+            <input
+              type="file"
+              ref={fileInputRef}
+              accept="image/*"
+              hidden
+              onChange={handleFileUpload}
+            />
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+          <div className="space-y-2">
+            <Label htmlFor="fullName">Imię i nazwisko</Label>
+            <Input
+              id="fullName"
+              {...register("fullName")}
+              placeholder="Podaj imię i nazwisko..."
+              className={errors.fullName ? "bg-red-600/20" : ""}
+            />
+            {errors.fullName && (
+              <p className="text-xs font-medium text-red-600 lg:text-sm">
+                {errors.fullName.message}
+              </p>
+            )}
           </div>
 
-          <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-            <div className="space-y-2">
-              <Label htmlFor="fullName">Imię i nazwisko</Label>
-              <Input
-                id="fullName"
-                {...register("fullName")}
-                placeholder="Podaj imię i nazwisko..."
-                className={errors.fullName ? "bg-red-600/20" : ""}
-              />
-              {errors.fullName && (
-                <p className="text-xs font-medium text-red-600 lg:text-sm">
-                  {errors.fullName.message}
-                </p>
-              )}
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
-              <Input
-                id="email"
-                {...register("email")}
-                placeholder="Podaj email..."
-                className={errors.email ? "bg-red-600/20" : ""}
-              />
-              {errors.email && (
-                <p className="text-xs font-medium text-red-600 lg:text-sm">
-                  {errors.email.message}
-                </p>
-              )}
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="password">Hasło</Label>
-              <Input
-                id="password"
-                type="password"
-                placeholder="Podaj hasło..."
-                {...register("password")}
-                className={errors.password ? "bg-red-600/20" : ""}
-              />
-              {errors.password && (
-                <p className="text-xs font-medium text-red-600 lg:text-sm">
-                  {errors.password.message}
-                </p>
-              )}
-            </div>
-
-            <div className="space-y-2">
-              <Label>Płeć</Label>
-
-              <Controller
-                name="gender"
-                control={control}
-                render={({ field }) => (
-                  <SingleValueSelector
-                    items={[...addUserGenderValues]}
-                    placeholder="Wybierz płeć"
-                    value={field.value}
-                    onValueChange={field.onChange}
-                  />
-                )}
-              />
-
-              {errors.gender && (
-                <p className="text-xs font-medium text-red-600 lg:text-sm">
-                  {errors.gender.message}
-                </p>
-              )}
-            </div>
-
-            <div className="space-y-2">
-              <Label>Rola</Label>
-
-              <Controller
-                name="role"
-                control={control}
-                render={({ field }) => (
-                  <SingleValueSelector
-                    items={[...addUserRoleValues]}
-                    placeholder="Wybierz rolę"
-                    value={field.value}
-                    onValueChange={field.onChange}
-                  />
-                )}
-              />
-
-              {errors.role && (
-                <p className="text-xs font-medium text-red-600 lg:text-sm">
-                  {errors.role.message}
-                </p>
-              )}
-            </div>
+          <div className="space-y-2">
+            <Label htmlFor="email">Email</Label>
+            <Input
+              id="email"
+              {...register("email")}
+              placeholder="Podaj email..."
+              className={errors.email ? "bg-red-600/20" : ""}
+            />
+            {errors.email && (
+              <p className="text-xs font-medium text-red-600 lg:text-sm">
+                {errors.email.message}
+              </p>
+            )}
           </div>
 
-          <Button
-            type="submit"
-            variant={"success"}
-            disabled={isSubmitting}
-            className="w-full lg:w-auto"
-          >
-            {isSubmitting ? "Dodawanie..." : "Dodaj nowego użytkownika"}
-          </Button>
-        </form>
+          <div className="space-y-2">
+            <Label htmlFor="password">Hasło</Label>
+            <Input
+              id="password"
+              type="password"
+              placeholder="Podaj hasło..."
+              {...register("password")}
+              className={errors.password ? "bg-red-600/20" : ""}
+            />
+            {errors.password && (
+              <p className="text-xs font-medium text-red-600 lg:text-sm">
+                {errors.password.message}
+              </p>
+            )}
+          </div>
+
+          <div className="space-y-2">
+            <Label>Płeć</Label>
+
+            <Controller
+              name="gender"
+              control={control}
+              render={({ field }) => (
+                <SingleValueSelector
+                  items={[...addUserGenderValues]}
+                  placeholder="Wybierz płeć"
+                  value={field.value}
+                  onValueChange={field.onChange}
+                />
+              )}
+            />
+
+            {errors.gender && (
+              <p className="text-xs font-medium text-red-600 lg:text-sm">
+                {errors.gender.message}
+              </p>
+            )}
+          </div>
+
+          <div className="space-y-2">
+            <Label>Rola</Label>
+
+            <Controller
+              name="role"
+              control={control}
+              render={({ field }) => (
+                <SingleValueSelector
+                  items={[...addUserRoleValues]}
+                  placeholder="Wybierz rolę"
+                  value={field.value}
+                  onValueChange={field.onChange}
+                />
+              )}
+            />
+
+            {errors.role && (
+              <p className="text-xs font-medium text-red-600 lg:text-sm">
+                {errors.role.message}
+              </p>
+            )}
+          </div>
+        </div>
+
+        <Button
+          type="submit"
+          variant={"success"}
+          disabled={isSubmitting}
+          className="w-full lg:w-auto"
+        >
+          {isSubmitting ? "Dodawanie..." : "Dodaj nowego użytkownika"}
+        </Button>
+      </form>
     </DashboardPage>
   );
 };

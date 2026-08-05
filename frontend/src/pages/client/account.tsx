@@ -1,16 +1,23 @@
-import { Container } from "@/components/ui";
+import { Button, Container, Input, Label, Skeleton } from "@/components/ui";
 import { useAuth } from "@/context/AuthContext";
 import { z } from "zod";
 import axios, { AxiosError } from "axios";
 import { toast } from "sonner";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Button, Input, Label } from "@/components/ui";
 import { useNavigate, Link } from "react-router";
 import { useEffect } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { useTotp } from "@/hooks/useTotp";
 import { DisableTotpForm, VerifyTotpForm } from "@/components/shared";
-import { styleUserRole } from "@/lib/utils";
+import ClientDashboardNavbar from "@/components/layout/client/DashboardNavbar";
+import {
+  formatAdoptionStatus,
+  styleAdoptionStatus,
+  styleUserRole,
+} from "@/lib/utils";
+import type { Adoption } from "@/types/adoption";
+import { CircleAlert, ImageOff, Info } from "lucide-react";
 
 const updatePasswordSchema = z
   .object({
@@ -37,10 +44,27 @@ const updatePasswordSchema = z
 
 type UpdatePasswordFormData = z.infer<typeof updatePasswordSchema>;
 
+const getMyAdoptions = async () => {
+  const res = await axios.get<Adoption[]>("/api/adoptions", {
+    withCredentials: true,
+  });
+  return res.data;
+};
+
 const AccountPage = () => {
   const { qrCode, manualKey } = useTotp();
   const { user, loading, logout } = useAuth();
   const navigate = useNavigate();
+
+  const {
+    data: adoptions = [],
+    isPending: isAdoptionsPending,
+    isError: isAdoptionsError,
+  } = useQuery({
+    queryKey: ["my-adoptions", user?.id],
+    queryFn: getMyAdoptions,
+    enabled: Boolean(user?.id),
+  });
 
   const {
     handleSubmit,
@@ -115,7 +139,7 @@ const AccountPage = () => {
               <li>Email: {user?.email}</li>
               <li className="mt-4">
                 <span
-                  className={`${styleUserRole(user?.role as string)} rounded-sm px-4 py-2 font-medium`}
+                  className={`${styleUserRole(user?.role as string)} rounded-2xl border-2 px-4 py-2 font-medium`}
                 >
                   {user?.role}
                 </span>
@@ -123,6 +147,7 @@ const AccountPage = () => {
             </ul>
           </div>
         </section>
+        <ClientDashboardNavbar />
         <section
           id="adoptions"
           aria-labelledby="adoptions-heading"
@@ -141,29 +166,13 @@ const AccountPage = () => {
             </p>
           </div>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 lg:gap-6">
-            <Link to="/" className="space-y-2">
-              <div className="relative grid aspect-video place-items-center overflow-hidden rounded-xl bg-black/5">
-                <span className="absolute top-3 right-3 rounded-2xl bg-yellow-200 px-4 py-2 text-xs font-semibold text-yellow-600">
-                  OCZEKUJE NA AKCEPTACJE
-                </span>
-              </div>
-              <div>
-                <h3 className="font-semibold lg:text-lg">Brutus</h3>
-                <p className="line-clamp-4 text-xs leading-5 lg:text-sm lg:leading-6">
-                  Spokojny pies który uwielbia się bawić...
-                </p>
-              </div>
-            </Link>
-            {Array.from({ length: 2 }).map((_, index: number) => (
-              <Link to="/" key={index} className="space-y-2">
-                <div className="relative grid aspect-video place-items-center overflow-hidden rounded-xl bg-black/5"></div>
-                <div>
-                  <h3 className="font-semibold lg:text-lg">Felix</h3>
-                  <p className="line-clamp-4 text-xs leading-5 lg:text-sm lg:leading-6">
-                    Adoptowano 15.02.2025 r.
-                  </p>
-                </div>
-              </Link>
+            {isAdoptionsPending && <LoadingAdoptions />}
+            {isAdoptionsError && <ErrorAdoptions />}
+            {!isAdoptionsPending &&
+              !isAdoptionsError &&
+              adoptions.length === 0 && <EmptyAdoptions />}
+            {adoptions.map((adoption) => (
+              <AdoptionCard key={adoption.id} adoption={adoption} />
             ))}
           </div>
         </section>
@@ -192,7 +201,7 @@ const AccountPage = () => {
             <Input
               id="client-currentPassword"
               {...register("currentPassword")}
-              className="mt-2 mb-4"
+              className={`mt-2 mb-4 ${errors.currentPassword && "bg-red-600/20"}`}
               placeholder="Podaj swoje aktualne hasło..."
               autoFocus
               type="password"
@@ -217,7 +226,7 @@ const AccountPage = () => {
             <Input
               id="client-newPassword"
               {...register("newPassword")}
-              className="mt-2 mb-4"
+              className={`mt-2 mb-4 ${errors.newPassword && "bg-red-600/20"}`}
               placeholder="Podaj nowe hasło..."
               type="password"
               autoComplete="new-password"
@@ -236,11 +245,13 @@ const AccountPage = () => {
               </p>
             )}
 
-            <Label htmlFor="client-confirmNewPassword">Powtórz nowe hasło</Label>
+            <Label htmlFor="client-confirmNewPassword">
+              Powtórz nowe hasło
+            </Label>
             <Input
               id="client-confirmNewPassword"
               {...register("confirmNewPassword")}
-              className="mt-2 mb-4"
+              className={`mt-2 mb-4 ${errors.confirmNewPassword && "bg-red-600/20"}`}
               placeholder="Powtórz nowe hasło..."
               type="password"
               autoComplete="new-password"
@@ -302,12 +313,13 @@ const AccountPage = () => {
                   alt="QR Code do TOTP"
                   width={200}
                   height={200}
+                  className="rounded-2xl bg-black p-1"
                 />
               )}
               <p className="text-sm leading-6 md:text-base md:leading-7">
                 Lub wpisz ręcznie klucz:
               </p>
-              <div className="w-fit bg-black px-4 py-2 wrap-break-word text-white select-all">
+              <div className="w-fit rounded-2xl bg-black px-4 py-2 break-all text-white select-all">
                 {manualKey}
               </div>
               <p className="text-sm leading-6 md:text-base md:leading-7">
@@ -324,6 +336,98 @@ const AccountPage = () => {
         </section>
       </Container>
     </main>
+  );
+};
+
+const AdoptionCard = ({ adoption }: { adoption: Adoption }) => {
+  const statusLabel = formatAdoptionStatus[adoption.status] ?? adoption.status;
+
+  return (
+    <Link
+      to={`/zwierzeta/${adoption.animal.id}`}
+      className="space-y-2 transition-colors duration-200 hover:text-green-800"
+    >
+      <div className="relative grid aspect-video place-items-center overflow-hidden rounded-xl bg-gray-100">
+        <span
+          className={`${styleAdoptionStatus(adoption.status)} absolute top-3 right-3 z-2 rounded-2xl px-4 py-2 text-xs font-semibold`}
+        >
+          {statusLabel.toUpperCase()}
+        </span>
+        {adoption.animal.imageUrl.length > 0 ? (
+          <img
+            src={adoption.animal.imageUrl[0]}
+            alt={adoption.animal.name}
+            width={640}
+            height={360}
+            className="absolute size-full object-cover"
+          />
+        ) : (
+          <ImageOff
+            className="absolute size-10 object-cover text-gray-300 md:size-20"
+            aria-hidden="true"
+          />
+        )}
+      </div>
+      <div className="space-y-1">
+        <h3 className="font-semibold lg:text-lg">{adoption.animal.name}</h3>
+        <p className="line-clamp-4 text-xs leading-5 lg:text-sm lg:leading-6">
+          {adoption.animal.description ||
+            `Wniosek złożony ${new Date(adoption.createdAt).toLocaleDateString("pl-PL")}.`}
+        </p>
+      </div>
+    </Link>
+  );
+};
+
+const LoadingAdoptions = () => {
+  return Array.from({ length: 3 }).map((_, index) => (
+    <div key={index} className="space-y-2" aria-hidden="true">
+      <Skeleton className="aspect-video rounded-xl" />
+      <div className="space-y-2">
+        <Skeleton className="h-6 w-40 rounded-xl" />
+        <Skeleton className="h-10 w-full rounded-xl" />
+      </div>
+    </div>
+  ));
+};
+
+const ErrorAdoptions = () => {
+  return (
+    <div
+      role="alert"
+      className="col-span-full flex flex-col items-center justify-center gap-4 rounded-2xl border border-red-200 bg-red-50 px-6 py-12 text-center"
+    >
+      <CircleAlert className="size-12 text-red-600" aria-hidden="true" />
+      <div className="space-y-2">
+        <p className="text-lg font-semibold text-red-900 md:text-xl">
+          Wystąpił błąd
+        </p>
+        <p className="max-w-md text-sm text-red-800 md:text-base">
+          Nie udało się załadować Twoich adopcji. Odśwież stronę lub spróbuj
+          później.
+        </p>
+      </div>
+    </div>
+  );
+};
+
+const EmptyAdoptions = () => {
+  return (
+    <div
+      role="status"
+      className="col-span-full flex flex-col items-center justify-center gap-4 rounded-2xl border border-blue-900 bg-blue-50 px-6 py-12 text-center"
+    >
+      <Info className="size-12 text-blue-600" aria-hidden="true" />
+      <div className="space-y-2">
+        <p className="text-lg font-semibold text-blue-900 md:text-xl">
+          Brak adopcji
+        </p>
+        <p className="max-w-md text-sm text-blue-900 md:text-base">
+          Nie masz jeszcze żadnych wniosków adopcyjnych. Przejrzyj nasze
+          zwierzęta i złóż pierwszy wniosek.
+        </p>
+      </div>
+    </div>
   );
 };
 

@@ -134,10 +134,14 @@ describe('Adopcje - Testy integracyjne', () => {
       expect(res.body.total).toBeGreaterThan(0);
     });
 
-    it('Odmawia zwykłemu użytkownikowi', async () => {
-      // Sprawdza, że zwykły użytkownik nie ma dostępu (403).
+    it('Zwraca własne adopcje zwykłemu użytkownikowi', async () => {
+      // Sprawdza, że zwykły użytkownik może pobrać wyłącznie własne wnioski.
       const res = await userAgent.get('/api/adoptions');
-      expect(res.status).toBe(StatusCodes.FORBIDDEN);
+      expect(res.status).toBe(StatusCodes.OK);
+      expect(Array.isArray(res.body)).toBe(true);
+      for (const adoption of res.body) {
+        expect(adoption.userId).toBeDefined();
+      }
     });
   });
 

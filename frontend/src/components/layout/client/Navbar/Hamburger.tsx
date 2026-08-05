@@ -181,8 +181,17 @@ const Hamburger = () => {
               </Link>
             </li>
             <li>
-              <Link to="/ulubione-zwierzeta" onClick={closeMenu}>
+              <Link
+                to="/ulubione-zwierzeta"
+                onClick={closeMenu}
+                className="text-red-600"
+              >
                 Ulubione zwierzęta
+              </Link>
+            </li>
+            <li>
+              <Link to="/konto" onClick={closeMenu}>
+                Panel użytkownika
               </Link>
             </li>
           </ul>

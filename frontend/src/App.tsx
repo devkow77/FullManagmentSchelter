@@ -26,7 +26,7 @@ import {
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui";
 import { AuthProvider } from "./context/AuthContext";
-import { AccountPage } from "./pages/client";
+import { AccountPage, PersonalDataFormPage } from "./pages/client";
 import {
   AdminAnimalsPage,
   EditAnimalPage,
@@ -179,6 +179,10 @@ const router = createBrowserRouter([
       {
         path: "/konto",
         element: <AccountPage />,
+      },
+      {
+        path: "/konto/formularz",
+        element: <PersonalDataFormPage />,
       },
     ],
   },

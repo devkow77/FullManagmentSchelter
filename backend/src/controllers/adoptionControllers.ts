@@ -9,7 +9,7 @@ import {
   adoptionDetailInclude,
   adoptionListInclude,
 } from '../selects/adoption.select';
-import { AdoptionStatus, AnimalStatus } from '../generated/prisma/enums';
+import { AdoptionStatus, AnimalStatus, Role } from '../generated/prisma/enums';
 import type { Prisma } from '../generated/prisma/client';
 import type { AuthRequest } from '../middlewares/auth.middleware';
 
@@ -96,7 +96,7 @@ export const createAdoption = async (req: AuthRequest, res: Response) => {
 };
 
 // 1. Pobierz wszystkie adopcje (z opcjonalną paginacją i filtrami)
-export const getAdoptions = async (req: Request, res: Response) => {
+export const getAdoptions = async (req: AuthRequest, res: Response) => {
   const { userId, page, limit, status } = req.query;
 
   let numericUserId: number | undefined;
@@ -114,7 +114,10 @@ export const getAdoptions = async (req: Request, res: Response) => {
   try {
     const where: Prisma.AdoptionWhereInput = {};
 
-    if (numericUserId !== undefined) {
+    // Zwykły użytkownik widzi wyłącznie własne wnioski adopcyjne
+    if (req.userRole === Role.UZYTKOWNIK) {
+      where.userId = req.userId;
+    } else if (numericUserId !== undefined) {
       where.userId = numericUserId;
     }
 

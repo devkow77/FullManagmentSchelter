@@ -33,9 +33,6 @@ export const updateUserSchema = z.object({
     .string()
     .min(3, 'Imię i nazwisko musi mieć minimum 3 znaki.')
     .max(50, 'Imię i nazwisko nie może mieć więcej niż 50 znaków.'),
-  email: z
-    .string()
-    .regex(/^[^\s@]+@[^\s@]+\.[^\s@]+$/, 'Niepoprawny adres email.'),
   gender: GenderEnum,
   role: RoleEnum,
   phoneNumber: z.preprocess(
@@ -92,6 +89,13 @@ export const updateUserSchema = z.object({
     .max(500, "Notatka może mieć maksymalnie 500 znaków.")
     .optional(),
   imageUrl: z.string().nullable().optional(),
+});
+
+// router.patch('/me', updateOwnProfile);
+export const updateOwnProfileSchema = updateUserSchema.omit({
+  role: true,
+  isBanned: true,
+  adminNote: true,
 });
 
 // router.post('/', createUser);

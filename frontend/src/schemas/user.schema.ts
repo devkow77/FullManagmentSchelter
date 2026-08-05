@@ -51,7 +51,6 @@ export const editUserSchema = z.object({
     .string()
     .min(3, "Imię i nazwisko musi mieć minimum 3 znaki.")
     .max(50, "Imię i nazwisko nie może mieć więcej niż 50 znaków."),
-  email: emailSchema,
   gender: GenderEnum,
   role: RoleEnum,
   phoneNumber: z.preprocess(emptyStringToNull, phoneSchema.nullable()),
@@ -96,6 +95,12 @@ export const editUserSchema = z.object({
   imageUrl: z.string().nullable().optional(),
 });
 
+export const editOwnProfileSchema = editUserSchema.omit({
+  role: true,
+  isBanned: true,
+  adminNote: true,
+});
+
 export const addUserSchema = z.object({
   fullName: z
     .string()
@@ -115,4 +120,5 @@ export const addUserSchema = z.object({
 });
 
 export type EditUserFormData = z.infer<typeof editUserSchema>;
+export type EditOwnProfileFormData = z.infer<typeof editOwnProfileSchema>;
 export type AddUserFormData = z.infer<typeof addUserSchema>;

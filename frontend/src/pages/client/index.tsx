@@ -1,3 +1,4 @@
 import AccountPage from "./account";
+import PersonalDataFormPage from "./personal-data-form";
 
-export { AccountPage };
+export { AccountPage, PersonalDataFormPage };

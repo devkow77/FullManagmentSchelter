@@ -4,6 +4,7 @@ import { type Request, type Response } from 'express';
 import {
   updatePasswordSchema,
   updateUserSchema,
+  updateOwnProfileSchema,
   createUserSchema,
 } from '../validators/user.validator';
 import bcrypt from 'bcrypt';
@@ -13,6 +14,7 @@ import {
   userDetailSelect,
   userListSelect,
   userPasswordSelect,
+  userProfileSelect,
   userRoleSelect,
 } from '../selects/user.select';
 
@@ -474,6 +476,83 @@ export const getUsers = async (req: Request, res: Response) => {
   } catch {
     return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
       msg: 'Wewnętrzny błąd serwera!',
+    });
+  }
+};
+
+// 4a. Pobierz dane zalogowanego użytkownika (profil własny)
+export const getOwnProfile = async (req: Request, res: Response) => {
+  const userId = req.userId;
+
+  if (!userId) {
+    return res.status(StatusCodes.UNAUTHORIZED).json({
+      msg: 'Brak tokenu, autoryzacja odmówiona!',
+    });
+  }
+
+  try {
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: userProfileSelect,
+    });
+
+    if (!user) {
+      return res.status(StatusCodes.NOT_FOUND).json({
+        msg: 'Nie ma takiego użytkownika!',
+      });
+    }
+
+    return res.status(StatusCodes.OK).json(user);
+  } catch {
+    return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
+      msg: 'Wewnętrzny błąd serwera!',
+    });
+  }
+};
+
+// 4b. Zaktualizuj dane zalogowanego użytkownika (bez pól staff)
+export const updateOwnProfile = async (req: Request, res: Response) => {
+  const userId = req.userId;
+
+  if (!userId) {
+    return res.status(StatusCodes.UNAUTHORIZED).json({
+      msg: 'Brak tokenu, autoryzacja odmówiona!',
+    });
+  }
+
+  const parsedBody = updateOwnProfileSchema.safeParse(req.body);
+
+  if (!parsedBody.success) {
+    return res.status(StatusCodes.BAD_REQUEST).json({
+      msg: 'Nieprawidłowy format danych!',
+    });
+  }
+
+  try {
+    const today = new Date();
+    const dateOfBirth = parsedBody.data.dateOfBirth
+      ? new Date(parsedBody.data.dateOfBirth)
+      : null;
+
+    if (dateOfBirth && dateOfBirth.getTime() > today.getTime()) {
+      return res.status(StatusCodes.CONFLICT).json({
+        msg: 'Data urodzenia użytkownika jest nieprawidłowa!',
+      });
+    }
+
+    const updatedUser = await prisma.user.update({
+      where: { id: userId },
+      data: {
+        ...parsedBody.data,
+        isFormFilled: true,
+      },
+      select: userProfileSelect,
+    });
+
+    return res.status(StatusCodes.OK).json(updatedUser);
+  } catch {
+    return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
+      msg: 'Wewnętrzny błąd serwera podczas aktualizacji!',
     });
   }
 };

@@ -2,10 +2,12 @@ import { Router } from 'express';
 import {
   createUser,
   deleteUniqueUser,
+  getOwnProfile,
   getUniqueUser,
   getUsers,
   getWorkers,
   getWorkerStats,
+  updateOwnProfile,
   updatePassword,
   updateUniqueUser,
 } from '../controllers/userControllers';
@@ -36,6 +38,13 @@ router.get(
   getWorkerStats,
 );
 router.patch('/password', authenticateUser, updatePassword);
+router.get('/me', authenticateUser, getOwnProfile);
+router.patch(
+  '/me',
+  authenticateUser,
+  authorizeRoles(Role.UZYTKOWNIK),
+  updateOwnProfile,
+);
 router.get(
   '/:id',
   authenticateUser,
