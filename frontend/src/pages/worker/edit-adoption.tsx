@@ -1,16 +1,30 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { useParams, useNavigate } from "react-router";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { useQueryClient } from "@tanstack/react-query";
-import { Button, Container, Label, Textarea } from "@/components/ui";
-import axios from "axios";
-import { ImageOff, UserRound } from "lucide-react";
-import { toast } from "sonner";
-import { DashboardPage } from "@/components/shared";
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  Button,
+  Label,
+  Skeleton,
+  Textarea,
+} from "@/components/ui";
+import axios from "axios";
+import { ArrowRight } from "lucide-react";
+import { toast } from "sonner";
+import { AnimalAvatar, DashboardPage, UserAvatar } from "@/components/shared";
+import {
+  cn,
   styleAdoptionStatus,
   calculateAge,
   formatUserGender,
@@ -28,6 +42,8 @@ import {
   editAdoptionSchema,
   type EditAdoptionFormData,
 } from "@/schemas/adoption.schema";
+
+type DecisionStatus = "ZAAKCEPTOWANA" | "ODRZUCONA" | "ANULOWANA";
 
 type AdoptionUser = {
   id: number;
@@ -55,8 +71,87 @@ type AdoptionAnimal = {
 
 type AdoptionDetails = {
   status: string;
+  message: string | null;
+  employeeNote: string | null;
   user: AdoptionUser;
   animal: AdoptionAnimal;
+};
+
+const DECISION_OPTIONS: {
+  value: DecisionStatus;
+  label: string;
+  variant: "success" | "destructive" | "canceled";
+}[] = [
+  { value: "ZAAKCEPTOWANA", label: "Akceptacja", variant: "success" },
+  { value: "ODRZUCONA", label: "Odrzucenie", variant: "destructive" },
+  { value: "ANULOWANA", label: "Anulacja", variant: "canceled" },
+];
+
+const getTemplateForDecision = (
+  decision: DecisionStatus,
+  userName: string,
+  animalName: string,
+) => {
+  switch (decision) {
+    case "ZAAKCEPTOWANA":
+      return getAcceptanceTemplate(userName, animalName);
+    case "ODRZUCONA":
+      return getRejectionTemplate(userName, animalName);
+    case "ANULOWANA":
+      return getCancellationTemplate(userName, animalName);
+  }
+};
+
+const getSubmitLabel = (decision: DecisionStatus | null) => {
+  switch (decision) {
+    case "ZAAKCEPTOWANA":
+      return "Zatwierdź akceptację";
+    case "ODRZUCONA":
+      return "Zatwierdź odrzucenie";
+    case "ANULOWANA":
+      return "Zatwierdź anulację";
+    default:
+      return "Zatwierdź decyzję";
+  }
+};
+
+const getSubmitVariant = (decision: DecisionStatus | null) => {
+  switch (decision) {
+    case "ZAAKCEPTOWANA":
+      return "success" as const;
+    case "ODRZUCONA":
+      return "destructive" as const;
+    case "ANULOWANA":
+      return "canceled" as const;
+    default:
+      return "default" as const;
+  }
+};
+
+const getConfirmDialogCopy = (decision: DecisionStatus) => {
+  switch (decision) {
+    case "ZAAKCEPTOWANA":
+      return {
+        title: "Czy na pewno chcesz zaakceptować wniosek?",
+        description:
+          "Po potwierdzeniu status adopcji zmieni się na zaakceptowany, a wnioskodawca otrzyma przygotowaną odpowiedź.",
+        confirmLabel: "Tak, zaakceptuj",
+      };
+    case "ODRZUCONA":
+      return {
+        title: "Czy na pewno chcesz odrzucić wniosek?",
+        description:
+          "Po potwierdzeniu status adopcji zmieni się na odrzucony, a wnioskodawca otrzyma przygotowaną odpowiedź.",
+        confirmLabel: "Tak, odrzuć",
+      };
+    case "ANULOWANA":
+      return {
+        title: "Czy na pewno chcesz anulować wniosek?",
+        description:
+          "Po potwierdzeniu status adopcji zmieni się na anulowany, a wnioskodawca otrzyma przygotowaną odpowiedź.",
+        confirmLabel: "Tak, anuluj",
+      };
+  }
 };
 
 const formatAddress = (user: AdoptionUser) => {
@@ -69,12 +164,104 @@ const formatAddress = (user: AdoptionUser) => {
   return parts.length > 0 ? parts.join(", ") : "Brak danych";
 };
 
+const FactRow = ({ label, value }: { label: string; value: ReactNode }) => (
+  <div className="grid gap-1 border-b border-green-900/10 py-3 last:border-b-0 sm:grid-cols-[11rem_1fr] sm:gap-4">
+    <dt className="text-sm font-semibold text-green-900 md:text-base">
+      {label}
+    </dt>
+    <dd className="text-sm leading-6 font-medium md:text-base md:leading-7">
+      {value}
+    </dd>
+  </div>
+);
+
+const FactRowSkeleton = () => (
+  <div className="grid gap-1 border-b border-green-900/10 py-3 last:border-b-0 sm:grid-cols-[11rem_1fr] sm:gap-4">
+    <Skeleton className="h-5 w-28" />
+    <Skeleton className="h-5 w-full max-w-56" />
+  </div>
+);
+
+const PartySummarySkeleton = ({ alignEnd = false }: { alignEnd?: boolean }) => (
+  <div
+    className={cn(
+      "flex min-w-0 flex-1 items-center gap-3",
+      alignEnd && "sm:justify-end",
+    )}
+  >
+    <Skeleton className="size-14 shrink-0 rounded-full md:size-16" />
+    <div className={cn("min-w-0 space-y-2", alignEnd && "sm:text-right")}>
+      <Skeleton className={cn("h-3 w-24", alignEnd && "sm:ml-auto")} />
+      <Skeleton className={cn("h-5 w-36", alignEnd && "sm:ml-auto")} />
+      <Skeleton className={cn("h-4 w-28", alignEnd && "sm:ml-auto")} />
+    </div>
+  </div>
+);
+
+const EditAdoptionSkeleton = () => (
+  <div className="space-y-10 md:space-y-14" aria-hidden="true">
+    <section className="flex flex-col items-stretch gap-4 sm:flex-row sm:items-center sm:justify-between sm:gap-6">
+      <PartySummarySkeleton />
+      <Skeleton className="mx-auto hidden size-5 shrink-0 sm:block" />
+      <PartySummarySkeleton alignEnd />
+    </section>
+
+    <section className="grid grid-cols-1 gap-8 lg:grid-cols-2 lg:gap-12">
+      {Array.from({ length: 2 }).map((_, columnIndex) => (
+        <div key={columnIndex}>
+          <Skeleton className="mb-2 h-7 w-48 md:h-8" />
+          {Array.from({ length: 6 }).map((_, rowIndex) => (
+            <FactRowSkeleton key={rowIndex} />
+          ))}
+        </div>
+      ))}
+    </section>
+
+    <section className="space-y-6 border-t border-green-900/10 pt-8 md:space-y-8 md:pt-10">
+      <div className="space-y-2">
+        <Skeleton className="h-7 w-44 md:h-8" />
+        <Skeleton className="h-5 w-full max-w-xl" />
+      </div>
+
+      <div className="space-y-3">
+        <Skeleton className="h-5 w-32" />
+        <div className="flex flex-wrap items-center gap-2 lg:gap-4">
+          <Skeleton className="h-10 w-28" />
+          <Skeleton className="h-10 w-28" />
+          <Skeleton className="h-10 w-24" />
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2 lg:gap-8">
+        {Array.from({ length: 2 }).map((_, index) => (
+          <div key={index} className="space-y-2">
+            <Skeleton className="h-5 w-44" />
+            <Skeleton className="min-h-40 w-full lg:min-h-52" />
+          </div>
+        ))}
+      </div>
+
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <Skeleton className="h-5 w-56" />
+        <Skeleton className="h-10 w-full sm:w-48" />
+      </div>
+    </section>
+  </div>
+);
+
 const EditAdoptionPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [adoption, setAdoption] = useState<AdoptionDetails | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [selectedDecision, setSelectedDecision] =
+    useState<DecisionStatus | null>(null);
+  const [isConfirmOpen, setIsConfirmOpen] = useState(false);
+  const [pendingData, setPendingData] = useState<EditAdoptionFormData | null>(
+    null,
+  );
+  const [isConfirming, setIsConfirming] = useState(false);
 
   const {
     register,
@@ -93,38 +280,26 @@ const EditAdoptionPage = () => {
 
   const employeeNote = watch("employeeNote");
   const hasEmployeeNote = Boolean(employeeNote?.trim());
+  const isPending = adoption?.status === "OCZEKUJACA";
 
-  const applyTemplate = (template: string) => {
-    if (employeeNote?.trim()) {
-      const confirmed = window.confirm(
-        "Pole odpowiedzi nie jest puste. Czy chcesz zastąpić obecną treść szablonem?",
-      );
-      if (!confirmed) return;
-    }
-    setValue("employeeNote", template, {
-      shouldDirty: true,
-      shouldValidate: true,
-    });
-  };
+  useEffect(() => {
+    document.title = "Rozpatrzenie wniosku | Schronisko";
+  }, []);
 
   useEffect(() => {
     const fetchAdoption = async () => {
       try {
-        const res = await axios.get(`/api/adoptions/${id}`);
-        const data = res.data;
-
-        setAdoption({
-          status: data.status,
-          user: data.user,
-          animal: data.animal,
+        const res = await axios.get<AdoptionDetails>(`/api/adoptions/${id}`, {
+          withCredentials: true,
         });
+
+        setAdoption(res.data);
 
         reset({
-          message: data.message || "",
-          employeeNote: data.employeeNote || "",
+          message: res.data.message || "",
+          employeeNote: res.data.employeeNote || "",
         });
-      } catch (err) {
-        console.error("Błąd podczas pobierania danych adopcji:", err);
+      } catch {
         toast.error("Nie udało się pobrać danych adopcji.");
         navigate("/admin/adopcje");
       } finally {
@@ -135,36 +310,81 @@ const EditAdoptionPage = () => {
     if (id) fetchAdoption();
   }, [id, reset, navigate]);
 
-  const onSubmit = async (data: EditAdoptionFormData, status: string) => {
-    const confirmed = window.confirm(
-      "Czy jesteś pewny, że chcesz zmienić status adopcji?",
+  const applyTemplate = (template: string) => {
+    setValue("employeeNote", template, {
+      shouldDirty: true,
+      shouldValidate: true,
+    });
+  };
+
+  const handleDecisionSelect = (decision: DecisionStatus) => {
+    if (!adoption || !isPending) return;
+
+    const template = getTemplateForDecision(
+      decision,
+      adoption.user.fullName,
+      adoption.animal.name,
     );
-    if (!confirmed) return;
+
+    const shouldReplace =
+      !employeeNote?.trim() ||
+      window.confirm(
+        "Wstawić szablon odpowiedzi dla wybranej decyzji? Obecna treść zostanie zastąpiona.",
+      );
+
+    if (shouldReplace) {
+      applyTemplate(template);
+    }
+
+    setSelectedDecision(decision);
+  };
+
+  const onSubmit = (data: EditAdoptionFormData) => {
+    if (!selectedDecision) return;
+    setPendingData(data);
+    setIsConfirmOpen(true);
+  };
+
+  const handleConfirmDecision = async () => {
+    if (!selectedDecision || !pendingData) return;
+
+    setIsConfirming(true);
 
     try {
-      await axios.patch(`/api/adoptions/${id}`, {
-        status,
-        ...data,
-      });
+      await axios.patch(
+        `/api/adoptions/${id}`,
+        {
+          status: selectedDecision,
+          ...pendingData,
+        },
+        { withCredentials: true },
+      );
+
       void queryClient.invalidateQueries({
         queryKey: ["adoptions", "pending-count"],
       });
       void queryClient.invalidateQueries({ queryKey: ["admin-adoptions"] });
+
       toast.success("Wniosek został zaktualizowany.");
       navigate("/admin/adopcje");
-    } catch (err) {
-      console.error(err);
+    } catch {
       toast.error("Nie udało się zaktualizować wniosku.");
+    } finally {
+      setIsConfirming(false);
+      setIsConfirmOpen(false);
+      setPendingData(null);
     }
   };
 
   if (isLoading) {
     return (
-      <main>
-        <Container className="mb-6 md:mb-10">
-          <p className="text-sm font-medium">Ładowanie danych adopcji...</p>
-        </Container>
-      </main>
+      <DashboardPage
+        title="Rozpatrzenie wniosku"
+        description="Ładowanie danych wniosku..."
+        showNavbar={false}
+      >
+        <EditAdoptionSkeleton />
+      </DashboardPage>
     );
   }
 
@@ -173,10 +393,17 @@ const EditAdoptionPage = () => {
   }
 
   const { user, animal, status } = adoption;
+  const isBusy = isSubmitting || isConfirming;
+  const isSubmitDisabled =
+    isBusy || isLoading || !isPending || !selectedDecision || !hasEmployeeNote;
+  const confirmCopy = selectedDecision
+    ? getConfirmDialogCopy(selectedDecision)
+    : null;
 
   return (
+    <>
     <DashboardPage
-      title="Informacje o adopcji"
+      title="Rozpatrzenie wniosku"
       eyebrow={
         <span
           className={`inline-block h-fit rounded-2xl px-4 py-2 text-sm font-medium ${styleAdoptionStatus(status)}`}
@@ -185,204 +412,265 @@ const EditAdoptionPage = () => {
         </span>
       }
       description={
-        status === "OCZEKUJACA"
-          ? "Wprowadź zmiany w adopcji zwierzęcia poniżej."
+        isPending
+          ? "Przejrzyj dane wnioskodawcy i zwierzęcia, przygotuj odpowiedź, a następnie podejmij decyzję."
           : "Nie możesz edytować danych adopcji, ponieważ jest ona już zakończona."
       }
       showNavbar={false}
     >
-      <form onSubmit={(e) => e.preventDefault()}>
-        <div className="grid grid-cols-1 items-start gap-6 md:grid-cols-2 lg:gap-8">
-          {/* OSOBA WNIOSKUJĄCA */}
-          <section className="space-y-4 lg:space-y-6">
-            {/* AVATAR */}
-            <div className="space-y-4">
-              <h2 className="font-semibold">Dane osoby wnioskującej</h2>
-              <div className="relative grid aspect-square w-60 place-items-center rounded-full bg-black/10">
-                {user.imageUrl ? (
-                  <img
-                    src={user.imageUrl}
-                    alt={user.fullName}
-                    className="absolute h-full w-full rounded-full object-cover"
-                  />
-                ) : (
-                  <UserRound className="size-15 text-black opacity-20 md:size-20" />
-                )}
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-10 md:space-y-14">
+        <section
+          aria-label="Podsumowanie wniosku"
+          className="flex flex-col items-stretch gap-4 sm:flex-row sm:items-center sm:justify-between sm:gap-6"
+        >
+          <div className="flex min-w-0 flex-1 items-center gap-3">
+            <UserAvatar
+              src={user.imageUrl}
+              alt={user.fullName}
+              className="size-14 md:size-16"
+              iconClassName="size-7 md:size-8"
+            />
+            <div className="min-w-0">
+              <p className="text-xs font-semibold tracking-wide text-green-900 uppercase md:text-sm">
+                Wnioskodawca
+              </p>
+              <p className="truncate text-base font-semibold md:text-lg">
+                {user.fullName}
+              </p>
+              <p className="text-muted-foreground text-sm">
+                {user.phoneNumber || "Brak telefonu"}
+              </p>
+            </div>
+          </div>
+
+          <ArrowRight
+            className="mx-auto hidden size-5 shrink-0 text-green-900/40 sm:block"
+            aria-hidden
+          />
+
+          <div className="flex min-w-0 flex-1 items-center gap-3 sm:justify-end">
+            <AnimalAvatar
+              type={animal.type}
+              src={animal.imageUrl?.[0]}
+              alt={animal.name}
+              className="size-14 md:size-16"
+              iconClassName="size-7 md:size-8"
+            />
+            <div className="min-w-0 sm:text-right">
+              <p className="text-xs font-semibold tracking-wide text-green-900 uppercase md:text-sm">
+                Zwierzę
+              </p>
+              <p className="truncate text-base font-semibold md:text-lg">
+                {animal.name}
+              </p>
+              <p className="text-muted-foreground text-sm">
+                {formatAnimalType[animal.type] ?? animal.type}
+                {" · "}
+                {calculateAge(animal.dateOfBirth)}
+              </p>
+            </div>
+          </div>
+        </section>
+
+        <section className="grid grid-cols-1 gap-8 lg:grid-cols-2 lg:gap-12">
+          <div>
+            <h2 className="mb-2 text-xl font-bold text-green-900 md:text-2xl">
+              Dane wnioskodawcy
+            </h2>
+            <dl>
+              <FactRow label="Imię i nazwisko" value={user.fullName} />
+              <FactRow
+                label="Wiek"
+                value={
+                  user.dateOfBirth
+                    ? calculateAge(user.dateOfBirth)
+                    : "Brak danych"
+                }
+              />
+              <FactRow label="Płeć" value={formatUserGender(user.gender)} />
+              <FactRow
+                label="Telefon"
+                value={user.phoneNumber || "Brak danych"}
+              />
+              <FactRow label="Adres" value={formatAddress(user)} />
+              <FactRow
+                label="Notatka admina"
+                value={user.adminNote || "Brak notatki"}
+              />
+            </dl>
+          </div>
+
+          <div>
+            <h2 className="mb-2 text-xl font-bold text-green-900 md:text-2xl">
+              Dane zwierzęcia
+            </h2>
+            <dl>
+              <FactRow label="Imię" value={animal.name} />
+              <FactRow label="Wiek" value={calculateAge(animal.dateOfBirth)} />
+              <FactRow
+                label="Typ"
+                value={formatAnimalType[animal.type] ?? animal.type}
+              />
+              <FactRow label="Płeć" value={formatAnimalGender(animal.gender)} />
+              <FactRow
+                label="Stan zdrowia"
+                value={
+                  formatAnimalHealthStatus[animal.healthStatus] ??
+                  animal.healthStatus
+                }
+              />
+              <FactRow label="Cechy" value={animal.traits || "Brak"} />
+            </dl>
+          </div>
+        </section>
+
+        <section className="space-y-6 border-t border-green-900/10 pt-8 md:space-y-8 md:pt-10">
+          <div className="space-y-2">
+            <h2 className="text-xl font-bold text-green-900 md:text-2xl">
+              Decyzja o adopcji
+            </h2>
+            <p className="text-muted-foreground text-sm leading-6 md:text-base md:leading-7">
+              {isPending
+                ? "Wybierz decyzję — automatycznie wstawimy szablon odpowiedzi. Możesz go jeszcze edytować przed zatwierdzeniem."
+                : "Wniosek został już rozpatrzony — pola są tylko do podglądu."}
+            </p>
+          </div>
+
+          {isPending && (
+            <div className="space-y-3">
+              <p className="text-sm font-semibold md:text-base">
+                Wybierz decyzję
+              </p>
+              <div
+                role="radiogroup"
+                aria-label="Decyzja o adopcji"
+                className="flex flex-wrap items-center gap-2 lg:gap-4"
+              >
+                {DECISION_OPTIONS.map((option) => {
+                  const isSelected = selectedDecision === option.value;
+                  return (
+                    <Button
+                      key={option.value}
+                      type="button"
+                      role="radio"
+                      aria-checked={isSelected}
+                      variant={isSelected ? option.variant : "transparent"}
+                      disabled={isBusy}
+                      onClick={() => handleDecisionSelect(option.value)}
+                      className={cn(
+                        !isSelected &&
+                          "border border-green-900/15 bg-white text-green-950 hover:border-green-900/30 hover:bg-green-50",
+                      )}
+                    >
+                      {option.label}
+                    </Button>
+                  );
+                })}
               </div>
             </div>
-            {/* DANE OSOBY WNIOSKUJĄCEJ */}
-            <ul className="text-sm leading-6 font-medium md:text-base md:leading-7">
-              <li>Imię i nazwisko: {user.fullName}</li>
-              <li>
-                Wiek:{" "}
-                {user.dateOfBirth
-                  ? calculateAge(user.dateOfBirth)
-                  : "Brak danych"}
-              </li>
-              <li>Adres zamieszkania: {formatAddress(user)}</li>
-              <li>Płeć: {formatUserGender(user.gender)}</li>
-              <li>Numer telefonu: {user.phoneNumber || "Brak danych"}</li>
-              <li>
-                Notatka administratora: {user.adminNote || "Brak notatki"}
-              </li>
-            </ul>
-            {/* WIADOMOŚĆ WNIOSKUJĄCEGO */}
-            <div className="flex-1 space-y-2">
+          )}
+
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-2 lg:gap-8">
+            <div className="space-y-2">
               <Label htmlFor="message">Wiadomość wnioskującego</Label>
               <Textarea
                 id="message"
                 {...register("message")}
-                className="h-50 resize-none lg:h-75"
+                className="min-h-40 resize-none lg:min-h-52"
                 placeholder="Brak wiadomości od wnioskującego"
                 disabled
               />
               {errors.message && (
-                <p className="text-red-600">{errors.message.message}</p>
+                <p className="text-xs font-medium text-red-600 lg:text-sm">
+                  {errors.message.message}
+                </p>
               )}
             </div>
-            {/* DECYZJA O ADOPCJI */}
+
             <div className="space-y-2">
-              <div>
-                <p className="text-sm leading-6 font-semibold md:text-base md:leading-7">
-                  Ostateczna decyzja o adopcji
-                </p>
-                <p className="text-muted-foreground text-xs leading-5 md:text-sm md:leading-6">
-                  Musisz najpierw dodać odpowiedź pracownika, aby móc podjąć
-                  decyzję.
-                </p>
-              </div>
-              <div className="flex flex-wrap items-center gap-2 lg:gap-4">
-                <Button
-                  type="button"
-                  variant="success"
-                  disabled={
-                    isSubmitting || status !== "OCZEKUJACA" || !hasEmployeeNote
-                  }
-                  onClick={handleSubmit((data) =>
-                    onSubmit(data, "ZAAKCEPTOWANA"),
-                  )}
-                >
-                  Akceptuj
-                </Button>
-
-                <Button
-                  type="button"
-                  variant="destructive"
-                  disabled={
-                    isSubmitting || status !== "OCZEKUJACA" || !hasEmployeeNote
-                  }
-                  onClick={handleSubmit((data) => onSubmit(data, "ODRZUCONA"))}
-                >
-                  Odrzuć
-                </Button>
-
-                <Button
-                  type="button"
-                  variant="canceled"
-                  disabled={
-                    isSubmitting || status !== "OCZEKUJACA" || !hasEmployeeNote
-                  }
-                  onClick={handleSubmit((data) => onSubmit(data, "ANULOWANA"))}
-                >
-                  Anuluj
-                </Button>
-              </div>
-            </div>
-          </section>
-          {/* ZWIERZE ADOPTOWANE */}
-          <section className="space-y-4 lg:space-y-6">
-            {/* AVATAR */}
-            <div className="space-y-4">
-              <h2 className="font-semibold">Dane zwierzęcia adoptowanego</h2>
-              <div className="relative grid aspect-square w-60 place-items-center rounded-full bg-black/10">
-                {animal.imageUrl?.[0] ? (
-                  <img
-                    src={animal.imageUrl[0]}
-                    alt={animal.name}
-                    className="absolute h-full w-full rounded-full object-cover"
-                  />
-                ) : (
-                  <ImageOff className="absolute size-15 object-cover text-black opacity-20 md:size-20" />
-                )}
-              </div>
-            </div>
-            {/* DANE ZWIERZĘCIA ADOPTOWANEGO */}
-            <ul className="text-sm leading-6 font-medium md:text-base md:leading-7">
-              <li>Imię: {animal.name}</li>
-              <li>Wiek: {calculateAge(animal.dateOfBirth)}</li>
-              <li>Typ: {formatAnimalType[animal.type] ?? animal.type}</li>
-              <li>Płeć: {formatAnimalGender(animal.gender)}</li>
-              <li>
-                Stan zdrowia:{" "}
-                {formatAnimalHealthStatus[animal.healthStatus] ??
-                  animal.healthStatus}
-              </li>
-              <li>Cechy: {animal.traits}</li>
-            </ul>
-            {/* ODPOWIEDŹ PRACOWNIKA */}
-            <div className="flex-1 space-y-2">
               <Label htmlFor="employeeNote">Odpowiedź pracownika</Label>
               <Textarea
                 id="employeeNote"
                 {...register("employeeNote")}
-                placeholder="Dodaj odpowiedź dla wnioskującego (np. powód odrzucenia wniosku)"
-                className="h-50 resize-none lg:h-75"
-                disabled={status !== "OCZEKUJACA"}
+                placeholder={
+                  selectedDecision
+                    ? "Edytuj szablon odpowiedzi przed zatwierdzeniem..."
+                    : "Najpierw wybierz decyzję powyżej — wstawimy pasujący szablon."
+                }
+                className={`min-h-40 resize-none lg:min-h-52 ${errors.employeeNote ? "bg-red-600/20" : ""}`}
+                disabled={!isPending}
               />
               {errors.employeeNote && (
-                <p className="text-red-600">{errors.employeeNote.message}</p>
+                <p className="text-xs font-medium text-red-600 lg:text-sm">
+                  {errors.employeeNote.message}
+                </p>
               )}
             </div>
-            {/* WIADOMOSCI DO WNIOSKUJĄCEGO*/}
-            <div className="space-y-2">
-              <p className="text-sm leading-6 font-semibold md:text-base md:leading-7">
-                Szablony wiadomości
+          </div>
+
+          {isPending && (
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <p className="text-muted-foreground text-sm">
+                {!selectedDecision
+                  ? "Wybierz decyzję, aby kontynuować."
+                  : !hasEmployeeNote
+                    ? "Uzupełnij odpowiedź dla wnioskującego."
+                    : "Sprawdź treść odpowiedzi i zatwierdź."}
               </p>
-              <div className="flex flex-wrap items-center gap-2 lg:gap-4">
-                <Button
-                  type="button"
-                  variant="success"
-                  disabled={isSubmitting || status !== "OCZEKUJACA"}
-                  onClick={() =>
-                    applyTemplate(
-                      getAcceptanceTemplate(user.fullName, animal.name),
-                    )
-                  }
-                >
-                  Akceptacja
-                </Button>
-
-                <Button
-                  type="button"
-                  variant="destructive"
-                  disabled={isSubmitting || status !== "OCZEKUJACA"}
-                  onClick={() =>
-                    applyTemplate(
-                      getRejectionTemplate(user.fullName, animal.name),
-                    )
-                  }
-                >
-                  Odrzucenie
-                </Button>
-
-                <Button
-                  type="button"
-                  variant="canceled"
-                  disabled={isSubmitting || status !== "OCZEKUJACA"}
-                  onClick={() =>
-                    applyTemplate(
-                      getCancellationTemplate(user.fullName, animal.name),
-                    )
-                  }
-                >
-                  Anulacja
-                </Button>
-              </div>
+              <Button
+                type="submit"
+                variant={getSubmitVariant(selectedDecision)}
+                disabled={isSubmitDisabled}
+                className="w-full sm:w-auto"
+              >
+                {isBusy
+                  ? "Zapisywanie..."
+                  : getSubmitLabel(selectedDecision)}
+              </Button>
             </div>
-          </section>
-        </div>
+          )}
+        </section>
       </form>
     </DashboardPage>
+
+    <AlertDialog
+      open={isConfirmOpen}
+      onOpenChange={(open) => {
+        if (isConfirming) return;
+        setIsConfirmOpen(open);
+        if (!open) setPendingData(null);
+      }}
+    >
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>
+            {confirmCopy?.title ?? "Czy na pewno chcesz zatwierdzić decyzję?"}
+          </AlertDialogTitle>
+          <AlertDialogDescription>
+            {confirmCopy?.description ??
+              "Po potwierdzeniu status adopcji zostanie zmieniony."}
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel disabled={isConfirming} variant="destructive">
+            Anuluj
+          </AlertDialogCancel>
+          <AlertDialogAction
+            variant={getSubmitVariant(selectedDecision)}
+            disabled={isConfirming}
+            onClick={(event) => {
+              event.preventDefault();
+              void handleConfirmDecision();
+            }}
+          >
+            {isConfirming
+              ? "Zapisywanie..."
+              : (confirmCopy?.confirmLabel ?? "Tak, zatwierdź")}
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+    </>
   );
 };
 
