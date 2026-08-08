@@ -1,6 +1,11 @@
 import { useEffect } from "react";
 import { Button, Container, Skeleton } from "@/components/ui";
-import { ShortFaqList, AnimalCard, BlogCard, shortFaqData } from "@/components/shared";
+import {
+  ShortFaqList,
+  AnimalCard,
+  BlogCard,
+  shortFaqData,
+} from "@/components/shared";
 import { Link } from "react-router";
 import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
@@ -78,6 +83,58 @@ type FaqFeature = {
   description: string;
   bgColor: string;
 };
+
+interface AdoptionProcess {
+  icon: string;
+  bgColor: string;
+  title: string;
+  description: string;
+}
+
+const adoptionProcess: AdoptionProcess[] = [
+  {
+    icon: "🔍",
+    bgColor: "bg-blue-100",
+    title: "Wybierz zwierzę",
+    description:
+      "Przejrzyj nasze zwierzaki i znajdź pupila dopasowanego do Twoich warunków życia, stylu dnia oraz ewentualnych alergii.",
+  },
+  {
+    icon: "👤",
+    bgColor: "bg-slate-100",
+    title: "Uzupełnij profil",
+    description:
+      "Zaloguj się na swoje konto i wypełnij wymagane dane osobowe potrzebne do rozpoczęcia procesu adopcji.",
+  },
+  {
+    icon: "📝",
+    bgColor: "bg-yellow-100",
+    title: "Zgłoś adopcję",
+    description:
+      "Wyślij wniosek adopcyjny dla wybranego zwierzęcia — to szybki i prosty formalny krok.",
+  },
+  {
+    icon: "⏳",
+    bgColor: "bg-orange-100",
+    title: "Czekaj na odpowiedź",
+    description:
+      "Nasz zespół rozpatrzy Twój wniosek i skontaktuje się z Tobą w sprawie dalszych kroków.",
+  },
+  {
+    icon: "🏠",
+    bgColor: "bg-green-100",
+    title: "Odwiedź schronisko",
+    description:
+      "Po wstępnej akceptacji przyjdź osobiście na rozmowę i odbiór pupila.",
+  },
+  {
+    icon: "❤️",
+    bgColor: "bg-red-100",
+    title: "Ciesz się rodziną",
+    description:
+      "Powitaj nowego członka rodziny i ciesz się wspólnymi chwilami.",
+  },
+];
 
 const faqFeatures: FaqFeature[] = [
   {
@@ -276,6 +333,32 @@ const HomePage = () => {
             <Link to="/zwierzeta">Zobacz wszystkie</Link>
           </Button>
         </section>
+        {/* Jak adoptować? */}
+        <section
+          id="adoptionProcess"
+          aria-labelledby="adoption-process-heading"
+          className="space-y-6 lg:space-y-8"
+        >
+          <div className="space-y-2">
+            <h2
+              id="adoption-process-heading"
+              className="text-2xl font-bold text-green-900 md:text-4xl"
+            >
+              Jak wygląda proces adopcji?
+            </h2>
+            <p className="text-sm leading-6 md:text-base md:leading-7">
+              Proces adopcji jest prosty i przejrzysty. Od wyboru pupila po
+              odbiór w schronisku — przeprowadzimy Cię przez każdy krok.
+            </p>
+          </div>
+          <ul className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-5 lg:gap-6">
+            {adoptionProcess.map((step: AdoptionProcess) => (
+              <li key={step.title}>
+                <AdoptionProcessCard step={step} />
+              </li>
+            ))}
+          </ul>
+        </section>
         {/* Często zadawane pytania */}
         <section
           id="faq"
@@ -374,6 +457,24 @@ const AdoptionReasonCard = ({ reason }: { reason: AdoptionReason }) => {
       <div className="space-y-1 text-center">
         <h3 className="font-semibold md:text-lg">{reason.title}</h3>
         <p className="text-xs md:text-sm">{reason.description}</p>
+      </div>
+    </div>
+  );
+};
+
+// Karta kroku procesu adopcji
+const AdoptionProcessCard = ({ step }: { step: AdoptionProcess }) => {
+  return (
+    <div className="space-y-2">
+      <div
+        className={`${step.bgColor} grid aspect-square place-items-center rounded-full text-3xl`}
+        aria-hidden="true"
+      >
+        {step.icon}
+      </div>
+      <div className="space-y-1 text-center">
+        <h3 className="font-semibold md:text-lg">{step.title}</h3>
+        <p className="text-xs md:text-sm">{step.description}</p>
       </div>
     </div>
   );
