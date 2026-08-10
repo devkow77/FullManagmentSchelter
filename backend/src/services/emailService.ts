@@ -17,6 +17,12 @@ import {
   emailVerificationText,
   passwordResetTemplate,
   passwordResetText,
+  adoptionApplicationConfirmationTemplate,
+  adoptionApplicationConfirmationText,
+  adoptionStatusChangeTemplate,
+  adoptionStatusChangeText,
+  getAdoptionStatusEmailSubject,
+  type AdoptionStatusEmailKind,
 } from '../templates/emailTemplates';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -227,5 +233,107 @@ export const sendPasswordResetEmail = async (
     text: passwordResetText(resetUrl),
     html: passwordResetTemplate(resetUrl, frontendUrl),
     attachments: [getLogoAttachment()],
+  });
+};
+
+export const sendAdoptionApplicationConfirmation = async (params: {
+  email: string;
+  userName: string;
+  animalName: string;
+}) => {
+  const { email, userName, animalName } = params;
+  const frontendUrl = getFrontendUrl();
+  const accountUrl = `${frontendUrl}/konto`;
+
+  if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
+    console.warn(
+      `[email] Pominięto potwierdzenie wniosku (brak EMAIL_USER/EMAIL_PASS). Do ${email}, zwierzę: ${animalName}`,
+    );
+    return;
+  }
+
+  const transporter = createEmailTransporter();
+
+  await transporter.sendMail({
+    from: getFromAddress(),
+    to: email,
+    subject: `Dziękujemy za wniosek o adopcję — ${animalName}`,
+    text: adoptionApplicationConfirmationText({
+      userName,
+      animalName,
+      accountUrl,
+    }),
+    html: adoptionApplicationConfirmationTemplate({
+      userName,
+      animalName,
+      accountUrl,
+      frontendUrl,
+    }),
+    attachments: [getLogoAttachment()],
+  });
+};
+
+export const triggerAdoptionApplicationConfirmation = (params: {
+  email: string;
+  userName: string;
+  animalName: string;
+}) => {
+  void sendAdoptionApplicationConfirmation(params).catch((err) => {
+    console.error('Błąd wysyłki potwierdzenia wniosku adopcyjnego:', err);
+  });
+};
+
+export const sendAdoptionStatusChangeEmail = async (params: {
+  email: string;
+  userName: string;
+  animalName: string;
+  kind: AdoptionStatusEmailKind;
+  employeeNote?: string | null;
+}) => {
+  const { email, userName, animalName, kind, employeeNote } = params;
+  const frontendUrl = getFrontendUrl();
+  const accountUrl = `${frontendUrl}/konto`;
+
+  if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
+    console.warn(
+      `[email] Pominięto powiadomienie o statusie adopcji (brak EMAIL_USER/EMAIL_PASS). Do ${email}, status: ${kind}, zwierzę: ${animalName}`,
+    );
+    return;
+  }
+
+  const transporter = createEmailTransporter();
+
+  await transporter.sendMail({
+    from: getFromAddress(),
+    to: email,
+    subject: getAdoptionStatusEmailSubject(kind, animalName),
+    text: adoptionStatusChangeText({
+      kind,
+      userName,
+      animalName,
+      employeeNote,
+      accountUrl,
+    }),
+    html: adoptionStatusChangeTemplate({
+      kind,
+      userName,
+      animalName,
+      employeeNote,
+      accountUrl,
+      frontendUrl,
+    }),
+    attachments: [getLogoAttachment()],
+  });
+};
+
+export const triggerAdoptionStatusChangeEmail = (params: {
+  email: string;
+  userName: string;
+  animalName: string;
+  kind: AdoptionStatusEmailKind;
+  employeeNote?: string | null;
+}) => {
+  void sendAdoptionStatusChangeEmail(params).catch((err) => {
+    console.error('Błąd wysyłki powiadomienia o statusie adopcji:', err);
   });
 };

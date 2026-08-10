@@ -1,5 +1,5 @@
 import request from 'supertest';
-import { describe, it, expect, beforeAll, afterAll } from 'vitest';
+import { describe, it, expect, beforeAll, afterAll, vi } from 'vitest';
 import { StatusCodes } from 'http-status-codes';
 import bcrypt from 'bcrypt';
 import app from '../app';
@@ -14,6 +14,14 @@ import {
   loginAs,
   SEED_PASSWORD,
 } from './testHelpers';
+
+vi.mock('nodemailer', () => ({
+  default: {
+    createTransport: () => ({
+      sendMail: vi.fn().mockResolvedValue({ messageId: 'test-id' }),
+    }),
+  },
+}));
 
 describe('Adopcja happy-path - Testy integracyjne', () => {
   let adminAgent: Agent;

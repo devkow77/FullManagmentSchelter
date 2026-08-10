@@ -4,7 +4,7 @@ import { toast } from "sonner";
 import { useLocation, useNavigate, useParams } from "react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm, Controller } from "react-hook-form";
+import { useForm, Controller, type Resolver } from "react-hook-form";
 import {
   Button,
   Container,
@@ -89,8 +89,12 @@ const EditUserPage = () => {
     watch,
     setValue,
     formState: { isSubmitting, errors },
-  } = useForm({
-    resolver: zodResolver(editUserSchema),
+  } = useForm<EditUserFormData, unknown, EditUserFormData>({
+    resolver: zodResolver(editUserSchema) as Resolver<
+      EditUserFormData,
+      unknown,
+      EditUserFormData
+    >,
     defaultValues: {
       fullName: "",
       gender: "MEZCZYZNA",

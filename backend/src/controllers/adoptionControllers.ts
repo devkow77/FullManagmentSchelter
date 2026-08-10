@@ -12,6 +12,8 @@ import {
 import { AdoptionStatus, AnimalStatus, Role } from '../generated/prisma/enums';
 import type { Prisma } from '../generated/prisma/client';
 import type { AuthRequest } from '../middlewares/auth.middleware';
+import { triggerAdoptionApplicationConfirmation, triggerAdoptionStatusChangeEmail } from '../services/emailService';
+import type { AdoptionStatusEmailKind } from '../templates/emailTemplates';
 
 const DEFAULT_ADOPTIONS_PAGE_SIZE = 10;
 
@@ -44,7 +46,7 @@ export const createAdoption = async (req: AuthRequest, res: Response) => {
   try {
     const animal = await prisma.animal.findUnique({
       where: { id: animalId },
-      select: { id: true, status: true },
+      select: { id: true, status: true, name: true },
     });
 
     if (!animal) {
@@ -62,6 +64,7 @@ export const createAdoption = async (req: AuthRequest, res: Response) => {
     const user = await prisma.user.findUnique({
       where: { id: req.userId },
       select: {
+        email: true,
         fullName: true,
         gender: true,
         phoneNumber: true,
@@ -131,6 +134,12 @@ export const createAdoption = async (req: AuthRequest, res: Response) => {
         animalId,
         message,
       },
+    });
+
+    triggerAdoptionApplicationConfirmation({
+      email: user.email,
+      userName: user.fullName,
+      animalName: animal.name,
     });
 
     return res.status(StatusCodes.CREATED).json({
@@ -357,6 +366,17 @@ export const changeAdoptionStatus = async (req: Request, res: Response) => {
       select: {
         status: true,
         animalId: true,
+        user: {
+          select: {
+            email: true,
+            fullName: true,
+          },
+        },
+        animal: {
+          select: {
+            name: true,
+          },
+        },
       },
     });
 
@@ -388,6 +408,25 @@ export const changeAdoptionStatus = async (req: Request, res: Response) => {
         msg: 'Niedozwolona zmiana statusu adopcji!',
       });
     }
+
+    const otherPendingApplicants =
+      status === AdoptionStatus.ZAAKCEPTOWANA
+        ? await prisma.adoption.findMany({
+            where: {
+              animalId: findAdoption.animalId,
+              status: AdoptionStatus.OCZEKUJACA,
+              id: { not: numericId },
+            },
+            select: {
+              user: {
+                select: {
+                  email: true,
+                  fullName: true,
+                },
+              },
+            },
+          })
+        : [];
 
     await prisma.$transaction(async (tx) => {
       await tx.adoption.update({
@@ -436,6 +475,38 @@ export const changeAdoptionStatus = async (req: Request, res: Response) => {
         });
       }
     });
+
+    const resolveEmailKind = (): AdoptionStatusEmailKind => {
+      if (status === AdoptionStatus.ZAAKCEPTOWANA) return 'accepted';
+      if (status === AdoptionStatus.ODRZUCONA) return 'rejected';
+      if (status === AdoptionStatus.ZAKONCZONA) return 'completed';
+      if (
+        status === AdoptionStatus.ANULOWANA &&
+        currentStatus === AdoptionStatus.ZAAKCEPTOWANA
+      ) {
+        return 'cancelled_after_meeting';
+      }
+      return 'cancelled';
+    };
+
+    triggerAdoptionStatusChangeEmail({
+      email: findAdoption.user.email,
+      userName: findAdoption.user.fullName,
+      animalName: findAdoption.animal.name,
+      kind: resolveEmailKind(),
+      employeeNote,
+    });
+
+    for (const other of otherPendingApplicants) {
+      triggerAdoptionStatusChangeEmail({
+        email: other.user.email,
+        userName: other.user.fullName,
+        animalName: findAdoption.animal.name,
+        kind: 'cancelled_other_accepted',
+        employeeNote:
+          'Wniosek anulowany automatycznie — dla tego zwierzęcia zaakceptowano inny wniosek adopcyjny.',
+      });
+    }
 
     return res.status(StatusCodes.OK).json({
       msg: 'Adopcja została zaktualizowana!',

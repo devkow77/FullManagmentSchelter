@@ -1,5 +1,5 @@
 import request from 'supertest';
-import { describe, it, expect, beforeAll, afterAll } from 'vitest';
+import { describe, it, expect, beforeAll, afterAll, vi } from 'vitest';
 import { StatusCodes } from 'http-status-codes';
 import app from '../app';
 import prisma from '../prisma';
@@ -11,6 +11,14 @@ import {
   fillAdoptionProfile,
   loginAs,
 } from './testHelpers';
+
+vi.mock('nodemailer', () => ({
+  default: {
+    createTransport: () => ({
+      sendMail: vi.fn().mockResolvedValue({ messageId: 'test-id' }),
+    }),
+  },
+}));
 
 describe('Adopcje - Testy integracyjne', () => {
   const publicAgent = request.agent(app);

@@ -40,36 +40,37 @@ const isAtLeast18 = (date: Date) => {
   return eighteenthBirthday.getTime() <= startOfToday().getTime();
 };
 
-const optionalDateOfBirthSchema = z.preprocess(
-  (val) => {
-    if (val === "" || val == null) return null;
-    return val;
-  },
-  z.coerce
-    .date({ message: "Niepoprawna data." })
-    .nullable()
-    .optional()
-    .refine((date) => {
-      if (!date) return true;
-      const value = new Date(date);
-      value.setHours(0, 0, 0, 0);
-      return value.getTime() <= startOfToday().getTime();
-    }, "Data urodzenia nie może być z przyszłości."),
-);
+const parseDateOnly = (val: string) => {
+  const date = new Date(val);
+  date.setHours(0, 0, 0, 0);
+  return date;
+};
 
-const requiredDateOfBirthSchema = z.preprocess(
-  (val) => {
-    if (val === "" || val == null) return undefined;
-    return val;
-  },
-  z.coerce
-    .date({ message: "Data urodzenia jest wymagana." })
-    .refine(
-      (date) => date.getTime() <= startOfToday().getTime(),
-      "Data urodzenia nie może być z przyszłości.",
-    )
-    .refine(isAtLeast18, "Musisz mieć ukończone 18 lat."),
-);
+const optionalDateOfBirthSchema = z
+  .string()
+  .nullable()
+  .optional()
+  .refine((val) => {
+    if (val == null || val === "") return true;
+    return !Number.isNaN(Date.parse(val));
+  }, "Niepoprawna data.")
+  .refine((val) => {
+    if (val == null || val === "") return true;
+    return parseDateOnly(val).getTime() <= startOfToday().getTime();
+  }, "Data urodzenia nie może być z przyszłości.");
+
+const requiredDateOfBirthSchema = z
+  .string()
+  .min(1, "Data urodzenia jest wymagana.")
+  .refine((val) => !Number.isNaN(Date.parse(val)), "Niepoprawna data.")
+  .refine(
+    (val) => parseDateOnly(val).getTime() <= startOfToday().getTime(),
+    "Data urodzenia nie może być z przyszłości.",
+  )
+  .refine(
+    (val) => isAtLeast18(parseDateOnly(val)),
+    "Musisz mieć ukończone 18 lat.",
+  );
 
 export const editUserSchema = z.object({
   fullName: z
@@ -111,10 +112,7 @@ export const editUserSchema = z.object({
   dateOfBirth: optionalDateOfBirthSchema,
   hasChildren: z.boolean(),
   hasOtherAnimals: z.boolean(),
-  housingType: z.preprocess(
-    emptyStringToNull,
-    HousingTypeEnum.nullable().optional(),
-  ),
+  housingType: HousingTypeEnum.nullable().optional(),
   hasGardenOrBalcony: z.boolean(),
   livingConditions: z.preprocess(
     emptyStringToNull,
@@ -186,6 +184,6 @@ export const addUserSchema = z.object({
   imageUrl: z.string().nullable(),
 });
 
-export type EditUserFormData = z.infer<typeof editUserSchema>;
-export type EditOwnProfileFormData = z.infer<typeof editOwnProfileSchema>;
-export type AddUserFormData = z.infer<typeof addUserSchema>;
+export type EditUserFormData = z.output<typeof editUserSchema>;
+export type EditOwnProfileFormData = z.output<typeof editOwnProfileSchema>;
+export type AddUserFormData = z.output<typeof addUserSchema>;

@@ -358,3 +358,223 @@ ${ctaButton(resetUrl, 'Ustaw nowe hasło')}
 export const passwordResetText = (resetUrl: string) =>
   `Reset hasła\n\nOtrzymaliśmy prośbę o zresetowanie hasła do Twojego konta.\n\nUstaw nowe hasło tutaj: ${resetUrl}\n\nLink jest ważny przez 15 minut.\n\nJeśli to nie Ty prosiłeś o reset hasła, zignoruj tę wiadomość.`;
 
+export const adoptionApplicationConfirmationTemplate = (params: {
+  userName: string;
+  animalName: string;
+  accountUrl: string;
+  frontendUrl: string;
+}) =>
+  emailLayout(
+    `
+<tr>
+  <td style="padding:40px 40px 24px;text-align:center;">
+    <div style="width:64px;height:64px;margin:0 auto 20px;background-color:${COLORS.green100};border-radius:50%;line-height:64px;font-size:28px;">📝</div>
+    <h2 style="margin:0 0 12px;font-size:22px;font-weight:700;color:${COLORS.green900};">Dziękujemy za wniosek!</h2>
+    <p style="margin:0;font-size:15px;color:${COLORS.gray600};line-height:1.7;max-width:440px;margin-left:auto;margin-right:auto;">
+      Cześć ${escapeHtml(params.userName)}! Potwierdzamy przyjęcie Twojego wniosku o adopcję zwierzęcia
+      <strong style="color:${COLORS.green900};">${escapeHtml(params.animalName)}</strong>.
+    </p>
+  </td>
+</tr>
+<tr>
+  <td style="padding:0 40px 24px;">
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:${COLORS.green50};border-radius:12px;border:1px solid ${COLORS.green100};">
+      <tr>
+        <td style="padding:20px 24px;">
+          <p style="margin:0 0 12px;font-size:13px;font-weight:600;color:${COLORS.green800};text-transform:uppercase;letter-spacing:0.05em;">Co dalej?</p>
+          <p style="margin:0;font-size:14px;color:${COLORS.gray600};line-height:1.8;">
+            ✅ Twój wniosek trafił do kolejki i zostanie rozpatrzony w ciągu kilku dni roboczych<br />
+            📞 Skontaktujemy się z Tobą mailowo lub telefonicznie po podjęciu decyzji<br />
+            🏠 Po wstępnej akceptacji zaprosimy Cię na spotkanie w schronisku
+          </p>
+        </td>
+      </tr>
+    </table>
+  </td>
+</tr>
+${ctaButton(params.accountUrl, 'Zobacz status wniosku')}
+<tr>
+  <td style="padding:0 40px 32px;text-align:center;">
+    <p style="margin:0;font-size:12px;color:${COLORS.gray400};line-height:1.6;">
+      Do czasu decyzji możesz anulować wniosek z poziomu konta lub karty zwierzęcia.
+    </p>
+  </td>
+</tr>
+`,
+    `Potwierdzenie wniosku o adopcję — ${params.animalName}`,
+    params.frontendUrl,
+  );
+
+export const adoptionApplicationConfirmationText = (params: {
+  userName: string;
+  animalName: string;
+  accountUrl: string;
+}) =>
+  `Dziękujemy za wniosek o adopcję!\n\nCześć ${params.userName}!\n\nPotwierdzamy przyjęcie Twojego wniosku o adopcję zwierzęcia ${params.animalName}.\n\nWniosek zostanie rozpatrzony w ciągu kilku dni roboczych. Skontaktujemy się z Tobą po podjęciu decyzji.\n\nStatus wniosku: ${params.accountUrl}\n\nDo czasu decyzji możesz anulować wniosek z poziomu konta.`;
+
+export type AdoptionStatusEmailKind =
+  | 'accepted'
+  | 'rejected'
+  | 'cancelled'
+  | 'completed'
+  | 'cancelled_after_meeting'
+  | 'cancelled_other_accepted'
+  | 'expired_no_visit';
+
+const adoptionStatusEmailCopy: Record<
+  AdoptionStatusEmailKind,
+  {
+    emoji: string;
+    title: string;
+    subject: (animalName: string) => string;
+    intro: (userName: string, animalName: string) => string;
+    nextSteps: string;
+  }
+> = {
+  accepted: {
+    emoji: '✅',
+    title: 'Wniosek wstępnie zaakceptowany',
+    subject: (animalName) =>
+      `Wniosek zaakceptowany — zaproszenie na spotkanie (${animalName})`,
+    intro: (userName, animalName) =>
+      `Cześć ${userName}! Twój wniosek o adopcję zwierzęcia ${animalName} został wstępnie zaakceptowany.`,
+    nextSteps:
+      '🏠 To jeszcze nie finalna adopcja — prosimy o przyjście do schroniska w celu finalizacji adopcji<br />📋 Ostateczna decyzja zapada po spotkaniu na żywo<br />⏳ Masz 7 dni od decyzji schroniska na przyjście do schroniska',
+  },
+  rejected: {
+    emoji: '❌',
+    title: 'Wniosek odrzucony',
+    subject: (animalName) => `Decyzja w sprawie wniosku o adopcję — ${animalName}`,
+    intro: (userName, animalName) =>
+      `Cześć ${userName}! Po rozpatrzeniu Twojego wniosku o adopcję zwierzęcia ${animalName} niestety nie możemy go zaakceptować.`,
+    nextSteps:
+      '💚 Dziękujemy za zainteresowanie naszymi podopiecznymi<br />🐕 Możesz przeglądać inne zwierzęta szukające domu<br />📩 W razie pytań skontaktuj się ze schroniskiem',
+  },
+  cancelled: {
+    emoji: 'ℹ️',
+    title: 'Wniosek anulowany',
+    subject: (animalName) => `Wniosek o adopcję został anulowany — ${animalName}`,
+    intro: (userName, animalName) =>
+      `Cześć ${userName}! Informujemy, że Twój wniosek o adopcję zwierzęcia ${animalName} został anulowany.`,
+    nextSteps:
+      '🐕 Możesz złożyć wniosek o inne zwierzę, jeśli nadal szuka domu<br />📩 W razie pytań skontaktuj się ze schroniskiem',
+  },
+  completed: {
+    emoji: '🎉',
+    title: 'Adopcja sfinalizowana!',
+    subject: (animalName) => `Adopcja sfinalizowana — witaj w domu, ${animalName}!`,
+    intro: (userName, animalName) =>
+      `Cześć ${userName}! Z radością informujemy, że adopcja zwierzęcia ${animalName} została sfinalizowana.`,
+    nextSteps:
+      '❤️ Dziękujemy za zapewnienie nowego domu<br />🏡 Życzymy wielu wspólnych, szczęśliwych chwil<br />🐾 Jesteście już oficjalnie rodziną!',
+  },
+  cancelled_after_meeting: {
+    emoji: 'ℹ️',
+    title: 'Proces adopcji zakończony bez finalizacji',
+    subject: (animalName) =>
+      `Aktualizacja procesu adopcji — ${animalName}`,
+    intro: (userName, animalName) =>
+      `Cześć ${userName}! Po spotkaniu w schronisku proces adopcji zwierzęcia ${animalName} nie został sfinalizowany, a wniosek został anulowany.`,
+    nextSteps:
+      '🐕 Zwierzę ponownie szuka domu — możesz przeglądać inne podopieczne<br />📩 W razie pytań skontaktuj się ze schroniskiem',
+  },
+  cancelled_other_accepted: {
+    emoji: 'ℹ️',
+    title: 'Wniosek anulowany',
+    subject: (animalName) =>
+      `Aktualizacja wniosku o adopcję — ${animalName}`,
+    intro: (userName, animalName) =>
+      `Cześć ${userName}! Twój wniosek o adopcję zwierzęcia ${animalName} został anulowany, ponieważ dla tego zwierzęcia zaakceptowano inny wniosek.`,
+    nextSteps:
+      '💚 Dziękujemy za zainteresowanie<br />🐕 Zapraszamy do przeglądania innych zwierząt szukających domu',
+  },
+  expired_no_visit: {
+    emoji: '⏰',
+    title: 'Termin wizyty minął — wniosek anulowany',
+    subject: (animalName) =>
+      `Wniosek anulowany — upłynął termin wizyty (${animalName})`,
+    intro: (userName, animalName) =>
+      `Cześć ${userName}! Twój wniosek o adopcję zwierzęcia ${animalName} został anulowany automatycznie, ponieważ minął 7-dniowy termin przyjścia do schroniska od decyzji schroniska.`,
+    nextSteps:
+      '🐕 Zwierzę ponownie szuka domu<br />💚 Możesz przeglądać inne zwierzęta i złożyć nowy wniosek<br />📩 W razie pytań skontaktuj się ze schroniskiem',
+  },
+};
+
+export const adoptionStatusChangeTemplate = (params: {
+  kind: AdoptionStatusEmailKind;
+  userName: string;
+  animalName: string;
+  employeeNote?: string | null;
+  accountUrl: string;
+  frontendUrl: string;
+}) => {
+  const copy = adoptionStatusEmailCopy[params.kind];
+  const noteBlock = params.employeeNote?.trim()
+    ? `
+<tr>
+  <td style="padding:0 40px 24px;">
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:${COLORS.green50};border-radius:12px;border:1px solid ${COLORS.green100};">
+      <tr>
+        <td style="padding:20px 24px;">
+          <p style="margin:0 0 12px;font-size:13px;font-weight:600;color:${COLORS.green800};text-transform:uppercase;letter-spacing:0.05em;">Wiadomość od schroniska</p>
+          <p style="margin:0;font-size:14px;color:${COLORS.gray600};line-height:1.8;white-space:pre-wrap;">${escapeHtml(params.employeeNote.trim())}</p>
+        </td>
+      </tr>
+    </table>
+  </td>
+</tr>`
+    : '';
+
+  return emailLayout(
+    `
+<tr>
+  <td style="padding:40px 40px 24px;text-align:center;">
+    <div style="width:64px;height:64px;margin:0 auto 20px;background-color:${COLORS.green100};border-radius:50%;line-height:64px;font-size:28px;">${copy.emoji}</div>
+    <h2 style="margin:0 0 12px;font-size:22px;font-weight:700;color:${COLORS.green900};">${escapeHtml(copy.title)}</h2>
+    <p style="margin:0;font-size:15px;color:${COLORS.gray600};line-height:1.7;max-width:440px;margin-left:auto;margin-right:auto;">
+      ${escapeHtml(copy.intro(params.userName, params.animalName))}
+    </p>
+  </td>
+</tr>
+${noteBlock}
+<tr>
+  <td style="padding:0 40px 24px;">
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:${COLORS.green50};border-radius:12px;border:1px solid ${COLORS.green100};">
+      <tr>
+        <td style="padding:20px 24px;">
+          <p style="margin:0 0 12px;font-size:13px;font-weight:600;color:${COLORS.green800};text-transform:uppercase;letter-spacing:0.05em;">Co dalej?</p>
+          <p style="margin:0;font-size:14px;color:${COLORS.gray600};line-height:1.8;">
+            ${copy.nextSteps}
+          </p>
+        </td>
+      </tr>
+    </table>
+  </td>
+</tr>
+${ctaButton(params.accountUrl, 'Zobacz status na koncie')}
+`,
+    copy.subject(params.animalName),
+    params.frontendUrl,
+  );
+};
+
+export const adoptionStatusChangeText = (params: {
+  kind: AdoptionStatusEmailKind;
+  userName: string;
+  animalName: string;
+  employeeNote?: string | null;
+  accountUrl: string;
+}) => {
+  const copy = adoptionStatusEmailCopy[params.kind];
+  const note = params.employeeNote?.trim()
+    ? `\n\nWiadomość od schroniska:\n${params.employeeNote.trim()}`
+    : '';
+
+  return `${copy.title}\n\n${copy.intro(params.userName, params.animalName)}${note}\n\nStatus wniosku: ${params.accountUrl}\n\nZespół Schroniska`;
+};
+
+export const getAdoptionStatusEmailSubject = (
+  kind: AdoptionStatusEmailKind,
+  animalName: string,
+) => adoptionStatusEmailCopy[kind].subject(animalName);
+

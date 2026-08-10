@@ -294,7 +294,7 @@ const AnimalPage = () => {
           : user.role === "PRACOWNIK"
             ? "Pracownik nie może adoptować."
             : hasAcceptedAdoption
-              ? `Twój wniosek został wstępnie zaakceptowany. Wiadomość o umówieniu spotkania została wysłana na podany email i numer telefonu. Ostateczna decyzja zapada po spotkaniu na żywo.${
+              ? `Twój wniosek został wstępnie zaakceptowany. Wiadomość o umówieniu spotkania została wysłana na podany email. Ostateczna decyzja zapada po spotkaniu na żywo.${
                   acceptedShelterVisitDays !== null
                     ? ` ${formatShelterVisitCountdown(acceptedShelterVisitDays)}`
                     : ""
@@ -323,7 +323,9 @@ const AnimalPage = () => {
         },
         { withCredentials: true },
       );
-      toast.success("Wniosek o adopcję został wysłany.");
+      toast.success(
+        "Wniosek o adopcję został wysłany. Potwierdzenie wyślemy na email.",
+      );
       reset({ message: "" });
       setShowAdoptionForm(false);
       void queryClient.invalidateQueries({

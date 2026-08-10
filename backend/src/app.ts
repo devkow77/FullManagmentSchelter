@@ -14,6 +14,7 @@ import statsRoutes from './routes/statsRoutes';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import { startAnimalStatusJob } from './jobs/animalStatus.job';
+import { startAdoptionExpiryJob } from './jobs/adoptionExpiry.job';
 
 const app = express();
 
@@ -46,5 +47,6 @@ app.use('/api/animal-needs', animalNeedRoutes);
 app.use('/api/stats', statsRoutes);
 
 startAnimalStatusJob();
+startAdoptionExpiryJob();
 
 export default app;

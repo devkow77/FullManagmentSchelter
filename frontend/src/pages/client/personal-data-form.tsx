@@ -56,7 +56,7 @@ const PersonalDataFormPage = () => {
     watch,
     setValue,
     formState: { isSubmitting, errors },
-  } = useForm<EditOwnProfileFormData>({
+  } = useForm<EditOwnProfileFormData, unknown, EditOwnProfileFormData>({
     resolver: zodResolver(editOwnProfileSchema),
     defaultValues: {
       fullName: "",
@@ -65,7 +65,7 @@ const PersonalDataFormPage = () => {
       city: "",
       postalCode: "",
       street: "",
-      dateOfBirth: undefined,
+      dateOfBirth: "",
       hasChildren: false,
       hasOtherAnimals: false,
       housingType: "MIESZKANIE",
@@ -110,7 +110,7 @@ const PersonalDataFormPage = () => {
           city: res.data.city ?? "",
           postalCode: res.data.postalCode ?? "",
           street: res.data.street ?? "",
-          dateOfBirth: formatDateInput(res.data.dateOfBirth) || undefined,
+          dateOfBirth: formatDateInput(res.data.dateOfBirth) || "",
           hasChildren: res.data.hasChildren,
           hasOtherAnimals: res.data.hasOtherAnimals,
           housingType:
@@ -179,10 +179,7 @@ const PersonalDataFormPage = () => {
         "/api/users/me",
         {
           ...data,
-          dateOfBirth:
-            data.dateOfBirth instanceof Date
-              ? data.dateOfBirth.toISOString()
-              : data.dateOfBirth,
+          dateOfBirth: data.dateOfBirth,
           imageUrl: uploadedUrl,
         },
         { withCredentials: true },
