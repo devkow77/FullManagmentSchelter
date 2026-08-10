@@ -45,7 +45,7 @@ const ForgotPasswordForm = () => {
 
   return (
     <form onSubmit={handleSubmit(onSubmit)}>
-      <Label>Email</Label>
+      <Label required>Email</Label>
       <Input
         {...register("email")}
         className={`mt-2 mb-4 ${errors.email ? "bg-red-600/20" : ""}`}

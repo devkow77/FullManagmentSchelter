@@ -1,4 +1,19 @@
-import { Button, Container, Input, Label, Skeleton } from "@/components/ui";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+  Button,
+  Container,
+  Input,
+  Label,
+  Skeleton,
+} from "@/components/ui";
 import { useAuth } from "@/context/AuthContext";
 import { z } from "zod";
 import axios, { AxiosError } from "axios";
@@ -6,13 +21,15 @@ import { toast } from "sonner";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useNavigate, Link } from "react-router";
-import { useEffect } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useEffect, useState } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTotp } from "@/hooks/useTotp";
 import { DisableTotpForm, VerifyTotpForm } from "@/components/shared";
 import ClientDashboardNavbar from "@/components/layout/client/DashboardNavbar";
 import {
   formatAdoptionStatus,
+  formatShelterVisitCountdown,
+  getDaysUntilShelterVisit,
   styleAdoptionStatus,
   styleUserRole,
 } from "@/lib/utils";
@@ -55,9 +72,10 @@ const AccountPage = () => {
   const { qrCode, manualKey } = useTotp();
   const { user, loading, logout } = useAuth();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
 
   const {
-    data: adoptions = [],
+    data: adoptionsData,
     isPending: isAdoptionsPending,
     isError: isAdoptionsError,
   } = useQuery({
@@ -65,6 +83,9 @@ const AccountPage = () => {
     queryFn: getMyAdoptions,
     enabled: Boolean(user?.id),
   });
+
+  const adoptions = Array.isArray(adoptionsData) ? adoptionsData : [];
+  const hasAdoptionsData = Array.isArray(adoptionsData);
 
   const {
     handleSubmit,
@@ -166,14 +187,25 @@ const AccountPage = () => {
             </p>
           </div>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 lg:gap-6">
-            {isAdoptionsPending && <LoadingAdoptions />}
-            {isAdoptionsError && <ErrorAdoptions />}
-            {!isAdoptionsPending &&
-              !isAdoptionsError &&
-              adoptions.length === 0 && <EmptyAdoptions />}
-            {adoptions.map((adoption) => (
-              <AdoptionCard key={adoption.id} adoption={adoption} />
-            ))}
+            {isAdoptionsPending ? (
+              <LoadingAdoptions />
+            ) : isAdoptionsError && !hasAdoptionsData ? (
+              <ErrorAdoptions />
+            ) : adoptions.length === 0 ? (
+              <EmptyAdoptions />
+            ) : (
+              adoptions.map((adoption) => (
+                <AdoptionCard
+                  key={adoption.id}
+                  adoption={adoption}
+                  onCancelled={() => {
+                    void queryClient.invalidateQueries({
+                      queryKey: ["my-adoptions", user?.id],
+                    });
+                  }}
+                />
+              ))
+            )}
           </div>
         </section>
         <section
@@ -197,7 +229,9 @@ const AccountPage = () => {
             aria-label="Formularz zmiany hasła"
             noValidate
           >
-            <Label htmlFor="client-currentPassword">Aktualne hasło</Label>
+            <Label htmlFor="client-currentPassword" required>
+              Aktualne hasło
+            </Label>
             <Input
               id="client-currentPassword"
               {...register("currentPassword")}
@@ -222,7 +256,9 @@ const AccountPage = () => {
                 {errors.currentPassword.message}
               </p>
             )}
-            <Label htmlFor="client-newPassword">Nowe hasło</Label>
+            <Label htmlFor="client-newPassword" required>
+              Nowe hasło
+            </Label>
             <Input
               id="client-newPassword"
               {...register("newPassword")}
@@ -245,7 +281,7 @@ const AccountPage = () => {
               </p>
             )}
 
-            <Label htmlFor="client-confirmNewPassword">
+            <Label htmlFor="client-confirmNewPassword" required>
               Powtórz nowe hasło
             </Label>
             <Input
@@ -339,43 +375,118 @@ const AccountPage = () => {
   );
 };
 
-const AdoptionCard = ({ adoption }: { adoption: Adoption }) => {
+const AdoptionCard = ({
+  adoption,
+  onCancelled,
+}: {
+  adoption: Adoption;
+  onCancelled: () => void;
+}) => {
   const statusLabel = formatAdoptionStatus[adoption.status] ?? adoption.status;
+  const canCancel = adoption.status === "OCZEKUJACA";
+  const shelterVisitDays =
+    adoption.status === "ZAAKCEPTOWANA"
+      ? getDaysUntilShelterVisit(adoption.updatedAt)
+      : null;
+  const [isCancelling, setIsCancelling] = useState(false);
+
+  const handleCancel = async () => {
+    if (!canCancel || isCancelling) return;
+
+    setIsCancelling(true);
+    try {
+      await axios.patch(
+        `/api/adoptions/${adoption.id}/cancel`,
+        {},
+        { withCredentials: true },
+      );
+      toast.success("Wniosek o adopcję został anulowany.");
+      onCancelled();
+    } catch (err: unknown) {
+      if (err instanceof AxiosError) {
+        toast.error(
+          err.response?.data?.msg ?? "Nie udało się anulować wniosku.",
+        );
+      } else {
+        toast.error("Wystąpił nieoczekiwany błąd.");
+      }
+    } finally {
+      setIsCancelling(false);
+    }
+  };
 
   return (
-    <Link
-      to={`/zwierzeta/${adoption.animal.id}`}
-      className="space-y-2 transition-colors duration-200 hover:text-green-800"
-    >
-      <div className="relative grid aspect-video place-items-center overflow-hidden rounded-xl bg-gray-100">
-        <span
-          className={`${styleAdoptionStatus(adoption.status)} absolute top-3 right-3 z-2 rounded-2xl px-4 py-2 text-xs font-semibold`}
-        >
-          {statusLabel.toUpperCase()}
-        </span>
-        {adoption.animal.imageUrl.length > 0 ? (
-          <img
-            src={adoption.animal.imageUrl[0]}
-            alt={adoption.animal.name}
-            width={640}
-            height={360}
-            className="absolute size-full object-cover"
-          />
-        ) : (
-          <ImageOff
-            className="absolute size-10 object-cover text-gray-300 md:size-20"
-            aria-hidden="true"
-          />
-        )}
-      </div>
-      <div className="space-y-1">
-        <h3 className="font-semibold lg:text-lg">{adoption.animal.name}</h3>
-        <p className="line-clamp-4 text-xs leading-5 lg:text-sm lg:leading-6">
-          {adoption.animal.description ||
-            `Wniosek złożony ${new Date(adoption.createdAt).toLocaleDateString("pl-PL")}.`}
-        </p>
-      </div>
-    </Link>
+    <div className="space-y-2">
+      <Link
+        to={`/zwierzeta/${adoption.animal.id}`}
+        className="block space-y-2 transition-colors duration-200 hover:text-green-800"
+      >
+        <div className="relative grid aspect-video place-items-center overflow-hidden rounded-xl bg-gray-100">
+          <span
+            className={`${styleAdoptionStatus(adoption.status)} absolute top-3 right-3 z-2 rounded-2xl px-4 py-2 text-xs font-semibold`}
+          >
+            {statusLabel.toUpperCase()}
+          </span>
+          {adoption.animal.imageUrl.length > 0 ? (
+            <img
+              src={adoption.animal.imageUrl[0]}
+              alt={adoption.animal.name}
+              width={640}
+              height={360}
+              className="absolute size-full object-cover"
+            />
+          ) : (
+            <ImageOff
+              className="absolute size-10 object-cover text-gray-300 md:size-20"
+              aria-hidden="true"
+            />
+          )}
+        </div>
+        <div className="space-y-1">
+          <h3 className="font-semibold lg:text-lg">{adoption.animal.name}</h3>
+          <p className="line-clamp-4 text-xs leading-5 lg:text-sm lg:leading-6">
+            {adoption.animal.description ||
+              `Wniosek złożony ${new Date(adoption.createdAt).toLocaleDateString("pl-PL")}.`}
+          </p>
+          {shelterVisitDays !== null && (
+            <p className="text-xs font-medium text-amber-800 lg:text-sm">
+              {formatShelterVisitCountdown(shelterVisitDays)}
+            </p>
+          )}
+        </div>
+      </Link>
+      {canCancel && (
+        <AlertDialog>
+          <AlertDialogTrigger asChild>
+            <Button type="button" variant="destructive" disabled={isCancelling}>
+              {isCancelling ? "Anulowanie..." : "Anuluj wniosek"}
+            </Button>
+          </AlertDialogTrigger>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>
+                Czy na pewno chcesz anulować wniosek?
+              </AlertDialogTitle>
+              <AlertDialogDescription>
+                Twój oczekujący wniosek o adopcję zwierzęcia{" "}
+                {adoption.animal.name} zostanie anulowany. W razie potrzeby
+                będziesz mógł złożyć go ponownie.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel variant="canceled">Nie, wróć</AlertDialogCancel>
+              <AlertDialogAction
+                variant="destructive"
+                disabled={isCancelling}
+                onClick={() => void handleCancel()}
+              >
+                Tak, anuluj wniosek
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      )}
+    </div>
   );
 };
 

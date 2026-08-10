@@ -3,6 +3,7 @@ import {
   createAdoption,
   getAdoptions,
   getAdoptionById,
+  cancelOwnAdoption,
   changeAdoptionStatus,
 } from '../controllers/adoptionControllers';
 import {
@@ -24,6 +25,12 @@ router.get(
   authenticateUser,
   authorizeRoles(Role.UZYTKOWNIK, Role.PRACOWNIK, Role.ADMINISTRATOR),
   getAdoptions,
+);
+router.patch(
+  '/:id/cancel',
+  authenticateUser,
+  authorizeRoles(Role.UZYTKOWNIK),
+  cancelOwnAdoption,
 );
 router.get(
   '/:id',

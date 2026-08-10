@@ -334,7 +334,7 @@ const AddAnimalPage = () => {
             <div className="flex-1 space-y-4">
               {/* IMIĘ */}
               <div className="space-y-2">
-                <Label htmlFor="name">Imię</Label>
+                <Label htmlFor="name" required>Imię</Label>
                 <Input
                   id="name"
                   {...register("name")}
@@ -350,7 +350,7 @@ const AddAnimalPage = () => {
 
               {/* GATUNEK */}
               <div className="space-y-2">
-                <Label>Gatunek</Label>
+                <Label required>Gatunek</Label>
                 <Controller
                   name="type"
                   control={control}
@@ -372,7 +372,7 @@ const AddAnimalPage = () => {
 
               {/* DATA URODZENIA */}
               <div className="space-y-2">
-                <Label htmlFor="dateOfBirth">Data urodzenia</Label>
+                <Label htmlFor="dateOfBirth" required>Data urodzenia</Label>
                 <Input
                   id="dateOfBirth"
                   type="date"
@@ -390,7 +390,7 @@ const AddAnimalPage = () => {
 
               {/* PŁEĆ */}
               <div className="space-y-2">
-                <Label>Płeć</Label>
+                <Label required>Płeć</Label>
                 <Controller
                   name="gender"
                   control={control}
@@ -412,7 +412,7 @@ const AddAnimalPage = () => {
 
               {/* STATUS */}
               <div className="space-y-2">
-                <Label>Status</Label>
+                <Label required>Status</Label>
                 <Controller
                   name="status"
                   control={control}
@@ -434,7 +434,7 @@ const AddAnimalPage = () => {
 
               {/* ROZMIAR */}
               <div className="space-y-2">
-                <Label>Rozmiar</Label>
+                <Label required>Rozmiar</Label>
                 <Controller
                   name="size"
                   control={control}
@@ -456,7 +456,7 @@ const AddAnimalPage = () => {
 
               {/* CECHY */}
               <div className="space-y-2">
-                <Label htmlFor="traits">Cechy po przecinku</Label>
+                <Label htmlFor="traits" required>Cechy po przecinku</Label>
                 <Input
                   id="traits"
                   {...register("traits")}
@@ -472,7 +472,7 @@ const AddAnimalPage = () => {
 
               {/* STAN ZDROWIA */}
               <div className="space-y-2">
-                <Label>Stan zdrowia</Label>
+                <Label required>Stan zdrowia</Label>
                 <Controller
                   name="healthStatus"
                   control={control}
@@ -510,7 +510,7 @@ const AddAnimalPage = () => {
               </div>
 
               <div className="space-y-2">
-                <Label>Wolna klatka</Label>
+                <Label required>Wolna klatka</Label>
                 <Controller
                   name="cageId"
                   control={control}
@@ -626,7 +626,7 @@ const AddAnimalPage = () => {
 
               {/* ZNALEZIONY (MIEJSCE) */}
               <div className="space-y-2">
-                <Label htmlFor="foundLocation">Znaleziony w miejscowości</Label>
+                <Label htmlFor="foundLocation" required>Znaleziony w miejscowości</Label>
                 <Input
                   id="foundLocation"
                   {...register("foundLocation")}
@@ -642,7 +642,7 @@ const AddAnimalPage = () => {
 
               {/* ZNALEZIONY (DATA) */}
               <div className="space-y-2">
-                <Label htmlFor="foundAt">Znaleziony w dniu</Label>
+                <Label htmlFor="foundAt" required>Znaleziony w dniu</Label>
                 <Input
                   id="foundAt"
                   type="date"
@@ -678,7 +678,7 @@ const AddAnimalPage = () => {
 
             {/* OPIS */}
             <div className="flex-1 space-y-2">
-              <Label htmlFor="description">Opis</Label>
+              <Label htmlFor="description" required>Opis</Label>
               <Textarea
                 id="description"
                 {...register("description")}

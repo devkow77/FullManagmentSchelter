@@ -630,7 +630,7 @@ const AdminStatisticsPage = () => {
                   },
                   {
                     key: "ad-completed",
-                    label: "Zakończone",
+                    label: "Adoptowano",
                     value: shelter.adoptions.totals.completed,
                     icon: PawPrint,
                     description: "finalizacja adopcji",

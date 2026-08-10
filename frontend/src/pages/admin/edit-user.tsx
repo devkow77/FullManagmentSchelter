@@ -34,7 +34,7 @@ import {
   type EditUserFormData,
   getMaxDateOfBirth,
 } from "@/schemas/user.schema";
-import { userRoleValues, userGenderValues } from "@/constants/user.constants";
+import { userRoleValues, userGenderValues, housingTypeOptions } from "@/constants/user.constants";
 import { adoptionStatusOptions } from "@/constants/adoption.constants";
 import type { Adoption } from "@/types/adoption";
 import { formatAdoptionStatus, styleAdoptionStatus } from "@/lib/utils";
@@ -52,6 +52,9 @@ type AppUser = {
   dateOfBirth: string | null;
   hasChildren: boolean;
   hasOtherAnimals: boolean;
+  housingType: "DOM" | "MIESZKANIE" | "INNE" | null;
+  hasGardenOrBalcony: boolean;
+  livingConditions: string | null;
   isBanned: boolean;
   adminNote: string | null;
   imageUrl: string | null;
@@ -99,6 +102,9 @@ const EditUserPage = () => {
       dateOfBirth: null,
       hasChildren: false,
       hasOtherAnimals: false,
+      housingType: null,
+      hasGardenOrBalcony: false,
+      livingConditions: "",
       isBanned: false,
       adminNote: "",
       imageUrl: "",
@@ -150,6 +156,9 @@ const EditUserPage = () => {
           dateOfBirth: formatDateInput(res.data.dateOfBirth) ?? null,
           hasChildren: res.data.hasChildren,
           hasOtherAnimals: res.data.hasOtherAnimals,
+          housingType: res.data.housingType,
+          hasGardenOrBalcony: res.data.hasGardenOrBalcony,
+          livingConditions: res.data.livingConditions ?? "",
           isBanned: res.data.isBanned,
           adminNote: res.data.adminNote ?? "",
           imageUrl: res.data.imageUrl ?? "",
@@ -369,7 +378,7 @@ const EditUserPage = () => {
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {/* IMIĘ I NAZWISKO */}
             <div className="space-y-2">
-              <Label htmlFor="fullName">Imię i nazwisko</Label>
+              <Label htmlFor="fullName" required>Imię i nazwisko</Label>
               <Input
                 id="fullName"
                 {...register("fullName")}
@@ -414,7 +423,7 @@ const EditUserPage = () => {
 
             {/* ROLA */}
             <div className="space-y-2">
-              <Label>Rola</Label>
+              <Label required>Rola</Label>
               <Controller
                 name="role"
                 control={control}
@@ -436,7 +445,7 @@ const EditUserPage = () => {
 
             {/* PŁEĆ */}
             <div className="space-y-2">
-              <Label>Płeć</Label>
+              <Label required>Płeć</Label>
               <Controller
                 name="gender"
                 control={control}
@@ -537,6 +546,34 @@ const EditUserPage = () => {
               )}
             </div>
 
+            <div className="space-y-2">
+              <Label>Typ mieszkania</Label>
+              <Controller
+                name="housingType"
+                control={control}
+                render={({ field }) => (
+                  <SingleValueSelector
+                    items={housingTypeOptions}
+                    placeholder="Wybierz typ mieszkania"
+                    value={field.value ?? null}
+                    onValueChange={field.onChange}
+                  />
+                )}
+              />
+            </div>
+
+            <div className="space-y-2 sm:col-span-2">
+              <Label htmlFor="livingConditions">
+                Opis warunków mieszkaniowych
+              </Label>
+              <Textarea
+                id="livingConditions"
+                {...register("livingConditions")}
+                placeholder="Opis warunków..."
+                className="min-h-28 resize-none"
+              />
+            </div>
+
             {/* CZY MA DZIECI & INNE ZWIERZĘTA & CZY KONTO JEST ZABLOKOWANE */}
             <div className="flex flex-col gap-3 sm:col-span-2 lg:col-span-3">
               <Label className="flex cursor-pointer items-center gap-2 text-sm font-medium md:text-base">
@@ -555,6 +592,15 @@ const EditUserPage = () => {
                   className="size-4 accent-green-600"
                 />
                 Posiada inne zwierzęta
+              </Label>
+
+              <Label className="flex cursor-pointer items-center gap-2 text-sm font-medium md:text-base">
+                <Input
+                  type="checkbox"
+                  {...register("hasGardenOrBalcony")}
+                  className="size-4 accent-green-600"
+                />
+                Posiada ogród lub balkon
               </Label>
 
               <Label className="flex cursor-pointer items-center gap-2 text-sm font-medium md:text-base">

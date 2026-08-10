@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import type { Variants } from "framer-motion";
-import { ChevronDown, ChevronUp } from "lucide-react";
+import { ChevronDown, ChevronUp, Heart } from "lucide-react";
 import { Link } from "react-router";
 
 const dotVariants: Variants = {
@@ -181,7 +181,12 @@ const Hamburger = () => {
               </Link>
             </li>
             <li>
-              <Link to="/ulubione-zwierzeta" onClick={closeMenu}>
+              <Link
+                to="/ulubione-zwierzeta"
+                onClick={closeMenu}
+                className="inline-flex items-center gap-1.5 text-red-600"
+              >
+                <Heart className="size-4 fill-red-600 text-red-600" />
                 Ulubione zwierzęta
               </Link>
             </li>

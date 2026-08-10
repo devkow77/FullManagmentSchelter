@@ -123,7 +123,7 @@ const AddMedicalRecordPage = () => {
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div className="space-y-2">
-              <Label>Klinika</Label>
+              <Label required>Klinika</Label>
               <Controller
                 name="vetId"
                 control={control}
@@ -151,7 +151,7 @@ const AddMedicalRecordPage = () => {
             </div>
 
             <div className="space-y-2">
-              <Label>Zwierzę</Label>
+              <Label required>Zwierzę</Label>
               <Controller
                 name="animalId"
                 control={control}
@@ -179,7 +179,7 @@ const AddMedicalRecordPage = () => {
             </div>
 
             <div className="space-y-2">
-              <Label>Typ raportu</Label>
+              <Label required>Typ raportu</Label>
               <Controller
                 name="type"
                 control={control}
@@ -201,7 +201,7 @@ const AddMedicalRecordPage = () => {
             </div>
 
             <div className="space-y-2">
-              <Label>Status</Label>
+              <Label required>Status</Label>
               <Controller
                 name="status"
                 control={control}
@@ -225,7 +225,7 @@ const AddMedicalRecordPage = () => {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="date">Data wizyty</Label>
+              <Label htmlFor="date" required>Data wizyty</Label>
               <Input
                 id="date"
                 type="date"
@@ -240,7 +240,7 @@ const AddMedicalRecordPage = () => {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="cost">Koszt (PLN)</Label>
+              <Label htmlFor="cost" required>Koszt (PLN)</Label>
               <Input
                 id="cost"
                 type="number"
@@ -257,7 +257,7 @@ const AddMedicalRecordPage = () => {
             </div>
 
             <div className="space-y-2 sm:col-span-2">
-              <Label htmlFor="description">Opis raportu</Label>
+              <Label htmlFor="description" required>Opis raportu</Label>
               <Textarea
                 id="description"
                 {...register("description")}

@@ -73,7 +73,7 @@ const VerifyEmailForm = ({ email }: Props) => {
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
       <div>
-        <Label>Kod weryfikacyjny</Label>
+        <Label required>Kod weryfikacyjny</Label>
         <Input
           type="text"
           inputMode="numeric"

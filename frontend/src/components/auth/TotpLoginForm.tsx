@@ -1,4 +1,4 @@
-import { Button, Input } from "@/components/ui";
+import { Button, Input, Label } from "@/components/ui";
 import { useAuth } from "@/context/AuthContext";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -56,18 +56,23 @@ const TotpLoginForm = ({ tempToken }: Props) => {
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-      <p className="text-sm leading-5 md:text-base md:leading-6 font-semibold">Wpisz kod z aplikacji uwierzytelniającej</p>
-
-      <Input
-        type="text"
-        placeholder="Kod z aplikacji uwierzytelniającej"
-        inputMode="numeric"
-        autoFocus
-        maxLength={6}
-        {...register("code")}
-      />
-
-      {errors.code && <p className="-mt-2 mb-4 text-xs font-medium text-red-600 lg:text-sm">{errors.code.message}</p>}
+      <div>
+        <Label required>Kod z aplikacji uwierzytelniającej</Label>
+        <Input
+          type="text"
+          placeholder="Kod z aplikacji uwierzytelniającej"
+          inputMode="numeric"
+          autoFocus
+          maxLength={6}
+          className={`mt-2 ${errors.code ? "bg-red-600/20" : ""}`}
+          {...register("code")}
+        />
+        {errors.code && (
+          <p className="mt-2 text-xs font-medium text-red-600 lg:text-sm">
+            {errors.code.message}
+          </p>
+        )}
+      </div>
 
       <Button type="submit" variant="success" disabled={isSubmitting}>
         {isSubmitting ? "Sprawdzanie..." : "Potwierdź"}

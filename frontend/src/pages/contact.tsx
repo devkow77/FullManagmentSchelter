@@ -118,7 +118,7 @@ const ContactPage = () => {
               noValidate
             >
               {/* Email */}
-              <Label htmlFor="contact-email">Email</Label>
+              <Label htmlFor="contact-email" required>Email</Label>
               <Input
                 id="contact-email"
                 {...register("email")}
@@ -143,7 +143,7 @@ const ContactPage = () => {
               )}
 
               {/* Imię i nazwisko */}
-              <Label htmlFor="contact-fullName">Imię i nazwisko</Label>
+              <Label htmlFor="contact-fullName" required>Imię i nazwisko</Label>
               <Input
                 id="contact-fullName"
                 {...register("fullName")}
@@ -167,7 +167,7 @@ const ContactPage = () => {
               )}
 
               {/* Wiadomość */}
-              <Label htmlFor="contact-message">Wiadomość</Label>
+              <Label htmlFor="contact-message" required>Wiadomość</Label>
               <Textarea
                 id="contact-message"
                 {...register("message")}

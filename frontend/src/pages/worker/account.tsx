@@ -162,7 +162,7 @@ const AdminAccountPage = () => {
             aria-label="Formularz zmiany hasła"
             noValidate
           >
-            <Label htmlFor="staff-currentPassword">Aktualne hasło</Label>
+            <Label htmlFor="staff-currentPassword" required>Aktualne hasło</Label>
             <Input
               id="staff-currentPassword"
               {...register("currentPassword")}
@@ -187,7 +187,7 @@ const AdminAccountPage = () => {
                 {errors.currentPassword.message}
               </p>
             )}
-            <Label htmlFor="staff-newPassword">Nowe hasło</Label>
+            <Label htmlFor="staff-newPassword" required>Nowe hasło</Label>
             <Input
               id="staff-newPassword"
               {...register("newPassword")}
@@ -210,7 +210,7 @@ const AdminAccountPage = () => {
               </p>
             )}
 
-            <Label htmlFor="staff-confirmNewPassword">Powtórz nowe hasło</Label>
+            <Label htmlFor="staff-confirmNewPassword" required>Powtórz nowe hasło</Label>
             <Input
               id="staff-confirmNewPassword"
               {...register("confirmNewPassword")}

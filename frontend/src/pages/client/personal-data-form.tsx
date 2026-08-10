@@ -3,7 +3,7 @@ import { useNavigate } from "react-router";
 import { useEffect, useRef, useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm, Controller } from "react-hook-form";
-import { Button, Container, Input, Label } from "@/components/ui";
+import { Button, Container, Input, Label, Textarea } from "@/components/ui";
 import axios from "axios";
 import { Plus, Trash } from "lucide-react";
 import { supabase } from "@/lib/supabase";
@@ -13,7 +13,10 @@ import {
   type EditOwnProfileFormData,
   getMaxDateOfBirth,
 } from "@/schemas/user.schema";
-import { userGenderValues } from "@/constants/user.constants";
+import {
+  genderOptions,
+  housingTypeOptions,
+} from "@/constants/user.constants";
 import { useAuth } from "@/context/AuthContext";
 
 type OwnProfile = {
@@ -28,6 +31,9 @@ type OwnProfile = {
   dateOfBirth: string | null;
   hasChildren: boolean;
   hasOtherAnimals: boolean;
+  housingType: "DOM" | "MIESZKANIE" | "INNE" | null;
+  hasGardenOrBalcony: boolean;
+  livingConditions: string | null;
   imageUrl: string | null;
   twoFactorEnabled: boolean;
   createdAt: string;
@@ -50,7 +56,7 @@ const PersonalDataFormPage = () => {
     watch,
     setValue,
     formState: { isSubmitting, errors },
-  } = useForm({
+  } = useForm<EditOwnProfileFormData>({
     resolver: zodResolver(editOwnProfileSchema),
     defaultValues: {
       fullName: "",
@@ -59,9 +65,12 @@ const PersonalDataFormPage = () => {
       city: "",
       postalCode: "",
       street: "",
-      dateOfBirth: null,
+      dateOfBirth: undefined,
       hasChildren: false,
       hasOtherAnimals: false,
+      housingType: "MIESZKANIE",
+      hasGardenOrBalcony: false,
+      livingConditions: "",
       imageUrl: "",
     },
   });
@@ -101,9 +110,14 @@ const PersonalDataFormPage = () => {
           city: res.data.city ?? "",
           postalCode: res.data.postalCode ?? "",
           street: res.data.street ?? "",
-          dateOfBirth: formatDateInput(res.data.dateOfBirth) ?? null,
+          dateOfBirth: formatDateInput(res.data.dateOfBirth) || undefined,
           hasChildren: res.data.hasChildren,
           hasOtherAnimals: res.data.hasOtherAnimals,
+          housingType:
+            (res.data.housingType as EditOwnProfileFormData["housingType"]) ??
+            "MIESZKANIE",
+          hasGardenOrBalcony: res.data.hasGardenOrBalcony,
+          livingConditions: res.data.livingConditions ?? "",
           imageUrl: res.data.imageUrl ?? "",
         });
 
@@ -165,6 +179,10 @@ const PersonalDataFormPage = () => {
         "/api/users/me",
         {
           ...data,
+          dateOfBirth:
+            data.dateOfBirth instanceof Date
+              ? data.dateOfBirth.toISOString()
+              : data.dateOfBirth,
           imageUrl: uploadedUrl,
         },
         { withCredentials: true },
@@ -222,8 +240,9 @@ const PersonalDataFormPage = () => {
             Formularz danych osobowych
           </h1>
           <p className="text-sm leading-6 font-medium md:text-base md:leading-7">
-            Uzupełnij lub zaktualizuj swoje dane poniżej. Pamiętaj, aby zapisać
-            po zakończeniu edycji.
+            Uzupełnij dane oznaczone<span className="text-red-600" aria-hidden="true">*</span>{" "}
+            — są wymagane, aby złożyć wniosek o adopcję. Musisz mieć ukończone
+            18 lat.
           </p>
         </div>
 
@@ -296,13 +315,16 @@ const PersonalDataFormPage = () => {
 
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
             <div className="space-y-2">
-              <Label htmlFor="fullName">Imię i nazwisko</Label>
+              <Label htmlFor="fullName" required>
+                Imię i nazwisko
+              </Label>
               <Input
                 id="fullName"
                 {...register("fullName")}
                 placeholder="Podaj imię i nazwisko..."
                 className={errors.fullName ? "bg-red-600/20" : ""}
                 aria-invalid={Boolean(errors.fullName)}
+                required
               />
               {errors.fullName && (
                 <p className="text-xs font-medium text-red-600 lg:text-sm">
@@ -324,13 +346,16 @@ const PersonalDataFormPage = () => {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="phoneNumber">Numer telefonu</Label>
+              <Label htmlFor="phoneNumber" required>
+                Numer telefonu
+              </Label>
               <Input
                 id="phoneNumber"
                 {...register("phoneNumber")}
                 placeholder="np. 500123456"
                 className={errors.phoneNumber ? "bg-red-600/20" : ""}
                 aria-invalid={Boolean(errors.phoneNumber)}
+                required
               />
               {errors.phoneNumber && (
                 <p className="text-xs font-medium text-red-600 lg:text-sm">
@@ -340,13 +365,13 @@ const PersonalDataFormPage = () => {
             </div>
 
             <div className="space-y-2">
-              <Label>Płeć</Label>
+              <Label required>Płeć</Label>
               <Controller
                 name="gender"
                 control={control}
                 render={({ field }) => (
                   <SingleValueSelector
-                    items={[...userGenderValues]}
+                    items={genderOptions}
                     placeholder="Wybierz płeć"
                     value={field.value}
                     onValueChange={field.onChange}
@@ -361,7 +386,9 @@ const PersonalDataFormPage = () => {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="dateOfBirth">Data urodzenia</Label>
+              <Label htmlFor="dateOfBirth" required>
+                Data urodzenia
+              </Label>
               <Input
                 id="dateOfBirth"
                 type="date"
@@ -369,22 +396,26 @@ const PersonalDataFormPage = () => {
                 {...register("dateOfBirth")}
                 className={errors.dateOfBirth ? "bg-red-600/20" : ""}
                 aria-invalid={Boolean(errors.dateOfBirth)}
+                required
               />
               {errors.dateOfBirth && (
                 <p className="text-xs font-medium text-red-600 lg:text-sm">
-                  {errors.dateOfBirth.message}
+                  {String(errors.dateOfBirth.message)}
                 </p>
               )}
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="city">Miasto</Label>
+              <Label htmlFor="city" required>
+                Miasto
+              </Label>
               <Input
                 id="city"
                 {...register("city")}
                 placeholder="Podaj miasto..."
                 className={errors.city ? "bg-red-600/20" : ""}
                 aria-invalid={Boolean(errors.city)}
+                required
               />
               {errors.city && (
                 <p className="text-xs font-medium text-red-600 lg:text-sm">
@@ -394,13 +425,16 @@ const PersonalDataFormPage = () => {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="postalCode">Kod pocztowy</Label>
+              <Label htmlFor="postalCode" required>
+                Kod pocztowy
+              </Label>
               <Input
                 id="postalCode"
                 {...register("postalCode")}
                 placeholder="np. 00-001"
                 className={errors.postalCode ? "bg-red-600/20" : ""}
                 aria-invalid={Boolean(errors.postalCode)}
+                required
               />
               {errors.postalCode && (
                 <p className="text-xs font-medium text-red-600 lg:text-sm">
@@ -410,17 +444,61 @@ const PersonalDataFormPage = () => {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="street">Ulica i numer</Label>
+              <Label htmlFor="street" required>
+                Ulica i numer
+              </Label>
               <Input
                 id="street"
                 {...register("street")}
                 placeholder="Podaj adres..."
                 className={errors.street ? "bg-red-600/20" : ""}
                 aria-invalid={Boolean(errors.street)}
+                required
               />
               {errors.street && (
                 <p className="text-xs font-medium text-red-600 lg:text-sm">
                   {errors.street.message}
+                </p>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <Label required>Typ mieszkania</Label>
+              <Controller
+                name="housingType"
+                control={control}
+                render={({ field }) => (
+                  <SingleValueSelector
+                    items={housingTypeOptions}
+                    placeholder="Wybierz typ mieszkania"
+                    value={field.value}
+                    onValueChange={field.onChange}
+                  />
+                )}
+              />
+              {errors.housingType && (
+                <p className="text-xs font-medium text-red-600 lg:text-sm">
+                  {errors.housingType.message}
+                </p>
+              )}
+            </div>
+
+            <div className="space-y-2 sm:col-span-2 lg:col-span-3">
+              <Label htmlFor="livingConditions" required>
+                Opis warunków mieszkaniowych
+              </Label>
+              <Textarea
+                id="livingConditions"
+                {...register("livingConditions")}
+                maxLength={500}
+                placeholder="Np. mieszkam w domu z ogrodem, mam doświadczenie z psami średniej wielkości..."
+                className={`min-h-28 resize-none ${errors.livingConditions ? "bg-red-600/20" : ""}`}
+                aria-invalid={Boolean(errors.livingConditions)}
+                required
+              />
+              {errors.livingConditions && (
+                <p className="text-xs font-medium text-red-600 lg:text-sm">
+                  {errors.livingConditions.message}
                 </p>
               )}
             </div>
@@ -432,7 +510,7 @@ const PersonalDataFormPage = () => {
                   {...register("hasChildren")}
                   className="size-4 accent-green-600"
                 />
-                Posiada dzieci
+                Posiadam dzieci
               </Label>
 
               <Label className="flex cursor-pointer items-center gap-2 text-sm font-medium md:text-base">
@@ -441,7 +519,16 @@ const PersonalDataFormPage = () => {
                   {...register("hasOtherAnimals")}
                   className="size-4 accent-green-600"
                 />
-                Posiada inne zwierzęta
+                Posiadam inne zwierzęta
+              </Label>
+
+              <Label className="flex cursor-pointer items-center gap-2 text-sm font-medium md:text-base">
+                <Input
+                  type="checkbox"
+                  {...register("hasGardenOrBalcony")}
+                  className="size-4 accent-green-600"
+                />
+                Mam ogród lub balkon
               </Label>
             </div>
           </div>

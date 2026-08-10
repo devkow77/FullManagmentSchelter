@@ -8,6 +8,7 @@ import {
   type Agent,
   buildAnimalPayload,
   clearDomainData,
+  fillAdoptionProfile,
   loginAs,
 } from './testHelpers';
 
@@ -24,6 +25,7 @@ describe('Adopcje - Testy integracyjne', () => {
   beforeAll(async () => {
     await clearDomainData();
     await usersSeed();
+    await fillAdoptionProfile('michal@gmail.com');
 
     adminAgent = await loginAs('admin@gmail.com');
     workerAgent = await loginAs('pracownik@gmail.com');
@@ -73,6 +75,34 @@ describe('Adopcje - Testy integracyjne', () => {
         message: 'Chcę adoptować',
       });
       expect(res.status).toBe(StatusCodes.FORBIDDEN);
+    });
+
+    it('Odmawia gdy użytkownik nie uzupełnił danych osobowych', async () => {
+      await prisma.user.update({
+        where: { email: 'michal@gmail.com' },
+        data: {
+          phoneNumber: null,
+          city: null,
+          postalCode: null,
+          street: null,
+          dateOfBirth: null,
+          housingType: null,
+          livingConditions: null,
+          isFormFilled: false,
+        },
+      });
+
+      const res = await userAgent.post('/api/adoptions').send({
+        animalId,
+        message: 'Chcę adoptować',
+      });
+
+      expect(res.status).toBe(StatusCodes.BAD_REQUEST);
+      expect(res.body.msg).toBe(
+        'Aby złożyć wniosek o adopcję, uzupełnij najpierw wszystkie dane osobowe w formularzu!',
+      );
+
+      await fillAdoptionProfile('michal@gmail.com');
     });
 
     it('Tworzy wniosek adopcyjny przez użytkownika', async () => {
@@ -162,6 +192,47 @@ describe('Adopcje - Testy integracyjne', () => {
     });
   });
 
+  describe('PATCH /api/adoptions/:id/cancel', () => {
+    it('Odmawia pracownikowi', async () => {
+      const res = await workerAgent.patch(
+        `/api/adoptions/${adoptionId}/cancel`,
+      );
+      expect(res.status).toBe(StatusCodes.FORBIDDEN);
+    });
+
+    it('Anuluje własny oczekujący wniosek', async () => {
+      const res = await userAgent.patch(`/api/adoptions/${adoptionId}/cancel`);
+
+      expect(res.status).toBe(StatusCodes.OK);
+      expect(res.body.msg).toBe('Wniosek adopcyjny został anulowany!');
+
+      const adoption = await prisma.adoption.findUnique({
+        where: { id: adoptionId },
+        select: { status: true },
+      });
+      expect(adoption?.status).toBe('ANULOWANA');
+    });
+
+    it('Nie pozwala anulować wniosku, który nie jest OCZEKUJACA', async () => {
+      const res = await userAgent.patch(`/api/adoptions/${adoptionId}/cancel`);
+
+      expect(res.status).toBe(StatusCodes.BAD_REQUEST);
+      expect(res.body.msg).toBe(
+        'Możesz anulować tylko oczekujący wniosek adopcyjny!',
+      );
+    });
+
+    it('Pozwala złożyć nowy wniosek po anulowaniu', async () => {
+      const res = await userAgent.post('/api/adoptions').send({
+        animalId,
+        message: 'Ponowny wniosek po anulowaniu.',
+      });
+
+      expect(res.status).toBe(StatusCodes.CREATED);
+      adoptionId = res.body.id;
+    });
+  });
+
   describe('PATCH /api/adoptions/:id', () => {
     it('Zwraca 400 bez wymaganej notatki', async () => {
       // Sprawdza walidację danych wejściowych (400).
@@ -192,8 +263,18 @@ describe('Adopcje - Testy integracyjne', () => {
       });
 
       expect(res.status).toBe(StatusCodes.BAD_REQUEST);
+      expect(res.body.msg).toBe('Niedozwolona zmiana statusu adopcji!');
+    });
+
+    it('Nie pozwala złożyć ponownego wniosku po odrzuceniu', async () => {
+      const res = await userAgent.post('/api/adoptions').send({
+        animalId,
+        message: 'Ponowny wniosek po odrzuceniu',
+      });
+
+      expect(res.status).toBe(StatusCodes.CONFLICT);
       expect(res.body.msg).toBe(
-        'Adopcja nie istnieje lub nie jest w stanie OCZEKUJACA!',
+        'Twój poprzedni wniosek o adopcję tego zwierzęcia został odrzucony. Nie możesz złożyć ponownego wniosku.',
       );
     });
   });

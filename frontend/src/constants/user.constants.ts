@@ -1,4 +1,4 @@
-import { formatUserRole } from "@/lib/utils";
+import { formatUserRole, formatHousingType } from "@/lib/utils";
 import { toLabelValueOptions, booleanFilterOptions } from "@/constants/helpers";
 
 const formatUserGenderMap = {
@@ -14,11 +14,14 @@ export const userRoleValues = [
 
 export const userGenderValues = ["MEZCZYZNA", "KOBIETA"] as const;
 
+export const housingTypeValues = ["DOM", "MIESZKANIE", "INNE"] as const;
+
 export const addUserRoleValues = ["ADMINISTRATOR", "PRACOWNIK"] as const;
 
 export const addUserGenderValues = ["KOBIETA", "MEZCZYZNA"] as const;
 
 export const genderOptions = toLabelValueOptions(formatUserGenderMap);
+export const housingTypeOptions = toLabelValueOptions(formatHousingType);
 export const userRoleOptions = toLabelValueOptions(formatUserRole);
 export const workerRoleOptions = userRoleOptions.filter(
   (option) => option.value !== "UZYTKOWNIK",

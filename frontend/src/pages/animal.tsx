@@ -1,10 +1,24 @@
-import { Button, Container, Label, Textarea } from "@/components/ui";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+  Button,
+  Container,
+  Label,
+  Textarea,
+} from "@/components/ui";
 import axios, { AxiosError } from "axios";
 import { useParams } from "react-router";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Pagination } from "swiper/modules";
 import "swiper/css";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import "swiper/css/pagination";
 import { Check, ImageOff, X } from "lucide-react";
 import {
@@ -12,8 +26,11 @@ import {
   formatAnimalHealthStatus,
   formatAnimalSize,
   formatAnimalType,
+  formatShelterVisitCountdown,
+  getDaysUntilShelterVisit,
 } from "@/lib/utils";
 import type { AnimalHealthStatus, AnimalStatus } from "@/types/animal";
+import type { Adoption } from "@/types/adoption";
 import { Link } from "react-router";
 import { AnimalCard } from "@/components/shared";
 import { useAuth } from "@/context/AuthContext";
@@ -25,6 +42,18 @@ import {
   createAdoptionSchema,
   type CreateAdoptionFormData,
 } from "@/schemas/adoption.schema";
+
+type OwnProfile = {
+  fullName: string;
+  gender: string;
+  phoneNumber: string | null;
+  city: string | null;
+  postalCode: string | null;
+  street: string | null;
+  dateOfBirth: string | null;
+  housingType: string | null;
+  livingConditions: string | null;
+};
 
 interface Animal {
   id: number;
@@ -109,6 +138,33 @@ const getOtherAnimals = async (excludeId: string) => {
   return res.data.filter((animal) => animal.id !== Number(excludeId));
 };
 
+const getMyAdoptions = async () => {
+  const res = await axios.get<Adoption[]>("/api/adoptions", {
+    withCredentials: true,
+  });
+  return res.data;
+};
+
+const getOwnProfile = async () => {
+  const res = await axios.get<OwnProfile>("/api/users/me", {
+    withCredentials: true,
+  });
+  return res.data;
+};
+
+const isAdoptionProfileComplete = (profile: OwnProfile | undefined) =>
+  Boolean(
+    profile?.fullName?.trim() &&
+      profile?.gender &&
+      profile?.phoneNumber?.trim() &&
+      profile?.city?.trim() &&
+      profile?.postalCode?.trim() &&
+      profile?.street?.trim() &&
+      profile?.dateOfBirth &&
+      profile?.housingType &&
+      profile?.livingConditions?.trim(),
+  );
+
 // Funkcja renderująca ikonę cechy zwierzęcia
 const TraitIcon = ({ active }: { active: boolean }) =>
   active ? (
@@ -120,6 +176,7 @@ const TraitIcon = ({ active }: { active: boolean }) =>
 const AnimalPage = () => {
   const { id } = useParams();
   const { user } = useAuth();
+  const queryClient = useQueryClient();
   const [showAdoptionForm, setShowAdoptionForm] = useState(false);
 
   const {
@@ -139,8 +196,24 @@ const AnimalPage = () => {
     enabled: Boolean(id), // uruchamia query tylko jeśli id nie jest undefined
   });
 
+  const { data: myAdoptions = [] } = useQuery({
+    queryKey: ["my-adoptions", user?.id],
+    queryFn: getMyAdoptions,
+    enabled: Boolean(user?.id) && user?.role === "UZYTKOWNIK",
+  });
+
+  const { data: ownProfile, isPending: isProfilePending } = useQuery({
+    queryKey: ["own-profile", user?.id],
+    queryFn: getOwnProfile,
+    enabled: Boolean(user?.id) && user?.role === "UZYTKOWNIK",
+  });
+
   const animal = data?.[0];
   const otherAnimals = data?.[1] ?? [];
+  const existingAdoptionForAnimal = myAdoptions.find(
+    (adoption) => adoption.animalId === animal?.id,
+  );
+  const hasCompleteProfile = isAdoptionProfileComplete(ownProfile);
 
   useEffect(() => {
     if (animal?.name) {
@@ -189,16 +262,57 @@ const AnimalPage = () => {
     isFound && animal?.foundAt ? getDaysUntilAvailable(animal.foundAt) : null;
 
   const canSubmitAdoption = user?.role === "UZYTKOWNIK";
-  const adoptionBlockMessage = !user
-    ? "Tylko zalogowani użytkownicy mogą adoptować."
-    : user.role === "ADMINISTRATOR"
-      ? "Administrator nie może adoptować zwierząt."
-      : user.role === "PRACOWNIK"
-        ? "Pracownik nie może adoptować."
-        : null;
+  const hasPendingAdoption = existingAdoptionForAnimal?.status === "OCZEKUJACA";
+  const hasAcceptedAdoption =
+    existingAdoptionForAnimal?.status === "ZAAKCEPTOWANA";
+  const hasRejectedAdoption = existingAdoptionForAnimal?.status === "ODRZUCONA";
+  const hasCancelledAdoption =
+    existingAdoptionForAnimal?.status === "ANULOWANA";
+  const hasCompletedAdoption =
+    existingAdoptionForAnimal?.status === "ZAKONCZONA";
+  const isAlreadyAdopted = animal?.status === "ADOPTOWANY";
+  const acceptedShelterVisitDays =
+    hasAcceptedAdoption && existingAdoptionForAnimal?.updatedAt
+      ? getDaysUntilShelterVisit(existingAdoptionForAnimal.updatedAt)
+      : null;
+  const canOpenAdoptionForm =
+    Boolean(canAdopt) &&
+    canSubmitAdoption &&
+    hasCompleteProfile &&
+    !hasPendingAdoption &&
+    !hasAcceptedAdoption &&
+    !hasRejectedAdoption &&
+    !hasCompletedAdoption;
+
+  const adoptionBlockMessage =
+    hasCompletedAdoption || isAlreadyAdopted
+      ? "To zwierzę zostało już adoptowane."
+      : !user
+        ? "Tylko zalogowani użytkownicy mogą adoptować."
+        : user.role === "ADMINISTRATOR"
+          ? "Administrator nie może adoptować zwierząt."
+          : user.role === "PRACOWNIK"
+            ? "Pracownik nie może adoptować."
+            : hasAcceptedAdoption
+              ? `Twój wniosek został wstępnie zaakceptowany. Wiadomość o umówieniu spotkania została wysłana na podany email i numer telefonu. Ostateczna decyzja zapada po spotkaniu na żywo.${
+                  acceptedShelterVisitDays !== null
+                    ? ` ${formatShelterVisitCountdown(acceptedShelterVisitDays)}`
+                    : ""
+                }`
+              : hasRejectedAdoption
+                ? "Twój poprzedni wniosek o adopcję tego zwierzęcia został odrzucony. Nie możesz złożyć ponownego wniosku."
+                : hasCancelledAdoption
+                  ? "Twój wniosek o adopcję tego zwierzęcia został anulowany. Możesz złożyć nowy wniosek, jeśli zwierzę nadal szuka domu."
+                  : hasPendingAdoption
+                    ? "Masz już aktywny wniosek adopcyjny dla tego zwierzęcia. Poczekaj na odpowiedź schroniska."
+                    : !isProfilePending && !hasCompleteProfile
+                      ? "Aby złożyć wniosek o adopcję, uzupełnij najpierw wszystkie dane osobowe w formularzu."
+                      : null;
+
+  const [isCancellingAdoption, setIsCancellingAdoption] = useState(false);
 
   const onSubmitAdoption = async (formData: CreateAdoptionFormData) => {
-    if (!animal?.id) return;
+    if (!animal?.id || !canOpenAdoptionForm) return;
 
     try {
       await axios.post(
@@ -212,6 +326,9 @@ const AnimalPage = () => {
       toast.success("Wniosek o adopcję został wysłany.");
       reset({ message: "" });
       setShowAdoptionForm(false);
+      void queryClient.invalidateQueries({
+        queryKey: ["my-adoptions", user?.id],
+      });
     } catch (err: unknown) {
       if (err instanceof AxiosError) {
         toast.error(
@@ -220,6 +337,33 @@ const AnimalPage = () => {
       } else {
         toast.error("Wystąpił nieoczekiwany błąd.");
       }
+    }
+  };
+
+  const onCancelAdoption = async () => {
+    if (!existingAdoptionForAnimal?.id || !hasPendingAdoption) return;
+
+    setIsCancellingAdoption(true);
+    try {
+      await axios.patch(
+        `/api/adoptions/${existingAdoptionForAnimal.id}/cancel`,
+        {},
+        { withCredentials: true },
+      );
+      toast.success("Wniosek o adopcję został anulowany.");
+      void queryClient.invalidateQueries({
+        queryKey: ["my-adoptions", user?.id],
+      });
+    } catch (err: unknown) {
+      if (err instanceof AxiosError) {
+        toast.error(
+          err.response?.data?.msg ?? "Nie udało się anulować wniosku.",
+        );
+      } else {
+        toast.error("Wystąpił nieoczekiwany błąd.");
+      }
+    } finally {
+      setIsCancellingAdoption(false);
     }
   };
 
@@ -303,84 +447,148 @@ const AnimalPage = () => {
             </p>
             <div className="flex flex-wrap items-center justify-between gap-2">
               <div className="w-full max-w-xl space-y-3">
-                {canAdopt ? (
-                  canSubmitAdoption ? (
-                    showAdoptionForm ? (
-                      <form
-                        onSubmit={handleSubmit(onSubmitAdoption)}
-                        className="space-y-3"
-                        aria-label="Formularz wniosku o adopcję"
-                      >
-                        <div className="space-y-2">
-                          <Label htmlFor="adoptionMessage">
-                            Wiadomość do schroniska (opcjonalnie)
-                          </Label>
-                          <Textarea
-                            id="adoptionMessage"
-                            maxLength={500}
-                            placeholder="Napisz kilka słów o sobie i motywacji do adopcji..."
-                            className={`h-28 resize-none ${errors.message ? "bg-red-600/20" : ""}`}
-                            {...register("message")}
-                          />
-                          {errors.message && (
-                            <p
-                              role="alert"
-                              className="text-xs font-medium text-red-600 md:text-sm"
-                            >
-                              {errors.message.message}
-                            </p>
-                          )}
-                        </div>
-                        <div className="flex flex-wrap gap-2">
-                          <Button
-                            type="submit"
-                            variant="success"
-                            disabled={isSubmitting}
+                {canOpenAdoptionForm ? (
+                  showAdoptionForm ? (
+                    <form
+                      onSubmit={handleSubmit(onSubmitAdoption)}
+                      className="space-y-3"
+                      aria-label="Formularz wniosku o adopcję"
+                    >
+                      <div className="space-y-2">
+                        <Label htmlFor="adoptionMessage">
+                          Wiadomość do schroniska (opcjonalnie)
+                        </Label>
+                        <Textarea
+                          id="adoptionMessage"
+                          maxLength={500}
+                          placeholder="Napisz kilka słów o sobie i motywacji do adopcji..."
+                          className={`h-28 resize-none ${errors.message ? "bg-red-600/20" : ""}`}
+                          {...register("message")}
+                        />
+                        {errors.message && (
+                          <p
+                            role="alert"
+                            className="text-xs font-medium text-red-600 md:text-sm"
                           >
-                            {isSubmitting
-                              ? "Wysyłanie..."
-                              : "Wyślij wniosek"}
-                          </Button>
-                          <Button
-                            type="button"
-                            variant="canceled"
-                            disabled={isSubmitting}
-                            onClick={() => {
-                              setShowAdoptionForm(false);
-                              reset({ message: "" });
-                            }}
-                          >
-                            Anuluj
-                          </Button>
-                        </div>
-                      </form>
-                    ) : (
-                      <Button
-                        variant="success"
-                        type="button"
-                        onClick={() => setShowAdoptionForm(true)}
-                      >
-                        Zgłoś wniosek o adopcję
-                      </Button>
-                    )
+                            {errors.message.message}
+                          </p>
+                        )}
+                      </div>
+                      <div className="flex flex-wrap gap-2">
+                        <Button
+                          type="submit"
+                          variant="success"
+                          disabled={isSubmitting}
+                        >
+                          {isSubmitting ? "Wysyłanie..." : "Wyślij wniosek"}
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="canceled"
+                          disabled={isSubmitting}
+                          onClick={() => {
+                            setShowAdoptionForm(false);
+                            reset({ message: "" });
+                          }}
+                        >
+                          Anuluj
+                        </Button>
+                      </div>
+                    </form>
                   ) : (
-                    <>
+                    <Button
+                      variant="success"
+                      type="button"
+                      onClick={() => setShowAdoptionForm(true)}
+                    >
+                      Zgłoś wniosek o adopcję
+                    </Button>
+                  )
+                ) : hasPendingAdoption ? (
+                  <div className="space-y-3">
+                    <div className="flex flex-wrap gap-2">
                       <Button variant="success" disabled>
                         Zgłoś wniosek o adopcję
                       </Button>
-                      {adoptionBlockMessage && (
-                        <p className="text-muted-foreground text-xs leading-5 md:text-sm md:leading-6">
-                          {adoptionBlockMessage}
-                        </p>
-                      )}
-                    </>
-                  )
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button
+                            type="button"
+                            variant="destructive"
+                            disabled={isCancellingAdoption}
+                          >
+                            {isCancellingAdoption
+                              ? "Anulowanie..."
+                              : "Anuluj wniosek"}
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>
+                              Czy na pewno chcesz anulować wniosek?
+                            </AlertDialogTitle>
+                            <AlertDialogDescription>
+                              Twój oczekujący wniosek o adopcję zostanie
+                              anulowany. W razie potrzeby będziesz mógł złożyć
+                              go ponownie.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel variant="canceled">
+                              Nie, wróć
+                            </AlertDialogCancel>
+                            <AlertDialogAction
+                              variant="destructive"
+                              disabled={isCancellingAdoption}
+                              onClick={() => void onCancelAdoption()}
+                            >
+                              Tak, anuluj wniosek
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+                    </div>
+                    <p className="text-muted-foreground text-xs leading-5 md:text-sm md:leading-6">
+                      Masz już aktywny wniosek adopcyjny dla tego zwierzęcia.
+                      Poczekaj na odpowiedź schroniska lub anuluj wniosek.
+                    </p>
+                  </div>
                 ) : (
-                  <Button variant="success" disabled>
-                    Zgłoś wniosek o adopcję
-                  </Button>
+                  <>
+                    <Button variant="success" disabled>
+                      Zgłoś wniosek o adopcję
+                    </Button>
+                    {adoptionBlockMessage && (
+                      <p className="text-muted-foreground text-xs leading-5 md:text-sm md:leading-6">
+                        {adoptionBlockMessage}{" "}
+                        {canSubmitAdoption &&
+                          !isProfilePending &&
+                          !hasCompleteProfile &&
+                          !hasPendingAdoption &&
+                          !hasAcceptedAdoption &&
+                          !hasRejectedAdoption &&
+                          !hasCancelledAdoption &&
+                          !hasCompletedAdoption &&
+                          !isAlreadyAdopted && (
+                          <Link
+                            to="/konto/formularz"
+                            className="font-semibold text-green-800 underline underline-offset-2 hover:text-green-900"
+                          >
+                            Przejdź do formularza
+                          </Link>
+                        )}
+                      </p>
+                    )}
+                  </>
                 )}
-                {isFound && daysUntilAvailable !== null && (
+                {isFound &&
+                  daysUntilAvailable !== null &&
+                  !hasPendingAdoption &&
+                  !hasAcceptedAdoption &&
+                  !hasRejectedAdoption &&
+                  !hasCancelledAdoption &&
+                  !hasCompletedAdoption &&
+                  !isAlreadyAdopted && (
                   <p className="text-muted-foreground text-xs leading-5 md:text-sm md:leading-6">
                     {daysUntilAvailable > 0
                       ? `Adopcja będzie możliwa za ${formatDaysLeft(daysUntilAvailable)} (tydzień od znalezienia).`
@@ -392,7 +600,7 @@ const AnimalPage = () => {
                 href="tel:+48111222333"
                 className="text-sm leading-6 font-semibold md:text-base md:leading-7"
               >
-                Numer telefonu: +48 111 222 333
+                Numer telefonu schroniska: +48 111 222 333
               </a>
             </div>
           </div>

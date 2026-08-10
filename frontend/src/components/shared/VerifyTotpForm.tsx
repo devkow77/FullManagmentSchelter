@@ -1,4 +1,4 @@
-import { Button, Input } from "@/components/ui";
+import { Button, Input, Label } from "@/components/ui";
 import axios, { AxiosError } from "axios";
 import z from "zod";
 import { useForm } from "react-hook-form";
@@ -50,21 +50,24 @@ const VerifyTotpForm = () => {
       onSubmit={handleSubmit(onSubmit)}
       className="flex w-64 flex-col gap-4"
     >
-      <Input
-        {...register("code")}
-        type="text"
-        placeholder="Wpisz kod TOTP"
-        autoFocus
-        className={errors.code && "bg-red-600/20"}
-      />
+      <div>
+        <Label required>Kod TOTP</Label>
+        <Input
+          {...register("code")}
+          type="text"
+          placeholder="Wpisz kod TOTP"
+          autoFocus
+          className={`mt-2 ${errors.code ? "bg-red-600/20" : ""}`}
+        />
+        {errors.code && (
+          <p className="mt-2 text-xs font-medium text-red-600 lg:text-sm">
+            {errors.code.message}
+          </p>
+        )}
+      </div>
       <Button variant={"success"} type="submit" disabled={isSubmitting}>
         {isSubmitting ? "Weryfikowanie..." : "Weryfikuj"}
       </Button>
-      {errors.code && (
-        <p className="-mt-2 mb-4 text-xs font-medium text-red-600 lg:text-sm">
-          {errors.code.message}
-        </p>
-      )}
     </form>
   );
 };

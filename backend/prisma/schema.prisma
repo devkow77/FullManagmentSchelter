@@ -13,6 +13,13 @@ enum Gender {
   KOBIETA
 }
 
+// Enum typ mieszkania (formularz adopcyjny)
+enum HousingType {
+  DOM
+  MIESZKANIE
+  INNE
+}
+
 // Enum Rola użytkownika
 enum Role {
   UZYTKOWNIK
@@ -36,7 +43,10 @@ model User {
 
   dateOfBirth      DateTime?
   hasChildren      Boolean  @default(false) 
-  hasOtherAnimals  Boolean  @default(false) 
+  hasOtherAnimals  Boolean  @default(false)
+  housingType      HousingType?
+  hasGardenOrBalcony Boolean @default(false)
+  livingConditions String?
   isBanned         Boolean  @default(false)
   isFormFilled     Boolean  @default(false) 
   isEmailVerified  Boolean  @default(false)

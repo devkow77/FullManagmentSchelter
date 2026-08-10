@@ -59,7 +59,7 @@ const ResetPasswordForm = ({ token }: Props) => {
 
   return (
     <form onSubmit={handleSubmit(onSubmit)}>
-      <Label>Nowe hasło</Label>
+      <Label required>Nowe hasło</Label>
       <Input
         type="password"
         {...register("password")}
@@ -73,7 +73,7 @@ const ResetPasswordForm = ({ token }: Props) => {
         </p>
       )}
 
-      <Label>Powtórz nowe hasło</Label>
+      <Label required>Powtórz nowe hasło</Label>
       <Input
         type="password"
         {...register("confirmPassword")}

@@ -59,18 +59,67 @@ export const createAdoption = async (req: AuthRequest, res: Response) => {
       });
     }
 
+    const user = await prisma.user.findUnique({
+      where: { id: req.userId },
+      select: {
+        fullName: true,
+        gender: true,
+        phoneNumber: true,
+        city: true,
+        postalCode: true,
+        street: true,
+        dateOfBirth: true,
+        housingType: true,
+        livingConditions: true,
+      },
+    });
+
+    if (!user) {
+      return res.status(StatusCodes.UNAUTHORIZED).json({
+        msg: 'Brak autoryzacji użytkownika!',
+      });
+    }
+
+    const hasCompleteProfile = Boolean(
+      user.fullName?.trim() &&
+        user.gender &&
+        user.phoneNumber?.trim() &&
+        user.city?.trim() &&
+        user.postalCode?.trim() &&
+        user.street?.trim() &&
+        user.dateOfBirth &&
+        user.housingType &&
+        user.livingConditions?.trim(),
+    );
+
+    if (!hasCompleteProfile) {
+      return res.status(StatusCodes.BAD_REQUEST).json({
+        msg: 'Aby złożyć wniosek o adopcję, uzupełnij najpierw wszystkie dane osobowe w formularzu!',
+      });
+    }
+
     const existingAdoption = await prisma.adoption.findFirst({
       where: {
         userId: req.userId,
         animalId,
         status: {
-          in: [AdoptionStatus.OCZEKUJACA, AdoptionStatus.ZAAKCEPTOWANA],
+          in: [
+            AdoptionStatus.OCZEKUJACA,
+            AdoptionStatus.ZAAKCEPTOWANA,
+            AdoptionStatus.ODRZUCONA,
+          ],
         },
       },
-      select: { id: true },
+      select: { id: true, status: true },
     });
 
     if (existingAdoption) {
+      if (existingAdoption.status === AdoptionStatus.ODRZUCONA) {
+        return res.status(StatusCodes.CONFLICT).json({
+          msg: 'Twój poprzedni wniosek o adopcję tego zwierzęcia został odrzucony. Nie możesz złożyć ponownego wniosku.',
+        });
+      }
+
       return res.status(StatusCodes.CONFLICT).json({
         msg: 'Masz już aktywny wniosek adopcyjny dla tego zwierzęcia!',
       });
@@ -221,7 +270,66 @@ export const getAdoptionById = async (req: Request, res: Response) => {
   }
 };
 
-// 3. Zmiana statusu adopcji
+// 3. Anulowanie własnego oczekującego wniosku przez użytkownika
+export const cancelOwnAdoption = async (req: AuthRequest, res: Response) => {
+  const { id } = req.params;
+  const numericId = Number(id);
+
+  if (isNaN(numericId)) {
+    return res.status(StatusCodes.BAD_REQUEST).json({
+      msg: 'Nieprawidłowe ID adopcji!',
+    });
+  }
+
+  if (!req.userId) {
+    return res.status(StatusCodes.UNAUTHORIZED).json({
+      msg: 'Brak autoryzacji użytkownika!',
+    });
+  }
+
+  try {
+    const adoption = await prisma.adoption.findUnique({
+      where: { id: numericId },
+      select: { id: true, userId: true, status: true },
+    });
+
+    if (!adoption) {
+      return res.status(StatusCodes.NOT_FOUND).json({
+        msg: 'Adopcja o podanym ID nie została znaleziona!',
+      });
+    }
+
+    if (adoption.userId !== req.userId) {
+      return res.status(StatusCodes.FORBIDDEN).json({
+        msg: 'Możesz anulować tylko własny wniosek adopcyjny!',
+      });
+    }
+
+    if (adoption.status !== AdoptionStatus.OCZEKUJACA) {
+      return res.status(StatusCodes.BAD_REQUEST).json({
+        msg: 'Możesz anulować tylko oczekujący wniosek adopcyjny!',
+      });
+    }
+
+    await prisma.adoption.update({
+      where: { id: numericId },
+      data: {
+        status: AdoptionStatus.ANULOWANA,
+        employeeNote: 'Wniosek anulowany przez wnioskodawcę.',
+      },
+    });
+
+    return res.status(StatusCodes.OK).json({
+      msg: 'Wniosek adopcyjny został anulowany!',
+    });
+  } catch {
+    return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
+      msg: 'Wewnętrzny błąd serwera!',
+    });
+  }
+};
+
+// 4. Zmiana statusu adopcji
 export const changeAdoptionStatus = async (req: Request, res: Response) => {
   const { id } = req.params;
 
@@ -252,13 +360,34 @@ export const changeAdoptionStatus = async (req: Request, res: Response) => {
       },
     });
 
-    if (!findAdoption || findAdoption.status !== 'OCZEKUJACA') {
+    if (!findAdoption) {
       return res.status(StatusCodes.BAD_REQUEST).json({
-        msg: 'Adopcja nie istnieje lub nie jest w stanie OCZEKUJACA!',
+        msg: 'Adopcja nie istnieje!',
       });
     }
 
     const { status, employeeNote, message } = parsedBody.data;
+    const currentStatus = findAdoption.status;
+
+    const allowedTransitions: Record<string, AdoptionStatus[]> = {
+      [AdoptionStatus.OCZEKUJACA]: [
+        AdoptionStatus.ZAAKCEPTOWANA,
+        AdoptionStatus.ODRZUCONA,
+        AdoptionStatus.ANULOWANA,
+      ],
+      [AdoptionStatus.ZAAKCEPTOWANA]: [
+        AdoptionStatus.ZAKONCZONA,
+        AdoptionStatus.ANULOWANA,
+      ],
+    };
+
+    const allowedNext = allowedTransitions[currentStatus];
+
+    if (!allowedNext || !allowedNext.includes(status as AdoptionStatus)) {
+      return res.status(StatusCodes.BAD_REQUEST).json({
+        msg: 'Niedozwolona zmiana statusu adopcji!',
+      });
+    }
 
     await prisma.$transaction(async (tx) => {
       await tx.adoption.update({
@@ -266,19 +395,44 @@ export const changeAdoptionStatus = async (req: Request, res: Response) => {
         data: { status, employeeNote, message },
       });
 
-      // Akceptacja wniosku → zwierzę przechodzi w proces adopcji
+      // Akceptacja wniosku → zaproszenie na spotkanie,
+      // zwierzę w trakcie adopcji, pozostałe oczekujące wnioski anulowane
       if (status === AdoptionStatus.ZAAKCEPTOWANA) {
         await tx.animal.update({
           where: { id: findAdoption.animalId },
           data: { status: AnimalStatus.W_TRAKCIE_ADOPCJI },
         });
+
+        await tx.adoption.updateMany({
+          where: {
+            animalId: findAdoption.animalId,
+            status: AdoptionStatus.OCZEKUJACA,
+            id: { not: numericId },
+          },
+          data: {
+            status: AdoptionStatus.ANULOWANA,
+            employeeNote:
+              'Wniosek anulowany automatycznie — dla tego zwierzęcia zaakceptowano inny wniosek adopcyjny.',
+          },
+        });
       }
 
-      // Zakończenie adopcji → zwierzę adoptowane, zwalnia klatkę
+      // Finalizacja po spotkaniu → zwierzę adoptowane, zwalnia klatkę
       if (status === AdoptionStatus.ZAKONCZONA) {
         await tx.animal.update({
           where: { id: findAdoption.animalId },
           data: { status: AnimalStatus.ADOPTOWANY, cageId: null },
+        });
+      }
+
+      // Anulacja po akceptacji (np. nieudane spotkanie) → zwierzę znów szuka domu
+      if (
+        status === AdoptionStatus.ANULOWANA &&
+        currentStatus === AdoptionStatus.ZAAKCEPTOWANA
+      ) {
+        await tx.animal.update({
+          where: { id: findAdoption.animalId },
+          data: { status: AnimalStatus.SZUKA_DOMU },
         });
       }
     });

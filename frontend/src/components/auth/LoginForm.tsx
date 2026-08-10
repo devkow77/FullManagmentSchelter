@@ -90,7 +90,7 @@ const LoginForm = ({ on2FARequired }: LoginFormProps) => {
   return (
     <form onSubmit={handleSubmit(onSubmit)}>
       {/* Email */}
-      <Label>Email</Label>
+      <Label required>Email</Label>
       <Input
         {...register("email")}
         className={`mt-2 mb-4 ${errors.email ? "bg-red-600/20" : ""}`}
@@ -103,7 +103,7 @@ const LoginForm = ({ on2FARequired }: LoginFormProps) => {
       )}
 
       {/* Password */}
-      <Label>Hasło</Label>
+      <Label required>Hasło</Label>
       <Input
         type="password"
         {...register("password")}

@@ -65,7 +65,7 @@ const RegisterForm = () => {
 
   return (
     <form onSubmit={handleSubmit(onSubmit)}>
-      <Label>Imię i nazwisko</Label>
+      <Label required>Imię i nazwisko</Label>
       <Input
         {...register("fullName")}
         className={`mt-2 mb-4 ${errors.fullName ? "bg-red-600/20" : ""}`}
@@ -78,7 +78,7 @@ const RegisterForm = () => {
         </p>
       )}
 
-      <Label>Email</Label>
+      <Label required>Email</Label>
       <Input
         {...register("email")}
         className={`mt-2 mb-4 ${errors.email ? "bg-red-600/20" : ""}`}
@@ -90,7 +90,7 @@ const RegisterForm = () => {
         </p>
       )}
 
-      <Label>Hasło</Label>
+      <Label required>Hasło</Label>
       <Input
         {...register("password")}
         type="password"
@@ -103,7 +103,7 @@ const RegisterForm = () => {
         </p>
       )}
 
-      <Label>Powtórz hasło</Label>
+      <Label required>Powtórz hasło</Label>
       <Input
         {...register("confirmPassword")}
         type="password"

@@ -28,6 +28,26 @@ export const yearsAgoIso = (years: number) => {
   return date.toISOString();
 };
 
+/** Uzupełnia dane osobowe wymagane do złożenia wniosku adopcyjnego. */
+export const fillAdoptionProfile = async (email: string) => {
+  await prisma.user.update({
+    where: { email },
+    data: {
+      phoneNumber: '123456789',
+      city: 'Rzeszów',
+      postalCode: '35-001',
+      street: 'ul. Testowa 1',
+      dateOfBirth: new Date('1995-05-15T00:00:00.000Z'),
+      gender: 'MEZCZYZNA',
+      housingType: 'DOM',
+      hasGardenOrBalcony: true,
+      livingConditions:
+        'Dom z ogrodem, doświadczenie z psami średniej wielkości.',
+      isFormFilled: true,
+    },
+  });
+};
+
 export const buildAnimalPayload = (
   overrides: Record<string, unknown> = {},
 ) => ({

@@ -52,7 +52,7 @@ const AddVetPage = () => {
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
           <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
             <div className="space-y-2">
-              <Label htmlFor="name">Imię i nazwisko</Label>
+              <Label htmlFor="name" required>Imię i nazwisko</Label>
               <Input
                 id="name"
                 {...register("name")}
@@ -67,7 +67,7 @@ const AddVetPage = () => {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="phone">Telefon</Label>
+              <Label htmlFor="phone" required>Telefon</Label>
               <Input
                 id="phone"
                 {...register("phone")}
@@ -82,7 +82,7 @@ const AddVetPage = () => {
             </div>
 
             <div className="space-y-2 lg:col-span-2">
-              <Label htmlFor="clinic">Klinika</Label>
+              <Label htmlFor="clinic" required>Klinika</Label>
               <Input
                 id="clinic"
                 {...register("clinic")}

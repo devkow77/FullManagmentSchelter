@@ -149,7 +149,7 @@ const AddCagePage = () => {
             className="grid max-w-xl grid-cols-1 gap-6 sm:grid-cols-2"
           >
             <div className="space-y-2">
-              <Label>Strefa</Label>
+              <Label required>Strefa</Label>
               <Controller
                 name="zone"
                 control={control}
@@ -172,7 +172,7 @@ const AddCagePage = () => {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="number">Numer klatki</Label>
+              <Label htmlFor="number" required>Numer klatki</Label>
               <Input
                 id="number"
                 type="number"

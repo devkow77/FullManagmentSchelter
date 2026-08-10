@@ -178,7 +178,7 @@ const AddUserPage = () => {
 
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
           <div className="space-y-2">
-            <Label htmlFor="fullName">Imię i nazwisko</Label>
+            <Label htmlFor="fullName" required>Imię i nazwisko</Label>
             <Input
               id="fullName"
               {...register("fullName")}
@@ -193,7 +193,7 @@ const AddUserPage = () => {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
+            <Label htmlFor="email" required>Email</Label>
             <Input
               id="email"
               {...register("email")}
@@ -208,7 +208,7 @@ const AddUserPage = () => {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="password">Hasło</Label>
+            <Label htmlFor="password" required>Hasło</Label>
             <Input
               id="password"
               type="password"
@@ -224,7 +224,7 @@ const AddUserPage = () => {
           </div>
 
           <div className="space-y-2">
-            <Label>Płeć</Label>
+            <Label required>Płeć</Label>
 
             <Controller
               name="gender"
@@ -247,7 +247,7 @@ const AddUserPage = () => {
           </div>
 
           <div className="space-y-2">
-            <Label>Rola</Label>
+            <Label required>Rola</Label>
 
             <Controller
               name="role"

@@ -133,6 +133,12 @@ export const formatUserRole: Record<string, string> = {
   PRACOWNIK: "Pracownik",
   UZYTKOWNIK: "Użytkownik",
 };
+
+export const formatHousingType: Record<string, string> = {
+  DOM: "Dom",
+  MIESZKANIE: "Mieszkanie",
+  INNE: "Inne",
+};
 // ADOPTION
 export const styleAdoptionStatus = (status: string) => {
   let styles: string = "";
@@ -150,6 +156,9 @@ export const styleAdoptionStatus = (status: string) => {
     case "ANULOWANA":
       styles = "bg-slate-100 border border-slate-300 text-slate-800";
       break;
+    case "ZAKONCZONA":
+      styles = "bg-violet-100 border border-violet-300 text-violet-800";
+      break;
     default:
       styles = "bg-slate-100 border border-slate-300 text-slate-800";
   }
@@ -162,7 +171,38 @@ export const formatAdoptionStatus: Record<string, string> = {
   ZAAKCEPTOWANA: "Zaakceptowana",
   ODRZUCONA: "Odrzucona",
   ANULOWANA: "Anulowana",
-  ZAKONCZONA: "Zakończona",
+  ZAKONCZONA: "Adoptowano",
+};
+
+/** Liczba dni od akceptacji wniosku na przyjście do schroniska */
+export const ADOPTION_SHELTER_VISIT_DAYS = 7;
+
+export const getDaysUntilShelterVisit = (fromDate: string | Date) => {
+  const start = new Date(fromDate);
+  start.setHours(0, 0, 0, 0);
+
+  const deadline = new Date(start);
+  deadline.setDate(deadline.getDate() + ADOPTION_SHELTER_VISIT_DAYS);
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  return Math.ceil(
+    (deadline.getTime() - today.getTime()) / (1000 * 60 * 60 * 24),
+  );
+};
+
+export const formatShelterVisitCountdown = (daysLeft: number) => {
+  if (daysLeft < 0) {
+    return "Termin przyjścia do schroniska już minął — skontaktuj się ze schroniskiem.";
+  }
+  if (daysLeft === 0) {
+    return "Dzisiaj jest ostatni dzień na przyjście do schroniska.";
+  }
+  if (daysLeft === 1) {
+    return "Pozostał 1 dzień na przyjście do schroniska.";
+  }
+  return `Pozostało ${daysLeft} dni na przyjście do schroniska.`;
 };
 
 // MEDICAL RECORDS

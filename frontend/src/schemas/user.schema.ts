@@ -10,6 +10,9 @@ export const RoleEnum = z.enum(["UZYTKOWNIK", "ADMINISTRATOR", "PRACOWNIK"], {
 export const GenderEnum = z.enum(["MEZCZYZNA", "KOBIETA"], {
   message: "Płeć nie może być pusta.",
 });
+export const HousingTypeEnum = z.enum(["DOM", "MIESZKANIE", "INNE"], {
+  message: "Wybierz typ mieszkania.",
+});
 
 const emailSchema = z
   .string()
@@ -23,13 +26,21 @@ const startOfToday = () => {
 
 export const getMaxDateOfBirth = () => {
   const date = startOfToday();
+  date.setFullYear(date.getFullYear() - 18);
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, "0");
   const day = String(date.getDate()).padStart(2, "0");
   return `${year}-${month}-${day}`;
 };
 
-const dateOfBirthSchema = z.preprocess(
+const isAtLeast18 = (date: Date) => {
+  const eighteenthBirthday = new Date(date);
+  eighteenthBirthday.setFullYear(eighteenthBirthday.getFullYear() + 18);
+  eighteenthBirthday.setHours(0, 0, 0, 0);
+  return eighteenthBirthday.getTime() <= startOfToday().getTime();
+};
+
+const optionalDateOfBirthSchema = z.preprocess(
   (val) => {
     if (val === "" || val == null) return null;
     return val;
@@ -44,6 +55,20 @@ const dateOfBirthSchema = z.preprocess(
       value.setHours(0, 0, 0, 0);
       return value.getTime() <= startOfToday().getTime();
     }, "Data urodzenia nie może być z przyszłości."),
+);
+
+const requiredDateOfBirthSchema = z.preprocess(
+  (val) => {
+    if (val === "" || val == null) return undefined;
+    return val;
+  },
+  z.coerce
+    .date({ message: "Data urodzenia jest wymagana." })
+    .refine(
+      (date) => date.getTime() <= startOfToday().getTime(),
+      "Data urodzenia nie może być z przyszłości.",
+    )
+    .refine(isAtLeast18, "Musisz mieć ukończone 18 lat."),
 );
 
 export const editUserSchema = z.object({
@@ -83,9 +108,23 @@ export const editUserSchema = z.object({
       .nullable()
       .optional(),
   ),
-  dateOfBirth: dateOfBirthSchema,
+  dateOfBirth: optionalDateOfBirthSchema,
   hasChildren: z.boolean(),
   hasOtherAnimals: z.boolean(),
+  housingType: z.preprocess(
+    emptyStringToNull,
+    HousingTypeEnum.nullable().optional(),
+  ),
+  hasGardenOrBalcony: z.boolean(),
+  livingConditions: z.preprocess(
+    emptyStringToNull,
+    z
+      .string()
+      .trim()
+      .max(500, "Opis warunków może mieć maksymalnie 500 znaków.")
+      .nullable()
+      .optional(),
+  ),
   isBanned: z.boolean(),
   adminNote: z
     .string()
@@ -95,10 +134,38 @@ export const editUserSchema = z.object({
   imageUrl: z.string().nullable().optional(),
 });
 
-export const editOwnProfileSchema = editUserSchema.omit({
-  role: true,
-  isBanned: true,
-  adminNote: true,
+export const editOwnProfileSchema = z.object({
+  fullName: z
+    .string()
+    .min(3, "Imię i nazwisko musi mieć minimum 3 znaki.")
+    .max(50, "Imię i nazwisko nie może mieć więcej niż 50 znaków."),
+  gender: GenderEnum,
+  phoneNumber: phoneSchema,
+  city: z
+    .string()
+    .trim()
+    .min(3, "Miasto musi mieć minimum 3 znaki.")
+    .max(50, "Miasto może mieć maksymalnie 50 znaków."),
+  postalCode: z
+    .string()
+    .trim()
+    .regex(/^\d{2}-\d{3}$/, "Kod pocztowy musi mieć format XX-XXX."),
+  street: z
+    .string()
+    .trim()
+    .min(3, "Adres musi mieć minimum 3 znaki.")
+    .max(100, "Adres może mieć maksymalnie 100 znaków."),
+  dateOfBirth: requiredDateOfBirthSchema,
+  hasChildren: z.boolean(),
+  hasOtherAnimals: z.boolean(),
+  housingType: HousingTypeEnum,
+  hasGardenOrBalcony: z.boolean(),
+  livingConditions: z
+    .string()
+    .trim()
+    .min(10, "Opisz warunki mieszkaniowe (min. 10 znaków).")
+    .max(500, "Opis warunków może mieć maksymalnie 500 znaków."),
+  imageUrl: z.string().nullable().optional(),
 });
 
 export const addUserSchema = z.object({

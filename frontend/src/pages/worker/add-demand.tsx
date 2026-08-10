@@ -109,7 +109,7 @@ const AddDemandPage = () => {
             </div>
 
             <div className="space-y-2">
-              <Label>Zwierzę</Label>
+              <Label required>Zwierzę</Label>
               <Controller
                 name="animalId"
                 control={control}
@@ -141,7 +141,7 @@ const AddDemandPage = () => {
             </div>
 
             <div className="space-y-2">
-              <Label>Kategoria</Label>
+              <Label required>Kategoria</Label>
               <Controller
                 name="category"
                 control={control}
@@ -163,7 +163,7 @@ const AddDemandPage = () => {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="name">Nazwa (rzecz)</Label>
+              <Label htmlFor="name" required>Nazwa (rzecz)</Label>
               <Input
                 id="name"
                 {...register("name", {
@@ -180,7 +180,7 @@ const AddDemandPage = () => {
             </div>
 
             <div className="space-y-2 sm:col-span-2">
-              <Label htmlFor="description">Opis z powodem</Label>
+              <Label htmlFor="description" required>Opis z powodem</Label>
               <Textarea
                 id="description"
                 {...register("description", {
