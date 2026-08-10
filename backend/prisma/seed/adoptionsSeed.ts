@@ -40,6 +40,7 @@ const adoptionsSeed = async () => {
       message: 'Szukam spokojnego kota do mieszkania.',
       employeeNote: 'Spotkanie wstępne pozytywne — czeka na odbiór.',
       processedById: worker.id,
+      acceptedAt: new Date(),
     },
     {
       userId: primaryUser.id,

@@ -272,8 +272,13 @@ const AnimalPage = () => {
     existingAdoptionForAnimal?.status === "ZAKONCZONA";
   const isAlreadyAdopted = animal?.status === "ADOPTOWANY";
   const acceptedShelterVisitDays =
-    hasAcceptedAdoption && existingAdoptionForAnimal?.updatedAt
-      ? getDaysUntilShelterVisit(existingAdoptionForAnimal.updatedAt)
+    hasAcceptedAdoption &&
+    (existingAdoptionForAnimal?.acceptedAt ||
+      existingAdoptionForAnimal?.updatedAt)
+      ? getDaysUntilShelterVisit(
+          existingAdoptionForAnimal.acceptedAt ??
+            existingAdoptionForAnimal.updatedAt,
+        )
       : null;
   const canOpenAdoptionForm =
     Boolean(canAdopt) &&

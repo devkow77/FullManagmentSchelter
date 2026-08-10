@@ -75,7 +75,7 @@ describe('Wygasanie zaakceptowanych wniosków adopcyjnych', () => {
 
     await prisma.adoption.update({
       where: { id: adoptionId },
-      data: { updatedAt: expiredDate },
+      data: { acceptedAt: expiredDate },
     });
 
     const count = await expireAcceptedAdoptions();

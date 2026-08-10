@@ -431,7 +431,14 @@ export const changeAdoptionStatus = async (req: Request, res: Response) => {
     await prisma.$transaction(async (tx) => {
       await tx.adoption.update({
         where: { id: numericId },
-        data: { status, employeeNote, message },
+        data: {
+          status,
+          employeeNote,
+          message,
+          ...(status === AdoptionStatus.ZAAKCEPTOWANA
+            ? { acceptedAt: new Date() }
+            : {}),
+        },
       });
 
       // Akceptacja wniosku → zaproszenie na spotkanie,

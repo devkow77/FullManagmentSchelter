@@ -174,7 +174,7 @@ export const formatAdoptionStatus: Record<string, string> = {
   ZAKONCZONA: "Adoptowano",
 };
 
-/** Liczba dni od akceptacji wniosku na przyjście do schroniska */
+/** Liczba dni od akceptacji wniosku (acceptedAt) na przyjście do schroniska */
 export const ADOPTION_SHELTER_VISIT_DAYS = 7;
 
 export const getDaysUntilShelterVisit = (fromDate: string | Date) => {

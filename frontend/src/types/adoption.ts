@@ -7,6 +7,7 @@ export type Adoption = {
   employeeNote: string;
   createdAt: Date | string;
   updatedAt: Date | string;
+  acceptedAt: Date | string | null;
   user: {
     fullName: string;
   };

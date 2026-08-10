@@ -25,7 +25,7 @@ app.use(
       (process.env.NODE_ENV === 'production'
         ? 'https://shelter-with-ai-chatbox.vercel.app'
         : 'http://localhost:5174'),
-    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
     credentials: true,
   }),
 );

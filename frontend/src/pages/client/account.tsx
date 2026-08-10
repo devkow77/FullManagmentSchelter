@@ -386,7 +386,9 @@ const AdoptionCard = ({
   const canCancel = adoption.status === "OCZEKUJACA";
   const shelterVisitDays =
     adoption.status === "ZAAKCEPTOWANA"
-      ? getDaysUntilShelterVisit(adoption.updatedAt)
+      ? getDaysUntilShelterVisit(
+          adoption.acceptedAt ?? adoption.updatedAt,
+        )
       : null;
   const [isCancelling, setIsCancelling] = useState(false);
 
