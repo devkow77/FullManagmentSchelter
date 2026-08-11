@@ -34,31 +34,42 @@ type PageResponse = {
   hasMore: boolean;
 };
 
+type FavouritesPageResult = PageResponse & { missingIds: number[] };
+
 const getFavouritesPage = async ({
   pageParam,
   favoriteIds,
 }: {
   pageParam: number;
   favoriteIds: number[];
-}): Promise<PageResponse> => {
+}): Promise<FavouritesPageResult> => {
   const start = (pageParam - 1) * PAGE_SIZE;
   const pageIds = favoriteIds.slice(start, start + PAGE_SIZE);
 
   const results = await Promise.all(
-    pageIds.map((id) =>
-      axios
-        .get<FavouritesAnimalsResponse>(`/api/animals/${id}`)
-        .then((res) => res.data)
-        .catch(() => null),
-    ),
+    pageIds.map(async (id) => {
+      try {
+        const res = await axios.get<FavouritesAnimalsResponse>(
+          `/api/animals/${id}`,
+        );
+        return { id, animal: res.data, missing: false };
+      } catch (err) {
+        const missing =
+          axios.isAxiosError(err) && err.response?.status === 404;
+        return { id, animal: null, missing };
+      }
+    }),
   );
 
-  const data = results.filter(
-    (animal): animal is FavouritesAnimalsResponse => animal !== null,
-  );
+  const data = results
+    .map((result) => result.animal)
+    .filter(
+      (animal): animal is FavouritesAnimalsResponse => animal !== null,
+    );
 
   return {
     data,
+    missingIds: results.filter((result) => result.missing).map((r) => r.id),
     total: favoriteIds.length,
     page: pageParam,
     pageSize: PAGE_SIZE,
@@ -68,6 +79,7 @@ const getFavouritesPage = async ({
 
 const FavouritesAnimalsPage = () => {
   const favoriteIds = useFavoritesStore((state) => state.favoriteIds);
+  const removeFavorites = useFavoritesStore((state) => state.removeFavorites);
 
   const {
     data,
@@ -87,6 +99,12 @@ const FavouritesAnimalsPage = () => {
   });
 
   const loadMoreRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    const missingIds = data?.pages.flatMap((page) => page.missingIds) ?? [];
+    if (missingIds.length === 0) return;
+    removeFavorites(missingIds);
+  }, [data, removeFavorites]);
 
   useEffect(() => {
     const target = loadMoreRef.current;

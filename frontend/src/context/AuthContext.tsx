@@ -22,15 +22,15 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // sprawdzamy zalogowanego usera przy starcie
+  // sprawdzamy zalogowanego usera przy starcie (gość = 200 + null, bez 401)
   useEffect(() => {
     const handleCheckAuth = async () => {
       try {
-        const res = await axios.get("/api/auth/info", {
+        const res = await axios.get<User | null>("/api/auth/info", {
           withCredentials: true,
         });
-        setUser(res.data);
-      } catch (err) {
+        setUser(res.data ?? null);
+      } catch {
         setUser(null);
       } finally {
         setLoading(false);

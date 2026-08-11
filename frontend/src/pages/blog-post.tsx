@@ -16,7 +16,11 @@ interface Post {
   createdAt: string;
 }
 
-const cmsUrl = import.meta.env.VITE_STRIPE_CMS_ADMIN_URL;
+const cmsUrl = import.meta.env.VITE_STRIPE_CMS_ADMIN_URL as string | undefined;
+const hasRemoteCms =
+  Boolean(cmsUrl) &&
+  /^https?:\/\//i.test(cmsUrl!) &&
+  !/localhost|127\.0\.0\.1/i.test(cmsUrl!);
 
 const BlogPostPage = () => {
   const [post, setPost] = useState<Post>();
@@ -27,6 +31,11 @@ const BlogPostPage = () => {
 
   useEffect(() => {
     const fetchPost = async () => {
+      if (!hasRemoteCms) {
+        setLoading(false);
+        return;
+      }
+
       try {
         const res = await axios.get(
           `${cmsUrl}/api/posts?populate=*`,

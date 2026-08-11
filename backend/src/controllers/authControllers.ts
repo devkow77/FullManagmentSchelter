@@ -378,39 +378,45 @@ export const loginToAccount = async (req: Request, res: Response) => {
   }
 };
 
-// 3. Pobieranie informacji o użytkowniku
-export const authInfo = async (req: AuthRequest, res: Response) => {
-  const userId = req.userId;
+// 3. Pobieranie informacji o użytkowniku (200 + null dla gościa — bez 401 w konsoli)
+export const authInfo = async (req: Request, res: Response) => {
+  const token = req.cookies.token;
 
-  if (!userId) {
-    return res
-      .status(StatusCodes.UNAUTHORIZED)
-      .json({ msg: 'Błąd autoryzacji' });
+  if (!token) {
+    return res.status(StatusCodes.OK).json(null);
   }
 
   try {
+    const payload = jwt.verify(token, process.env.JWT_SECRET!) as {
+      userId: number;
+    };
+
     const user = await prisma.user.findUnique({
-      where: { id: userId },
+      where: { id: payload.userId },
       select: {
         id: true,
         fullName: true,
         email: true,
         role: true,
         twoFactorEnabled: true,
+        isBanned: true,
       },
     });
 
     if (!user) {
-      return res
-        .status(StatusCodes.NOT_FOUND)
-        .json({ msg: 'Użytkownik nie istnieje' });
+      return res.status(StatusCodes.OK).json(null);
     }
 
-    return res.status(StatusCodes.OK).json(user);
-  } catch (err) {
-    return res
-      .status(StatusCodes.INTERNAL_SERVER_ERROR)
-      .json({ msg: 'Błąd serwera' });
+    if (user.isBanned) {
+      return res.status(StatusCodes.FORBIDDEN).json({
+        msg: 'Twoje konto zostało zablokowane!',
+      });
+    }
+
+    const { isBanned: _isBanned, ...safeUser } = user;
+    return res.status(StatusCodes.OK).json(safeUser);
+  } catch {
+    return res.status(StatusCodes.OK).json(null);
   }
 };
 

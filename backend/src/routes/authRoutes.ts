@@ -23,7 +23,7 @@ router.post('/resend-verification', resendVerificationEmail);
 router.post('/forgot-password', forgotPassword);
 router.post('/reset-password', resetPassword);
 router.post('/login', loginToAccount);
-router.get('/info', authenticateUser, authInfo);
+router.get('/info', authInfo);
 router.post('/logout', authenticateUser, logout);
 router.get('/2fa/setup', authenticateUser, generateTwoFactorQR);
 router.post('/2fa/verify', authenticateUser, verifyTwoFactorCode);

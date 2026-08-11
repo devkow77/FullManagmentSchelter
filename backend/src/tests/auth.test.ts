@@ -369,12 +369,12 @@ describe('GET /api/auth/info', () => {
     });
   });
 
-  it('Zwraca UNAUTHORIZED bez tokenu', async () => {
-    // Sprawdza 401 dla /info bez cookie token.
+  it('Zwraca null bez tokenu (gość)', async () => {
+    // Sprawdza 200 + null dla /info bez cookie token (bez 401 w konsoli frontu).
     const res = await request(app).get('/api/auth/info');
 
-    expect(res.status).toBe(StatusCodes.UNAUTHORIZED);
-    expect(res.body.msg).toBe('Brak tokenu, autoryzacja odmówiona!');
+    expect(res.status).toBe(StatusCodes.OK);
+    expect(res.body).toBeNull();
   });
 });
 
@@ -402,11 +402,11 @@ describe('POST /api/auth/logout', () => {
     expect(res.status).toBe(StatusCodes.NO_CONTENT);
   });
 
-  it('Po wylogowaniu /info powinno zwrócić UNAUTHORIZED', async () => {
+  it('Po wylogowaniu /info powinno zwrócić null', async () => {
     // Sprawdza wylogowanie i unieważnienie sesji.
     const res = await agent.get('/api/auth/info');
 
-    expect(res.status).toBe(StatusCodes.UNAUTHORIZED);
-    expect(res.body.msg).toBe('Brak tokenu, autoryzacja odmówiona!');
+    expect(res.status).toBe(StatusCodes.OK);
+    expect(res.body).toBeNull();
   });
 });

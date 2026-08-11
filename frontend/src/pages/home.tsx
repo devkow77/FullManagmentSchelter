@@ -203,29 +203,40 @@ const HomePage = () => {
     document.title = PAGE_TITLE;
   }, []);
 
-  // Funkcja do pobierania najdłużej czekających zwierząt
-  const getLongestWaintingAnimals = async () => {
-    const res = await axios.get<LongestWaintingAnimal[]>(
-      "/api/animals?limit=8&sort=foundAt:asc&status=SZUKA_DOMU",
-    );
-    return res.data;
-  };
+  const cmsUrl = import.meta.env.VITE_STRIPE_CMS_ADMIN_URL as string | undefined;
+  const hasRemoteCms =
+    Boolean(cmsUrl) &&
+    /^https?:\/\//i.test(cmsUrl!) &&
+    !/localhost|127\.0\.0\.1/i.test(cmsUrl!);
 
-  // Funkcja do pobierania postów z bloga
-  const getBlogPosts = async () => {
-    const res = await axios.get<{ data: BlogPost[] }>(
-      `${import.meta.env.VITE_STRIPE_CMS_ADMIN_URL}/api/posts?populate=*&pagination[limit]=6&sort=createdAt:desc`,
-    );
-    return res.data.data ?? [];
-  };
-
-  const { data, isLoading, error } = useQuery({
-    queryKey: ["longestWaintingAnimals", "blogPosts"],
-    queryFn: () => Promise.all([getLongestWaintingAnimals(), getBlogPosts()]),
+  const {
+    data: longestWaintingAnimals = [],
+    isLoading: isAnimalsLoading,
+    error: animalsError,
+  } = useQuery({
+    queryKey: ["longestWaintingAnimals"],
+    queryFn: async () => {
+      const res = await axios.get<LongestWaintingAnimal[]>(
+        "/api/animals?limit=8&sort=foundAt:asc&status=SZUKA_DOMU",
+      );
+      return res.data;
+    },
   });
 
-  const longestWaintingAnimals = data?.[0] ?? [];
-  const blogPosts = data?.[1] ?? [];
+  const {
+    data: blogPosts = [],
+    isLoading: isBlogLoading,
+    error: blogError,
+  } = useQuery({
+    queryKey: ["blogPosts", cmsUrl],
+    enabled: hasRemoteCms,
+    queryFn: async () => {
+      const res = await axios.get<{ data: BlogPost[] }>(
+        `${cmsUrl}/api/posts?populate=*&pagination[limit]=6&sort=createdAt:desc`,
+      );
+      return res.data.data ?? [];
+    },
+  });
 
   return (
     <main>
@@ -318,13 +329,15 @@ const HomePage = () => {
             </p>
           </div>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 lg:gap-6">
-            {isLoading && <LoadingLongestWaitingAnimals />}
-            {error && <ErrorLongestWaitingAnimals />}
-            {!isLoading && !error && longestWaintingAnimals.length === 0 && (
-              <EmptyLongestWaitingAnimals />
-            )}
-            {!isLoading &&
-              !error &&
+            {isAnimalsLoading && <LoadingLongestWaitingAnimals />}
+            {animalsError && <ErrorLongestWaitingAnimals />}
+            {!isAnimalsLoading &&
+              !animalsError &&
+              longestWaintingAnimals.length === 0 && (
+                <EmptyLongestWaitingAnimals />
+              )}
+            {!isAnimalsLoading &&
+              !animalsError &&
               longestWaintingAnimals.map((animal) => (
                 <AnimalCard key={animal.id} animal={animal} />
               ))}
@@ -402,9 +415,9 @@ const HomePage = () => {
             </h2>
           </div>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 lg:gap-6">
-            {isLoading && <LoadingBlogPosts />}
-            {error && <ErrorBlogPosts />}
-            {!isLoading && !error && blogPosts.length === 0 && (
+            {isBlogLoading && <LoadingBlogPosts />}
+            {blogError && <ErrorBlogPosts />}
+            {!isBlogLoading && !blogError && blogPosts.length === 0 && (
               <EmptyBlogPosts />
             )}
             {blogPosts.map((post: BlogPost) => (
