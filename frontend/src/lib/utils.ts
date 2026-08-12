@@ -95,6 +95,12 @@ export const formatAnimalSize: Record<string, string> = {
   INNE: "Inne",
 };
 
+export const formatAnimalEnergyLevel: Record<string, string> = {
+  NISKI: "Niski",
+  SREDNI: "Średni",
+  WYSOKI: "Wysoki",
+};
+
 export const formatCageLabel = (cage: {
   zone: string;
   number: number;

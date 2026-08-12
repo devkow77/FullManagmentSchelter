@@ -214,17 +214,10 @@ const ContactPage = () => {
           ) : (
             <p className="max-w-4xl text-sm leading-5 md:text-base md:leading-6">
               Jesteś zalogowany jako{" "}
-              {user.role === "ADMINISTRATOR" ? "administrator" : "pracownik"}.
-              Aby zarządzać wiadomościami, przejdź do panelu{" "}
-              <Link
-                to={import.meta.env.VITE_TEAM_CHAT_URL as string}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="font-semibold"
-              >
-                wiadomości
-              </Link>
-              .
+              <span className="font-semibold">
+                {user.role === "ADMINISTRATOR" ? "administrator" : "pracownik"}
+              </span>
+              , nie możesz wysyłać wiadomości w tym formularzu.
             </p>
           )}
         </article>

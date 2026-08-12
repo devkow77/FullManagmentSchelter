@@ -58,6 +58,19 @@ const truncateDescription = (description: string, max = 220) => {
   return `${trimmed.slice(0, max - 1)}…`;
 };
 
+const getAgeYears = (dateOfBirth: Date) => {
+  const today = new Date();
+  let age = today.getFullYear() - dateOfBirth.getFullYear();
+  const monthDiff = today.getMonth() - dateOfBirth.getMonth();
+  if (
+    monthDiff < 0 ||
+    (monthDiff === 0 && today.getDate() < dateOfBirth.getDate())
+  ) {
+    age -= 1;
+  }
+  return Math.max(0, age);
+};
+
 export const handleChatMessage = async (req: Request, res: Response) => {
   const parsedBody = chatMessageSchema.safeParse(req.body);
 
@@ -90,6 +103,10 @@ export const handleChatMessage = async (req: Request, res: Response) => {
       type: animal.type,
       gender: animal.gender,
       size: animal.size,
+      breed: animal.breed,
+      energyLevel: animal.energyLevel,
+      ageYears: getAgeYears(animal.dateOfBirth),
+      healthStatus: animal.healthStatus,
       traits: animal.traits,
       description: truncateDescription(animal.description),
       isSterilized: animal.isSterilized,
@@ -108,6 +125,7 @@ export const handleChatMessage = async (req: Request, res: Response) => {
       parsedBody.data.message,
       catalog,
       SHELTER_FAQ,
+      parsedBody.data.history,
     );
 
     if (reply.category === 'OTHER') {
@@ -168,7 +186,12 @@ export const handleChatMessage = async (req: Request, res: Response) => {
 
     console.error('handleChatMessage error:', err);
     return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
-      msg: 'Nie udało się uzyskać odpowiedzi asystenta. Spróbuj ponownie.',
+      msg:
+        message === 'GEMINI_REQUEST_FAILED'
+          ? 'Usługa AI jest chwilowo niedostępna. Sprawdź klucz/model Gemini na serwerze albo spróbuj za chwilę.'
+          : message === 'EMPTY_GEMINI_RESPONSE'
+            ? 'Asystent nie zwrócił odpowiedzi. Spróbuj ponownie.'
+            : 'Nie udało się uzyskać odpowiedzi asystenta. Spróbuj ponownie.',
     });
   }
 };

@@ -109,6 +109,13 @@ enum AnimalHealthStatus {
   POTRZEBUJE_OPERACJI
 }
 
+// Enum poziom energii zwierzęcia (dopasowanie do stylu życia)
+enum AnimalEnergyLevel {
+  NISKI
+  SREDNI
+  WYSOKI
+}
+
 // Enum kategoria potrzeby zwierzęcia
 enum AnimalNeedCategory {
   JEDZENIE   
@@ -125,6 +132,8 @@ model Animal {
   type             AnimalType    @default(INNE) 
   gender           AnimalGender  @default(SAMIEC) 
   size             AnimalSize    @default(SREDNI) 
+  breed            String        @default("Mieszaniec")
+  energyLevel      AnimalEnergyLevel @default(SREDNI)
   traits           String      
   dateOfBirth      DateTime      
   description      String        

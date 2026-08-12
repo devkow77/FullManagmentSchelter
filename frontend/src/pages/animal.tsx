@@ -23,6 +23,7 @@ import "swiper/css/pagination";
 import { Check, ImageOff, X } from "lucide-react";
 import {
   calculateAge,
+  formatAnimalEnergyLevel,
   formatAnimalHealthStatus,
   formatAnimalSize,
   formatAnimalType,
@@ -64,6 +65,8 @@ interface Animal {
   dateOfBirth: string | Date;
   type: string;
   size: string;
+  breed: string;
+  energyLevel: string;
   traits: string;
   healthStatus: string;
   status: AnimalStatus;
@@ -428,6 +431,13 @@ const AnimalPage = () => {
                   {animal?.dateOfBirth ? calculateAge(animal.dateOfBirth) : "—"}
                 </li>
                 <li>Rozmiar: {formatAnimalSize[animal?.size as string]}</li>
+                <li>Rasa: {animal?.breed || "—"}</li>
+                <li>
+                  Poziom energii:{" "}
+                  {formatAnimalEnergyLevel[animal?.energyLevel as string] ??
+                    animal?.energyLevel ??
+                    "—"}
+                </li>
                 <li>Cechy: {animal?.traits}</li>
                 <li>
                   Stan zdrowia:{" "}

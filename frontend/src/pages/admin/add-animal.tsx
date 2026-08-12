@@ -17,6 +17,7 @@ import {
   animalSizeValues,
   animalStatusValues,
   animalHealthStatusValues,
+  animalEnergyLevelOptions,
 } from "@/constants/animal.constants";
 import type { Cage } from "@/types/animal";
 import { useQuery } from "@tanstack/react-query";
@@ -50,6 +51,8 @@ const AddAnimalPage = () => {
       type: "INNE",
       gender: "SAMIEC",
       size: "SREDNI",
+      breed: "",
+      energyLevel: "SREDNI",
       traits: "",
       dateOfBirth: new Date().toISOString().split("T")[0],
       description: "",
@@ -450,6 +453,44 @@ const AddAnimalPage = () => {
                 {errors.size && (
                   <p className="text-xs font-medium text-red-600 lg:text-sm">
                     {errors.size.message}
+                  </p>
+                )}
+              </div>
+
+              {/* RASA */}
+              <div className="space-y-2">
+                <Label htmlFor="breed" required>Rasa</Label>
+                <Input
+                  id="breed"
+                  {...register("breed")}
+                  placeholder="np. Mieszaniec, Dachowiec..."
+                  className={errors.breed && "bg-red-600/20"}
+                />
+                {errors.breed && (
+                  <p className="text-xs font-medium text-red-600 lg:text-sm">
+                    {errors.breed.message}
+                  </p>
+                )}
+              </div>
+
+              {/* POZIOM ENERGII */}
+              <div className="space-y-2">
+                <Label required>Poziom energii</Label>
+                <Controller
+                  name="energyLevel"
+                  control={control}
+                  render={({ field }) => (
+                    <SingleValueSelector
+                      items={animalEnergyLevelOptions}
+                      placeholder="Wybierz poziom energii"
+                      value={field.value}
+                      onValueChange={field.onChange}
+                    />
+                  )}
+                />
+                {errors.energyLevel && (
+                  <p className="text-xs font-medium text-red-600 lg:text-sm">
+                    {errors.energyLevel.message}
                   </p>
                 )}
               </div>

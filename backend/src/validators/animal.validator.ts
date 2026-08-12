@@ -21,6 +21,9 @@ const HealthStatusEnum = z.enum(
     message: 'Stan zdrowia jest wymagany.',
   },
 );
+const EnergyLevelEnum = z.enum(['NISKI', 'SREDNI', 'WYSOKI'], {
+  message: 'Poziom energii jest wymagany.',
+});
 
 // SCHEMAT DLA ZWIERZAT
 export const animalSchema = z.object({
@@ -31,6 +34,11 @@ export const animalSchema = z.object({
   type: TypeEnum,
   gender: GenderEnum,
   size: SizeEnum,
+  breed: z
+    .string()
+    .min(2, 'Rasa musi posiadać minimum 2 znaki.')
+    .max(40, 'Rasa może maksymalnie posiadać 40 znaków.'),
+  energyLevel: EnergyLevelEnum,
   traits: z.string().min(3, 'Cechy muszą posiadać minimum 3 znaki.'),
   dateOfBirth: z.preprocess(
     (val) => {

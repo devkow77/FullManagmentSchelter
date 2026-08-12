@@ -5,13 +5,18 @@ import {
   ImageOff,
   Loader2,
   MessageCircle,
-  ChevronDown,
+  RotateCcw,
   Send,
   X,
 } from "lucide-react";
 import { Button, Input } from "@/components/ui";
 import { shortFaqData } from "@/components/shared/ShortFaqList";
-import { calculateAge, cn } from "@/lib/utils";
+import { useAuth } from "@/context/AuthContext";
+import {
+  calculateAge,
+  cn,
+  formatAnimalEnergyLevel,
+} from "@/lib/utils";
 
 type ChatAnimal = {
   id: number;
@@ -19,6 +24,8 @@ type ChatAnimal = {
   imageUrl: string[];
   dateOfBirth: string | Date;
   description: string;
+  breed?: string;
+  energyLevel?: string;
   reason?: string;
 };
 
@@ -27,6 +34,7 @@ type ChatMessage = {
   role: "user" | "assistant";
   content: string;
   animals?: ChatAnimal[];
+  isError?: boolean;
 };
 
 type ChatResponse = {
@@ -35,16 +43,74 @@ type ChatResponse = {
   animals: ChatAnimal[];
 };
 
-const FAQ_PROMPTS = shortFaqData.slice(0, 5);
+/** Krótka etykieta na chipie + pełna treść wysyłana do API */
+const SUGGESTIONS = [
+  {
+    label: "Proces adopcji",
+    message: shortFaqData[0].question,
+  },
+  {
+    label: "Szczepienia i zdrowie",
+    message: shortFaqData[1].question,
+  },
+  {
+    label: "Adopcja w bloku",
+    message: shortFaqData[2].question,
+  },
+  {
+    label: "Czy adopcja jest płatna?",
+    message: shortFaqData[3].question,
+  },
+  {
+    label: "Poznać zwierzę wcześniej",
+    message: shortFaqData[4].question,
+  },
+  {
+    label: "Dobierz mi zwierzę",
+    message:
+      "Szukam zwierzęcia do adopcji — pomóż dobrać pupila do mojego stylu życia.",
+  },
+] as const;
+
+const MAX_MESSAGE_LENGTH = 500;
+const HISTORY_LIMIT = 10;
+const STAFF_ROLES = new Set(["ADMINISTRATOR", "PRACOWNIK"]);
+
+const WELCOME_MESSAGE: ChatMessage = {
+  id: "welcome",
+  role: "assistant",
+  content:
+    "Cześć! Mogę odpowiedzieć na pytania o schronisko albo dobrać zwierzę do adopcji. Napisz, w czym pomóc.",
+};
 
 const createId = () =>
   `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
 
+const toHistoryPayload = (messages: ChatMessage[]) =>
+  messages
+    .filter((message) => message.id !== "welcome" && !message.isError)
+    .slice(-HISTORY_LIMIT)
+    .map(({ role, content }) => ({
+      role,
+      content: content.slice(0, MAX_MESSAGE_LENGTH),
+    }));
+
+const getErrorMessage = (err: unknown) => {
+  if (axios.isAxiosError(err) && err.response?.data?.msg) {
+    return String(err.response.data.msg);
+  }
+  return "Nie udało się uzyskać odpowiedzi. Spróbuj ponownie.";
+};
+
 const ChatAnimalResult = ({ animal }: { animal: ChatAnimal }) => {
+  const energyLabel = animal.energyLevel
+    ? (formatAnimalEnergyLevel[animal.energyLevel] ?? animal.energyLevel)
+    : null;
+
   return (
     <Link
       to={`/zwierzeta/${animal.id}`}
-      className="flex gap-3 rounded-xl border border-gray-200 bg-white p-2 transition-colors hover:border-green-600/40 hover:bg-green-50/50"
+      className="flex gap-3 rounded-xl border border-gray-200 bg-white p-2 transition-colors hover:border-green-800/40 hover:bg-green-50/50"
     >
       <div className="relative size-16 shrink-0 overflow-hidden rounded-lg bg-gray-100">
         {animal.imageUrl?.[0] ? (
@@ -60,138 +126,204 @@ const ChatAnimalResult = ({ animal }: { animal: ChatAnimal }) => {
         )}
       </div>
       <div className="min-w-0 flex-1 space-y-0.5">
-        <p className="truncate text-sm font-semibold text-green-600">
+        <p className="truncate text-sm font-semibold text-green-900">
           {animal.name} {calculateAge(animal.dateOfBirth)}
         </p>
-        {animal.reason ? (
-          <p className="line-clamp-2 text-xs leading-4 text-gray-600">
-            {animal.reason}
-          </p>
-        ) : (
-          <p className="line-clamp-2 text-xs leading-4 text-gray-600">
-            {animal.description}
+        {(animal.breed || energyLabel) && (
+          <p className="truncate text-[11px] text-green-800/80">
+            {[animal.breed, energyLabel ? `energia: ${energyLabel}` : null]
+              .filter(Boolean)
+              .join(" · ")}
           </p>
         )}
+        <p className="line-clamp-2 text-xs leading-4 text-gray-600">
+          {animal.reason || animal.description}
+        </p>
       </div>
     </Link>
   );
 };
 
 const AdoptionChatBox = () => {
+  const { user } = useAuth();
   const [open, setOpen] = useState(false);
-  const [faqOpen, setFaqOpen] = useState(true);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
-  const [messages, setMessages] = useState<ChatMessage[]>([
-    {
-      id: "welcome",
-      role: "assistant",
-      content:
-        "Cześć! Mogę odpowiedzieć na pytania o schronisko albo dobrać zwierzę do adopcji. Napisz, w czym pomóc.",
-    },
-  ]);
+  const [messages, setMessages] = useState<ChatMessage[]>([WELCOME_MESSAGE]);
+  const rootRef = useRef<HTMLDivElement>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  const trimmedInput = input.trim();
+  const canSend = !loading && trimmedInput.length > 0;
+  const hasConversation = messages.some((message) => message.role === "user");
 
   useEffect(() => {
     if (!open) return;
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, open, loading]);
 
-  const appendMessages = (...next: ChatMessage[]) => {
-    setMessages((prev) => [...prev, ...next]);
-  };
+  useEffect(() => {
+    if (!open) return;
 
-  const handleFaqClick = (question: string) => {
-    if (loading) return;
-    void sendMessage(question);
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setOpen(false);
+    };
+
+    const onPointerDown = (event: MouseEvent) => {
+      if (!rootRef.current?.contains(event.target as Node)) {
+        setOpen(false);
+      }
+    };
+
+    document.addEventListener("keydown", onKeyDown);
+    document.addEventListener("mousedown", onPointerDown);
+    return () => {
+      document.removeEventListener("keydown", onKeyDown);
+      document.removeEventListener("mousedown", onPointerDown);
+    };
+  }, [open]);
+
+  useEffect(() => {
+    if (open) inputRef.current?.focus();
+  }, [open]);
+
+  if (user && STAFF_ROLES.has(user.role)) return null;
+
+  const requestAssistant = async (
+    text: string,
+    priorMessages: ChatMessage[],
+  ) => {
+    const res = await axios.post<ChatResponse>("/api/chat/message", {
+      message: text,
+      history: toHistoryPayload(priorMessages),
+    });
+    return res.data;
   };
 
   const sendMessage = async (rawText: string) => {
-    const text = rawText.trim();
-    if (text.length < 1 || loading) return;
+    const text = rawText.trim().slice(0, MAX_MESSAGE_LENGTH);
+    if (!text || loading) return;
 
     setInput("");
-    appendMessages({ id: createId(), role: "user", content: text });
     setLoading(true);
 
+    const prior = messages.filter((message) => !message.isError);
+    const userMessage: ChatMessage = {
+      id: createId(),
+      role: "user",
+      content: text,
+    };
+    setMessages([...prior, userMessage]);
+
     try {
-      const res = await axios.post<ChatResponse>("/api/chat/message", {
-        message: text,
-      });
-
-      appendMessages({
-        id: createId(),
-        role: "assistant",
-        content: res.data.message,
-        animals: res.data.animals ?? [],
-      });
+      const data = await requestAssistant(text, prior);
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: createId(),
+          role: "assistant",
+          content: data.message,
+          animals: data.animals ?? [],
+        },
+      ]);
     } catch (err) {
-      const msg =
-        axios.isAxiosError(err) && err.response?.data?.msg
-          ? String(err.response.data.msg)
-          : "Nie udało się uzyskać odpowiedzi. Spróbuj ponownie.";
-
-      appendMessages({
-        id: createId(),
-        role: "assistant",
-        content: msg,
-      });
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: createId(),
+          role: "assistant",
+          content: getErrorMessage(err),
+          isError: true,
+        },
+      ]);
     } finally {
       setLoading(false);
     }
   };
 
+  const retryLast = async () => {
+    if (loading) return;
+
+    const prior = messages.filter((message) => !message.isError);
+    const lastUserIndex = prior.findLastIndex(
+      (message) => message.role === "user",
+    );
+    if (lastUserIndex === -1) return;
+
+    const lastUser = prior[lastUserIndex];
+    const beforeUser = prior.slice(0, lastUserIndex);
+
+    setLoading(true);
+    setMessages([...beforeUser, lastUser]);
+
+    try {
+      const data = await requestAssistant(lastUser.content, beforeUser);
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: createId(),
+          role: "assistant",
+          content: data.message,
+          animals: data.animals ?? [],
+        },
+      ]);
+    } catch (err) {
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: createId(),
+          role: "assistant",
+          content: getErrorMessage(err),
+          isError: true,
+        },
+      ]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const resetConversation = () => {
+    if (loading) return;
+    setMessages([WELCOME_MESSAGE]);
+    setInput("");
+  };
+
   return (
-    <div className="fixed right-4 bottom-4 z-50 flex flex-col items-end gap-3 sm:right-6 sm:bottom-6">
+    <div
+      ref={rootRef}
+      className="fixed right-4 bottom-4 z-50 flex flex-col items-end gap-3 sm:right-6 sm:bottom-6"
+    >
       {open && (
         <div className="flex h-[min(560px,calc(100dvh-6.5rem))] w-[min(100vw-2rem,380px)] flex-col overflow-hidden rounded-2xl shadow-xl">
-          <div className="flex items-center justify-between bg-green-600 px-4 py-3 text-white">
-            <div className="flex items-center gap-2">
-              <p className="text-sm leading-none font-semibold">
-                Asystent adopcji
-              </p>
+          <div className="flex items-center justify-between gap-2 bg-green-800 px-4 py-3 text-white">
+            <p className="text-sm leading-none font-semibold">
+              Asystent adopcji
+            </p>
+            <div className="flex items-center gap-1">
+              {hasConversation && (
+                <button
+                  type="button"
+                  aria-label="Wyczyść rozmowę"
+                  disabled={loading}
+                  onClick={resetConversation}
+                  className="cursor-pointer rounded p-1 transition-colors hover:bg-white/10 disabled:opacity-50"
+                >
+                  <RotateCcw className="size-4" />
+                </button>
+              )}
+              <button
+                type="button"
+                aria-label="Zamknij chat"
+                onClick={() => setOpen(false)}
+                className="cursor-pointer rounded p-1 transition-colors hover:bg-white/10"
+              >
+                <X className="size-4" />
+              </button>
             </div>
-            <button
-              aria-label="Zamknij chat"
-              onClick={() => setOpen(false)}
-              className="cursor-pointer p-1"
-            >
-              <X className="size-4" />
-            </button>
           </div>
 
-          <div className="border-b border-gray-100 bg-white">
-            <button
-              type="button"
-              onClick={() => setFaqOpen((prev) => !prev)}
-              aria-expanded={faqOpen}
-              className="flex w-full cursor-pointer items-center justify-between px-3 py-2 text-left text-xs font-medium text-green-600 transition-colors hover:bg-green-50"
-            >
-              Popularne pytania
-              <ChevronDown
-                className={cn(
-                  "size-4 transition-transform",
-                  faqOpen && "rotate-180",
-                )}
-              />
-            </button>
-            {faqOpen && (
-              <div className="space-y-1.5 px-3 pb-3">
-                {FAQ_PROMPTS.map((item) => (
-                  <button
-                    key={item.question}
-                    disabled={loading}
-                    onClick={() => handleFaqClick(item.question)}
-                    className="w-full cursor-pointer rounded-xl border border-green-600/20 bg-green-50 px-2.5 py-1.5 text-left text-[11px] leading-4 text-green-600 transition-colors hover:bg-green-100 disabled:opacity-50"
-                  >
-                    {item.question}
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
-
-          <div className="flex-1 space-y-3 overflow-y-auto bg-stone-50 px-3 py-3">
+          <div className="flex-1 space-y-3 overflow-y-auto bg-linear-to-b from-green-50 via-emerald-50/70 to-green-100/80 px-3 py-3">
             {messages.map((message) => (
               <div
                 key={message.id}
@@ -204,11 +336,24 @@ const AdoptionChatBox = () => {
                   className={cn(
                     "max-w-[90%] space-y-2 rounded-2xl px-3 py-2 text-sm leading-5",
                     message.role === "user"
-                      ? "bg-green-600 text-white"
-                      : "border border-gray-200 bg-white text-gray-800",
+                      ? "bg-green-800 text-white"
+                      : message.isError
+                        ? "border border-red-200 bg-red-50 text-red-800"
+                        : "border border-gray-200 bg-white text-gray-800",
                   )}
                 >
                   <p className="whitespace-pre-wrap">{message.content}</p>
+                  {message.isError && (
+                    <button
+                      type="button"
+                      disabled={loading}
+                      onClick={() => void retryLast()}
+                      className="inline-flex cursor-pointer items-center gap-1 text-xs font-medium text-red-700 underline-offset-2 hover:underline disabled:opacity-50"
+                    >
+                      <RotateCcw className="size-3" />
+                      Spróbuj ponownie
+                    </button>
+                  )}
                   {message.animals && message.animals.length > 0 && (
                     <div className="space-y-2 pt-1">
                       {message.animals.map((animal) => (
@@ -219,6 +364,26 @@ const AdoptionChatBox = () => {
                 </div>
               </div>
             ))}
+
+            {!hasConversation && !loading && (
+              <div className="space-y-2">
+                <p className="px-0.5 text-[11px] font-medium text-green-900/70">
+                  Często zadawane pytania
+                </p>
+                <div className="flex flex-wrap gap-1.5">
+                  {SUGGESTIONS.map((item) => (
+                    <button
+                      key={item.label}
+                      type="button"
+                      onClick={() => void sendMessage(item.message)}
+                      className="cursor-pointer rounded-full border border-green-800/20 bg-white/90 px-3 py-1.5 text-left text-[11px] leading-4 text-green-900 shadow-sm transition-colors hover:border-green-800/40 hover:bg-green-50 disabled:opacity-50"
+                    >
+                      {item.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
 
             {loading && (
               <div className="flex justify-start">
@@ -233,8 +398,11 @@ const AdoptionChatBox = () => {
 
           <div className="space-y-2 border-t border-gray-100 bg-white p-3">
             <Input
+              ref={inputRef}
               value={input}
-              onChange={(e) => setInput(e.target.value)}
+              onChange={(e) =>
+                setInput(e.target.value.slice(0, MAX_MESSAGE_LENGTH))
+              }
               onKeyDown={(e) => {
                 if (e.key === "Enter" && !e.shiftKey) {
                   e.preventDefault();
@@ -243,24 +411,34 @@ const AdoptionChatBox = () => {
               }}
               placeholder="Napisz wiadomość…"
               disabled={loading}
+              maxLength={MAX_MESSAGE_LENGTH}
               className="h-10 rounded-xl"
             />
-            <Button
-              variant="success"
-              disabled={loading || input.trim().length < 1}
-              onClick={() => void sendMessage(input)}
-              className="w-full"
-            >
-              {loading ? (
-                <Loader2
-                  className="size-4 animate-spin"
-                  data-icon="inline-start"
-                />
-              ) : (
-                <Send className="size-4" data-icon="inline-start" />
-              )}
-              Wyślij
-            </Button>
+            <div className="flex items-center justify-between gap-2">
+              <p
+                className={cn(
+                  "text-[11px]",
+                  input.length >= MAX_MESSAGE_LENGTH
+                    ? "font-medium text-red-600"
+                    : "text-gray-400",
+                )}
+              >
+                {input.length}/{MAX_MESSAGE_LENGTH}
+              </p>
+              <Button
+                variant="success"
+                disabled={!canSend}
+                onClick={() => void sendMessage(input)}
+                className="min-w-28 justify-center gap-1.5 px-4 has-data-[icon=inline-start]:pl-4"
+              >
+                {loading ? (
+                  <Loader2 className="size-4 animate-spin" />
+                ) : (
+                  <Send className="size-4" />
+                )}
+                Wyślij
+              </Button>
+            </div>
           </div>
         </div>
       )}

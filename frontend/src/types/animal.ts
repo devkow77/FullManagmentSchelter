@@ -4,6 +4,8 @@ export type AnimalGender = "SAMICA" | "SAMIEC";
 
 export type AnimalSize = "MALY" | "SREDNI" | "DUZY";
 
+export type AnimalEnergyLevel = "NISKI" | "SREDNI" | "WYSOKI";
+
 export type AnimalStatus =
   | "SZUKA_DOMU"
   | "ZNALEZIONY"
@@ -31,6 +33,8 @@ export type Animal = {
   type: AnimalType;
   gender: AnimalGender;
   size: AnimalSize;
+  breed: string;
+  energyLevel: AnimalEnergyLevel;
   traits: string;
   dateOfBirth: Date | string;
   description: string;
@@ -63,6 +67,8 @@ export type AnimalListItem = {
   type: string;
   gender: string;
   size: string;
+  breed: string;
+  energyLevel: string;
   traits: string[];
   dateOfBirth: Date | string;
   cageId: number | null;

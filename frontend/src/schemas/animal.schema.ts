@@ -17,6 +17,10 @@ export const AnimalSizeEnum = z.enum(["MALY", "SREDNI", "DUZY"], {
   message: "Rozmiar zwierzęcia jest wymagany.",
 });
 
+export const AnimalEnergyLevelEnum = z.enum(["NISKI", "SREDNI", "WYSOKI"], {
+  message: "Poziom energii jest wymagany.",
+});
+
 export const AnimalStatusEnum = z.enum(
   ["SZUKA_DOMU", "ZNALEZIONY", "W_TRAKCIE_ADOPCJI", "ADOPTOWANY"],
   { message: "Status zwierzęcia jest wymagany." },
@@ -30,6 +34,7 @@ export const AnimalHealthStatusEnum = z.enum(
 export const animalTypeValues = AnimalTypeEnum.options;
 export const animalGenderValues = AnimalGenderEnum.options;
 export const animalSizeValues = AnimalSizeEnum.options;
+export const animalEnergyLevelValues = AnimalEnergyLevelEnum.options;
 export const animalStatusValues = AnimalStatusEnum.options;
 export const animalHealthStatusValues = AnimalHealthStatusEnum.options;
 
@@ -88,6 +93,11 @@ export const animalSchema = z.object({
   type: AnimalTypeEnum,
   gender: AnimalGenderEnum,
   size: AnimalSizeEnum,
+  breed: z
+    .string()
+    .min(2, "Rasa musi posiadać minimum 2 znaki.")
+    .max(40, "Rasa może maksymalnie posiadać 40 znaków."),
+  energyLevel: AnimalEnergyLevelEnum,
   traits: z.string().min(3, "Cechy muszą posiadać minimum 3 znaki."),
   dateOfBirth: pastOrTodayDateSchema,
   description: z

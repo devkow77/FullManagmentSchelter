@@ -27,6 +27,8 @@ const buildAnimalPayload = (
   type: 'PIES',
   gender: 'SAMIEC',
   size: 'SREDNI',
+  breed: 'Mieszaniec',
+  energyLevel: 'SREDNI',
   traits: 'Przyjacielski, głośny',
   dateOfBirth: yearsAgoIso(3),
   description: 'Znaleziony przy drodze krajowej, spokojny i ufny.',

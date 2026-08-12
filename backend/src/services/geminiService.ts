@@ -1,4 +1,4 @@
-const DEFAULT_MODEL = 'gemini-2.5-flash';
+const DEFAULT_MODEL = 'gemini-3.6-flash';
 
 export const OTHER_CATEGORY_MESSAGE =
   'Jestem asystentem do udzielania informacji odnośnie schroniska lub doboru zwierzęcia do adopcji na podstawie podanych parametrów.';
@@ -11,6 +11,10 @@ export type AnimalCatalogItem = {
   type: string;
   gender: string;
   size: string;
+  breed: string;
+  energyLevel: string;
+  ageYears: number;
+  healthStatus: string;
   traits: string | null;
   description: string;
   isSterilized: boolean;
@@ -36,14 +40,21 @@ export type ChatReplyResult = {
   matches: AnimalMatch[];
 };
 
+export type ChatHistoryItem = {
+  role: 'user' | 'assistant';
+  content: string;
+};
+
 const SYSTEM_PROMPT = `Jesteś asystentem polskiego schroniska dla zwierząt.
-Najpierw sklasyfikuj wiadomość użytkownika do DOKŁADNIE jednej kategorii:
+Najpierw sklasyfikuj AKTUALNĄ wiadomość użytkownika do DOKŁADNIE jednej kategorii:
 - FIND_ANIMAL — użytkownik szuka / chce doboru zwierzęcia do adopcji (opis stylu życia, preferencji, "znajdź mi psa/kota" itd.)
 - SHELTER_INFO — pytanie o schronisko, adopcję, procedury, zdrowie zwierząt, opłaty, wizyty, zasady
 - OTHER — wszystko poza tym (pogoda, żarty, polityka, programowanie, tematy niezwiązane)
 
 Zasady odpowiedzi:
 - FIND_ANIMAL: wybierz max 5 zwierząt WYŁĄCZNIE z podanego katalogu; nie wymyślaj ID spoza listy; jeśli nic nie pasuje, matches=[] i uprzejma wiadomość.
+- Przy doborze uwzględniaj szczególnie: typ, rasę, wiek (ageYears), rozmiar, poziom energii (energyLevel), stan zdrowia (healthStatus), flagi cech oraz opis.
+- Uwzględniaj historię rozmowy przy doprecyzowaniach (np. "a mniejszego?", "a kota?", "coś spokojniejszego").
 - SHELTER_INFO: odpowiedz po polsku na podstawie FAQ / wiedzy o schronisku; matches musi być [].
 - OTHER: message może być puste (system podstawi uniwersalną odpowiedź); matches=[].
 
@@ -129,6 +140,7 @@ export const replyWithGemini = async (
   userMessage: string,
   catalog: AnimalCatalogItem[],
   shelterFaq: Array<{ question: string; answer: string }>,
+  history: ChatHistoryItem[] = [],
 ): Promise<ChatReplyResult> => {
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) {
@@ -138,6 +150,16 @@ export const replyWithGemini = async (
   const model = process.env.GEMINI_MODEL || DEFAULT_MODEL;
   const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${encodeURIComponent(apiKey)}`;
 
+  const historyBlock =
+    history.length > 0
+      ? `Historia rozmowy (od najstarszej):\n${history
+          .map(
+            (item) =>
+              `${item.role === 'user' ? 'Użytkownik' : 'Asystent'}: ${item.content}`,
+          )
+          .join('\n')}\n\n`
+      : '';
+
   const prompt = `${SYSTEM_PROMPT}
 
 FAQ schroniska (JSON):
@@ -146,7 +168,7 @@ ${JSON.stringify(shelterFaq)}
 Katalog zwierząt dostępnych do adopcji (JSON):
 ${JSON.stringify(catalog)}
 
-Wiadomość użytkownika:
+${historyBlock}Aktualna wiadomość użytkownika:
 ${userMessage}`;
 
   const response = await fetch(url, {

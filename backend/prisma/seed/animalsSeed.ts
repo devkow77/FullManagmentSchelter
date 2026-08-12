@@ -1,5 +1,6 @@
 import prisma from '../../src/prisma';
 import {
+  AnimalEnergyLevel,
   AnimalGender,
   AnimalHealthStatus,
   AnimalSize,
@@ -34,6 +35,33 @@ const toBooleanTraits = (index: number) => ({
   lovesAffection: index % 2 === 0,
   poorlyToleratesShelter: index % 7 === 0,
 });
+
+const inferBreed = (type: AnimalType, description: string) => {
+  const text = description.toLowerCase();
+  if (type === AnimalType.PIES) {
+    if (text.includes('owczarek')) return 'Mieszaniec typu owczarek';
+    if (text.includes('labrador')) return 'Labrador (mieszaniec)';
+    if (text.includes('terier')) return 'Mieszaniec typu terier';
+    if (text.includes('jamnik')) return 'Jamnik (mieszaniec)';
+    return 'Mieszaniec';
+  }
+  if (type === AnimalType.KOT) return 'Dachowiec';
+  if (type === AnimalType.KROLIK) return 'Miniaturowy';
+  if (type === AnimalType.CHOMIK) return 'Syryjski';
+  if (type === AnimalType.ZOLW) return 'Stepowy';
+  return 'Nieokreślona';
+};
+
+const inferEnergyLevel = (traits: string): AnimalEnergyLevel => {
+  const text = traits.toLowerCase();
+  if (text.includes('energiczny') || text.includes('skory do zabawy')) {
+    return AnimalEnergyLevel.WYSOKI;
+  }
+  if (text.includes('spokojny') || text.includes('łagodny')) {
+    return AnimalEnergyLevel.NISKI;
+  }
+  return AnimalEnergyLevel.SREDNI;
+};
 
 const animalsSeed = async () => {
   console.log('Seedowanie zwierząt...');
@@ -1123,6 +1151,8 @@ const animalsSeed = async () => {
       return {
         ...animal,
         cageId,
+        breed: inferBreed(animal.type, animal.description),
+        energyLevel: inferEnergyLevel(animal.traits),
         ...toBooleanTraits(index),
       };
     }),

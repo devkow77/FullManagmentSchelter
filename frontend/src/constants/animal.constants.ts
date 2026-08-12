@@ -7,6 +7,7 @@ import { toLabelValueOptions } from "@/constants/helpers";
 import {
   animalGenderValues,
   animalHealthStatusValues,
+  animalEnergyLevelValues,
   animalSizeValues,
   animalStatusValues,
   animalTypeValues,
@@ -23,6 +24,12 @@ const formatAnimalSizeMap = {
   DUZY: "Duży",
 } as const;
 
+const formatAnimalEnergyLevelMap = {
+  NISKI: "Niski",
+  SREDNI: "Średni",
+  WYSOKI: "Wysoki",
+} as const;
+
 const formatAnimalTraitMap = {
   energiczny: "Energetyczny",
   spokojny: "Spokojny",
@@ -36,6 +43,9 @@ const formatAnimalTraitMap = {
 export const animalTypeOptions = toLabelValueOptions(formatAnimalType);
 export const animalGenderOptions = toLabelValueOptions(formatAnimalGenderMap);
 export const animalSizeOptions = toLabelValueOptions(formatAnimalSizeMap);
+export const animalEnergyLevelOptions = toLabelValueOptions(
+  formatAnimalEnergyLevelMap,
+);
 export const animalStatusOptions = toLabelValueOptions(formatAnimalStatus);
 export const animalHealthStatusOptions = toLabelValueOptions(
   formatAnimalHealthStatus,
@@ -46,6 +56,7 @@ export {
   animalTypeValues,
   animalGenderValues,
   animalSizeValues,
+  animalEnergyLevelValues,
   animalStatusValues,
   animalHealthStatusValues,
 };
