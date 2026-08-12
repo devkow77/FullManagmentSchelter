@@ -1,6 +1,7 @@
 import { createBrowserRouter, Outlet } from "react-router";
 import { RouterProvider } from "react-router/dom";
 import { Navbar, Footer, NavbarOnlyLayout } from "@/components/layout/shared";
+import { AdoptionChatBox } from "@/components/shared";
 import {
   HomePage,
   RegisterPage,
@@ -65,6 +66,7 @@ function Layout() {
       <Navbar />
       <Outlet />
       <Footer />
+      <AdoptionChatBox />
     </>
   );
 }

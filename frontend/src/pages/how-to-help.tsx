@@ -234,14 +234,14 @@ const HowToHelp = () => {
               Zobacz nas w akcji!
             </h2>
           </div>
-          <div className="relative mx-auto grid aspect-video max-h-100 w-full max-w-5xl place-items-center bg-black/20">
+          <div className="relative mx-auto grid aspect-video max-h-100 w-full max-w-5xl place-items-center rounded-2xl bg-black/20">
             <iframe
               src="https://www.youtube.com/embed/cD83zreoW_g?si=pS-_y0bB2zQ6Xe6C"
               title="Film użyty na potrzeby projektu, nie jest to nasze schronisko."
               loading="lazy"
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
               allowFullScreen
-              className="absolute top-0 left-0 h-full w-full border-0"
+              className="absolute top-0 left-0 h-full w-full rounded-2xl border-0"
             />
           </div>
         </section>

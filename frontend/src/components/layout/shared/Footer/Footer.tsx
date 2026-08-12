@@ -230,12 +230,12 @@ const Footer = () => {
               <ul className="space-y-4">
                 <li>Fundacja Schronisko</li>
                 <li>
-                  al. Tadeusz Rejtana 53 <br /> 35-326 Rzeszów
+                  al. Tadeusz Rejtana 00 <br /> 00-000 Rzeszów
                 </li>
                 <li>
-                  KRS: 0000000000 <br /> NIP: 1111111111
+                  KRS: 0000000000 <br /> NIP: 0000000000
                 </li>
-                <li>schronisko@gmail.com</li>
+                <li>schronisko@example.com</li>
               </ul>
             </section>
             <section className="flex flex-col justify-end gap-y-6 sm:col-span-2 lg:items-end">

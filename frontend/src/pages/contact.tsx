@@ -118,7 +118,9 @@ const ContactPage = () => {
               noValidate
             >
               {/* Email */}
-              <Label htmlFor="contact-email" required>Email</Label>
+              <Label htmlFor="contact-email" required>
+                Email
+              </Label>
               <Input
                 id="contact-email"
                 {...register("email")}
@@ -143,7 +145,9 @@ const ContactPage = () => {
               )}
 
               {/* Imię i nazwisko */}
-              <Label htmlFor="contact-fullName" required>Imię i nazwisko</Label>
+              <Label htmlFor="contact-fullName" required>
+                Imię i nazwisko
+              </Label>
               <Input
                 id="contact-fullName"
                 {...register("fullName")}
@@ -167,11 +171,13 @@ const ContactPage = () => {
               )}
 
               {/* Wiadomość */}
-              <Label htmlFor="contact-message" required>Wiadomość</Label>
+              <Label htmlFor="contact-message" required>
+                Wiadomość
+              </Label>
               <Textarea
                 id="contact-message"
                 {...register("message")}
-                className={`${errors.message && "bg-red-600/20"} mt-2 mb-4 resize-none md:h-50`}
+                className={`${errors.message && "bg-red-600/20"} mt-2 mb-4 h-50 resize-none`}
                 placeholder="Podaj swoją wiadomość..."
                 aria-invalid={Boolean(errors.message)}
                 aria-describedby={

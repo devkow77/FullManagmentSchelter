@@ -17,6 +17,7 @@ import TableRowActions from "./TableRowActions";
 import DashboardPage from "./DashboardPage";
 import FilterToolbar from "./FilterToolbar";
 import DashboardTableFooter from "./DashboardTableFooter";
+import AdoptionChatBox from "./AdoptionChatBox";
 
 export {
   ShortFaqList,
@@ -40,6 +41,7 @@ export {
   DashboardPage,
   FilterToolbar,
   DashboardTableFooter,
+  AdoptionChatBox,
 };
 
 export type { TableColumnVisibility } from "./DashboardTableFooter";

@@ -11,6 +11,7 @@ import vetsRoutes from './routes/vetsRoutes';
 import zoneAssignmentRoutes from './routes/zoneAssignmentRoutes';
 import animalNeedRoutes from './routes/animalNeedRoutes';
 import statsRoutes from './routes/statsRoutes';
+import chatRoutes from './routes/chatRoutes';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import { startAnimalStatusJob } from './jobs/animalStatus.job';
@@ -45,6 +46,7 @@ app.use('/api/vets', vetsRoutes);
 app.use('/api/zone-assignments', zoneAssignmentRoutes);
 app.use('/api/animal-needs', animalNeedRoutes);
 app.use('/api/stats', statsRoutes);
+app.use('/api/chat', chatRoutes);
 
 startAnimalStatusJob();
 startAdoptionExpiryJob();

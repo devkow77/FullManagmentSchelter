@@ -54,8 +54,7 @@ const getFavouritesPage = async ({
         );
         return { id, animal: res.data, missing: false };
       } catch (err) {
-        const missing =
-          axios.isAxiosError(err) && err.response?.status === 404;
+        const missing = axios.isAxiosError(err) && err.response?.status === 404;
         return { id, animal: null, missing };
       }
     }),
@@ -63,9 +62,7 @@ const getFavouritesPage = async ({
 
   const data = results
     .map((result) => result.animal)
-    .filter(
-      (animal): animal is FavouritesAnimalsResponse => animal !== null,
-    );
+    .filter((animal): animal is FavouritesAnimalsResponse => animal !== null);
 
   return {
     data,
@@ -90,8 +87,7 @@ const FavouritesAnimalsPage = () => {
     isError,
   } = useInfiniteQuery({
     queryKey: ["favourites-animals", favoriteIds],
-    queryFn: ({ pageParam }) =>
-      getFavouritesPage({ pageParam, favoriteIds }),
+    queryFn: ({ pageParam }) => getFavouritesPage({ pageParam, favoriteIds }),
     initialPageParam: 1,
     getNextPageParam: (lastPage) =>
       lastPage.hasMore ? lastPage.page + 1 : undefined,
@@ -213,7 +209,7 @@ const FavouritesAnimalsPage = () => {
                     )}
                   </div>
                   <div className="max-w-xl flex-1 md:space-y-1">
-                    <div className="flex items-center justify-between gap-2 text-xs md:text-sm">
+                    <div className="flex items-center justify-between gap-2 text-xs font-medium md:text-sm">
                       <p>
                         {formatAnimalType[animal.type]} (
                         {formatAnimalGender(animal.gender)})

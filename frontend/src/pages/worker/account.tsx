@@ -98,9 +98,9 @@ const AdminAccountPage = () => {
         <section
           id="info"
           aria-labelledby="staff-account-heading"
-          className="space-y-6 gap-x-12 text-center md:flex md:text-left"
+          className="space-y-4 gap-x-12 text-center md:flex md:text-left"
         >
-          <div className="relative mx-auto h-50 w-50 overflow-hidden rounded-full md:mx-0">
+          <div className="relative mx-auto size-30 overflow-hidden rounded-full md:mx-0 md:size-50">
             <img
               src={config.avatarSrc}
               alt={config.avatarAlt}
@@ -109,10 +109,10 @@ const AdminAccountPage = () => {
               className="absolute top-0 left-0 size-full object-cover"
             />
           </div>
-          <div className="space-y-2">
+          <div className="space-y-1 md:space-y-2">
             <h1
               id="staff-account-heading"
-              className="text-3xl font-bold text-green-900 md:text-5xl"
+              className="text-2xl font-bold text-green-900 md:text-5xl"
             >
               {config.panelTitle}
             </h1>
@@ -121,7 +121,7 @@ const AdminAccountPage = () => {
             </p>
             <ul
               aria-label="Dane konta"
-              className="space-y-2 text-sm leading-6 md:text-base md:leading-7"
+              className="space-y-1 text-sm leading-6 md:space-y-2 md:text-base md:leading-7"
             >
               <li>
                 <span className="font-medium">Imię i nazwisko:</span>{" "}
@@ -162,7 +162,9 @@ const AdminAccountPage = () => {
             aria-label="Formularz zmiany hasła"
             noValidate
           >
-            <Label htmlFor="staff-currentPassword" required>Aktualne hasło</Label>
+            <Label htmlFor="staff-currentPassword" required>
+              Aktualne hasło
+            </Label>
             <Input
               id="staff-currentPassword"
               {...register("currentPassword")}
@@ -187,7 +189,9 @@ const AdminAccountPage = () => {
                 {errors.currentPassword.message}
               </p>
             )}
-            <Label htmlFor="staff-newPassword" required>Nowe hasło</Label>
+            <Label htmlFor="staff-newPassword" required>
+              Nowe hasło
+            </Label>
             <Input
               id="staff-newPassword"
               {...register("newPassword")}
@@ -210,7 +214,9 @@ const AdminAccountPage = () => {
               </p>
             )}
 
-            <Label htmlFor="staff-confirmNewPassword" required>Powtórz nowe hasło</Label>
+            <Label htmlFor="staff-confirmNewPassword" required>
+              Powtórz nowe hasło
+            </Label>
             <Input
               id="staff-confirmNewPassword"
               {...register("confirmNewPassword")}

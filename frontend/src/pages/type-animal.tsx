@@ -8,7 +8,6 @@ import {
 } from "@/constants/animal.constants";
 import { MultiValueSelector, AgeSlider, AnimalCard } from "@/components/shared";
 import { keepPreviousData, useInfiniteQuery } from "@tanstack/react-query";
-import { cn } from "@/lib/utils";
 import { CircleAlert, Info, Loader2, RefreshCw } from "lucide-react";
 import { useLocation } from "react-router";
 
@@ -141,31 +140,7 @@ const TypeAnimalPage = () => {
   });
 
   const loadMoreRef = useRef<HTMLDivElement | null>(null);
-  const lastScrollY = useRef(0);
-  const [isFiltersVisible, setIsFiltersVisible] = useState(true);
   const isFiltering = isFetching && !isFetchingNextPage && !isPending;
-
-  useEffect(() => {
-    lastScrollY.current = window.scrollY;
-
-    const onScroll = () => {
-      const currentY = window.scrollY;
-      const delta = currentY - lastScrollY.current;
-
-      if (currentY < 80) {
-        setIsFiltersVisible(true);
-      } else if (delta > 8) {
-        setIsFiltersVisible(false);
-      } else if (delta < -8) {
-        setIsFiltersVisible(true);
-      }
-
-      lastScrollY.current = currentY;
-    };
-
-    window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
-  }, []);
 
   useEffect(() => {
     const target = loadMoreRef.current;
@@ -297,12 +272,7 @@ const TypeAnimalPage = () => {
           <div
             role="search"
             aria-label="Filtry zwierząt"
-            className={cn(
-              "sticky top-0 z-20 -mt-4 flex flex-wrap items-center gap-4 bg-white py-4 transition-transform duration-300 lg:-mt-8",
-              isFiltersVisible
-                ? "translate-y-0"
-                : "pointer-events-none -translate-y-full",
-            )}
+            className="z-20 -mt-4 flex flex-wrap items-center gap-4 bg-white py-4 lg:-mt-8"
           >
             <MultiValueSelector
               items={animalGenderOptions}
