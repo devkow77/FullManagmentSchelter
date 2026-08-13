@@ -61,7 +61,8 @@ Dostęp bez logowania:
 
 ### Panel klienta (`UZYTKOWNIK`)
 
-Ścieżki: `/konto`, `/konto/formularz`
+Ścieżki: `/konto`, `/konto/formularz` <br />
+Testowe konta: `michal@example.com`, `katarzyna@example.com`
 
 - **Konto** — lista wniosków adopcyjnych, statusy, anulowanie oczekującego wniosku, odliczanie terminu wizyty po akceptacji
 - **Formularz danych osobowych** — wymagany przed złożeniem wniosku (m.in. kontakt, adres, warunki mieszkaniowe)
@@ -71,7 +72,8 @@ Dostęp bez logowania:
 
 ### Panel pracownika (`PRACOWNIK`)
 
-Ścieżki m.in. `/pracownik/...`, wspólne `/admin/klatki`, `/admin/adopcje`
+Ścieżki m.in. `/pracownik/...`, wspólne `/admin/klatki`, `/admin/adopcje` <br />
+Testowe konta: `pracownik@example.com`, `pracownik2@example.com`
 
 - **Zwierzęta** — lista, dodawanie, edycja
 - **Klatki** — zarządzanie klatkami / strefami
@@ -83,6 +85,8 @@ Dostęp bez logowania:
 - **Blog** (panel Strapi), opcjonalny komunikator zespołu
 
 ### Panel administratora (`ADMINISTRATOR`)
+
+Testowe konta: `admin@example.com`, `admin2@example.com`
 
 Wszystko z panelu pracownika **oraz**:
 
