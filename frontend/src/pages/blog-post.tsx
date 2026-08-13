@@ -7,6 +7,7 @@ import { Pagination } from "swiper/modules";
 import "swiper/css";
 import "swiper/css/pagination";
 import { Skeleton } from "@/components/ui";
+import { buildCmsImageUrl } from "@/lib/utils";
 
 interface Post {
   slug: string;
@@ -17,10 +18,7 @@ interface Post {
 }
 
 const cmsUrl = import.meta.env.VITE_STRIPE_CMS_ADMIN_URL as string | undefined;
-const hasRemoteCms =
-  Boolean(cmsUrl) &&
-  /^https?:\/\//i.test(cmsUrl!) &&
-  !/localhost|127\.0\.0\.1/i.test(cmsUrl!);
+const hasRemoteCms = Boolean(cmsUrl) && /^https?:\/\//i.test(cmsUrl!);
 
 const BlogPostPage = () => {
   const [post, setPost] = useState<Post>();
@@ -74,9 +72,7 @@ const BlogPostPage = () => {
         "@type": "BlogPosting",
         headline: post.title,
         datePublished: post.createdAt,
-        image: post.image?.[0]?.url
-          ? `${cmsUrl}${post.image[0].url}`
-          : undefined,
+        image: buildCmsImageUrl(post.image?.[0]?.url),
         url: `/blog/${post.slug}`,
       }
     : null;
@@ -154,7 +150,7 @@ const BlogPostPage = () => {
           <div className="relative mx-auto aspect-square max-h-100 flex-1 overflow-hidden rounded-full bg-black/20">
             {post?.image?.[0]?.url ? (
               <img
-                src={`${cmsUrl}${post.image[0].url}`}
+                src={buildCmsImageUrl(post.image[0].url)}
                 alt={post.title}
                 width={400}
                 height={400}
@@ -225,7 +221,7 @@ const BlogPostPage = () => {
                   <div className="relative grid aspect-video place-items-center overflow-hidden rounded-2xl bg-black/5">
                     {similarPost.image?.[0]?.url ? (
                       <img
-                        src={`${cmsUrl}${similarPost.image[0].url}`}
+                        src={buildCmsImageUrl(similarPost.image[0].url)}
                         alt={similarPost.title}
                         width={640}
                         height={360}

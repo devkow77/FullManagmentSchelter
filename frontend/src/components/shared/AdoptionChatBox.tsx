@@ -12,11 +12,7 @@ import {
 import { Button, Input } from "@/components/ui";
 import { shortFaqData } from "@/components/shared/ShortFaqList";
 import { useAuth } from "@/context/AuthContext";
-import {
-  calculateAge,
-  cn,
-  formatAnimalEnergyLevel,
-} from "@/lib/utils";
+import { calculateAge, cn, formatAnimalEnergyLevel } from "@/lib/utils";
 
 type ChatAnimal = {
   id: number;

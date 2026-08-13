@@ -276,6 +276,18 @@ export const formatMedicalRecordType: Record<string, string> = {
   INNE: "Inne",
 };
 
+// CMS (BLOG)
+
+// Buduje adres obrazka z CMS-a. Provider "local" zwraca ścieżkę względną,
+// a zewnętrzny storage (Cloudinary) pełny adres, który trzeba zostawić bez zmian.
+export const buildCmsImageUrl = (path?: string): string | undefined => {
+  if (!path) return undefined;
+  if (/^https?:\/\//i.test(path)) return path;
+
+  const cmsUrl = (import.meta.env.VITE_STRIPE_CMS_ADMIN_URL ?? "") as string;
+  return `${cmsUrl.replace(/\/+$/, "")}${path}`;
+};
+
 // GLOBAL
 
 // Funckja do obliczania wieku zwierzaka

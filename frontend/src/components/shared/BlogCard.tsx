@@ -1,5 +1,6 @@
 import { Link } from "react-router";
 import { ImageOff } from "lucide-react";
+import { buildCmsImageUrl } from "@/lib/utils";
 
 interface BlogPost {
   slug: string;
@@ -10,9 +11,9 @@ interface BlogPost {
 }
 
 const BlogCard = ({ post }: { post: BlogPost }) => {
-  const cmsUrl = import.meta.env.VITE_STRIPE_CMS_ADMIN_URL;
-  const imagePath =
-    post.image?.[0]?.formats?.small?.url ?? post.image?.[0]?.url;
+  const imageUrl = buildCmsImageUrl(
+    post.image?.[0]?.formats?.small?.url ?? post.image?.[0]?.url,
+  );
 
   return (
     <Link
@@ -20,9 +21,9 @@ const BlogCard = ({ post }: { post: BlogPost }) => {
       className="space-y-2 transition-colors duration-200 hover:text-green-900"
     >
       <div className="relative grid aspect-video place-items-center overflow-hidden rounded-2xl bg-gray-100">
-        {imagePath ? (
+        {imageUrl ? (
           <img
-            src={`${cmsUrl}${imagePath}`}
+            src={imageUrl}
             alt={post.title}
             className="absolute size-full object-cover"
           />

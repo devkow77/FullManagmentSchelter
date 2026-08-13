@@ -158,14 +158,14 @@ const getOwnProfile = async () => {
 const isAdoptionProfileComplete = (profile: OwnProfile | undefined) =>
   Boolean(
     profile?.fullName?.trim() &&
-      profile?.gender &&
-      profile?.phoneNumber?.trim() &&
-      profile?.city?.trim() &&
-      profile?.postalCode?.trim() &&
-      profile?.street?.trim() &&
-      profile?.dateOfBirth &&
-      profile?.housingType &&
-      profile?.livingConditions?.trim(),
+    profile?.gender &&
+    profile?.phoneNumber?.trim() &&
+    profile?.city?.trim() &&
+    profile?.postalCode?.trim() &&
+    profile?.street?.trim() &&
+    profile?.dateOfBirth &&
+    profile?.housingType &&
+    profile?.livingConditions?.trim(),
   );
 
 // Funkcja renderująca ikonę cechy zwierzęcia
@@ -391,7 +391,7 @@ const AnimalPage = () => {
           aria-labelledby="animal-heading"
           className="space-y-6 gap-x-8 lg:flex lg:space-y-8"
         >
-          <div className="relative mx-auto grid aspect-square max-h-100 flex-1 place-items-center overflow-hidden rounded-full bg-gray-100">
+          <div className="relative mx-auto grid aspect-square size-60 flex-1 place-items-center overflow-hidden rounded-full bg-gray-100 sm:size-80 md:size-100">
             {animal?.imageUrl[0] ? (
               <img
                 src={animal.imageUrl[0]}
@@ -587,13 +587,13 @@ const AnimalPage = () => {
                           !hasCancelledAdoption &&
                           !hasCompletedAdoption &&
                           !isAlreadyAdopted && (
-                          <Link
-                            to="/konto/formularz"
-                            className="font-semibold text-green-800 underline underline-offset-2 hover:text-green-900"
-                          >
-                            Przejdź do formularza
-                          </Link>
-                        )}
+                            <Link
+                              to="/konto/formularz"
+                              className="font-semibold text-green-800 underline underline-offset-2 hover:text-green-900"
+                            >
+                              Przejdź do formularza
+                            </Link>
+                          )}
                       </p>
                     )}
                   </>
@@ -606,12 +606,12 @@ const AnimalPage = () => {
                   !hasCancelledAdoption &&
                   !hasCompletedAdoption &&
                   !isAlreadyAdopted && (
-                  <p className="text-muted-foreground text-xs leading-5 md:text-sm md:leading-6">
-                    {daysUntilAvailable > 0
-                      ? `Adopcja będzie możliwa za ${formatDaysLeft(daysUntilAvailable)} (tydzień od znalezienia).`
-                      : "Adopcja będzie możliwa wkrótce — trwa aktualizacja statusu."}
-                  </p>
-                )}
+                    <p className="text-muted-foreground text-xs leading-5 md:text-sm md:leading-6">
+                      {daysUntilAvailable > 0
+                        ? `Adopcja będzie możliwa za ${formatDaysLeft(daysUntilAvailable)} (tydzień od znalezienia).`
+                        : "Adopcja będzie możliwa wkrótce — trwa aktualizacja statusu."}
+                    </p>
+                  )}
               </div>
               <a
                 href="tel:+48111222333"

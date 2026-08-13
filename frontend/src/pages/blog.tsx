@@ -5,6 +5,7 @@ import axios from "axios";
 import { CircleAlert, Info } from "lucide-react";
 import { Link } from "react-router";
 import { BlogCard } from "@/components/shared";
+import { buildCmsImageUrl } from "@/lib/utils";
 
 interface Post {
   slug: string;
@@ -16,10 +17,7 @@ interface Post {
 
 const PAGE_TITLE = "Nasze życie schroniska | Schronisko";
 const cmsUrl = import.meta.env.VITE_STRIPE_CMS_ADMIN_URL as string | undefined;
-const hasRemoteCms =
-  Boolean(cmsUrl) &&
-  /^https?:\/\//i.test(cmsUrl!) &&
-  !/localhost|127\.0\.0\.1/i.test(cmsUrl!);
+const hasRemoteCms = Boolean(cmsUrl) && /^https?:\/\//i.test(cmsUrl!);
 
 const BlogPage = () => {
   const getPosts = async () => {
@@ -109,7 +107,7 @@ const BlogPage = () => {
                   <div className="relative aspect-video overflow-hidden rounded-2xl bg-gray-100">
                     {featuredPost.image?.[0]?.url ? (
                       <img
-                        src={`${cmsUrl}${featuredPost.image[0].url}`}
+                        src={buildCmsImageUrl(featuredPost.image[0].url)}
                         alt={featuredPost.title}
                         width={1280}
                         height={720}
