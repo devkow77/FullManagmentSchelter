@@ -211,7 +211,7 @@ describe('POST /api/auth/login', () => {
   it('Brak pozwolenia na logowanie z nieistniejącym emailem', async () => {
     // Sprawdza odpowiedź 404, gdy rekord nie istnieje.
     const res = await request(app).post('/api/auth/login').send({
-      email: 'zlyemail@gmail.com',
+      email: 'zlyemail@example.com',
       password: 'Haslo12345!',
     });
 

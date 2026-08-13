@@ -17,7 +17,7 @@ describe('Auth 2FA - Testy integracyjne', () => {
     await usersSeed();
 
     const user = await prisma.user.findUnique({
-      where: { email: 'michal@gmail.com' },
+      where: { email: 'michal@example.com' },
     });
     expect(user).not.toBeNull();
     userId = user!.id;
@@ -27,7 +27,7 @@ describe('Auth 2FA - Testy integracyjne', () => {
       data: { twoFactorEnabled: false, twoFactorSecret: null, isBanned: false },
     });
 
-    agent = await loginAs('michal@gmail.com');
+    agent = await loginAs('michal@example.com');
   });
 
   afterAll(async () => {
@@ -95,7 +95,7 @@ describe('Auth 2FA - Testy integracyjne', () => {
     it('Logowanie zwraca requires2FA i tempToken', async () => {
       // Sprawdza, że przy włączonym 2FA login nie ustawia jeszcze sesji końcowej.
       const res = await request(app).post('/api/auth/login').send({
-        email: 'michal@gmail.com',
+        email: 'michal@example.com',
         password: SEED_PASSWORD,
       });
 
@@ -134,7 +134,7 @@ describe('Auth 2FA - Testy integracyjne', () => {
       });
 
       expect(res.status).toBe(StatusCodes.OK);
-      expect(res.body.user.email).toBe('michal@gmail.com');
+      expect(res.body.user.email).toBe('michal@example.com');
       expect(res.body.user.twoFactorEnabled).toBe(true);
 
       const cookies = (res.headers['set-cookie'] ?? []) as string[];
@@ -151,7 +151,7 @@ describe('Auth 2FA - Testy integracyjne', () => {
     it('Wyłącza 2FA dla zalogowanego użytkownika', async () => {
       // Sprawdza wyłączenie 2FA i wyczyszczenie sekretu.
       const loginRes = await request(app).post('/api/auth/login').send({
-        email: 'michal@gmail.com',
+        email: 'michal@example.com',
         password: SEED_PASSWORD,
       });
       expect(loginRes.body.requires2FA).toBe(true);
@@ -181,7 +181,7 @@ describe('Auth 2FA - Testy integracyjne', () => {
     it('Po wyłączeniu 2FA logowanie wraca do zwykłego trybu', async () => {
       // Sprawdza, że login bez 2FA znów zwraca user i cookie.
       const res = await request(app).post('/api/auth/login').send({
-        email: 'michal@gmail.com',
+        email: 'michal@example.com',
         password: SEED_PASSWORD,
       });
 

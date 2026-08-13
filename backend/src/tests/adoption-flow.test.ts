@@ -33,10 +33,10 @@ describe('Adopcja happy-path - Testy integracyjne', () => {
   beforeAll(async () => {
     await clearDomainData();
     await usersSeed();
-    await fillAdoptionProfile('michal@gmail.com');
+    await fillAdoptionProfile('michal@example.com');
 
-    adminAgent = await loginAs('admin@gmail.com');
-    userAgent = await loginAs('michal@gmail.com');
+    adminAgent = await loginAs('admin@example.com');
+    userAgent = await loginAs('michal@example.com');
 
     const cage = await prisma.cage.create({ data: { zone: 'A', number: 1 } });
     const animalRes = await adminAgent.post('/api/animals').send(
@@ -70,16 +70,16 @@ describe('Adopcja happy-path - Testy integracyjne', () => {
     await prisma.user.create({
       data: {
         fullName: 'Anna Nowak',
-        email: 'anna@gmail.com',
+        email: 'anna@example.com',
         password: hashedPassword,
         role: Role.UZYTKOWNIK,
         gender: Gender.KOBIETA,
         isEmailVerified: true,
       },
     });
-    await fillAdoptionProfile('anna@gmail.com');
+    await fillAdoptionProfile('anna@example.com');
 
-    const otherUserAgent = await loginAs('anna@gmail.com');
+    const otherUserAgent = await loginAs('anna@example.com');
     const res = await otherUserAgent.post('/api/adoptions').send({
       animalId,
       message: 'Też chcę adoptować to zwierzę.',

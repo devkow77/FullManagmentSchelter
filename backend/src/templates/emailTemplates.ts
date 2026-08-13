@@ -71,7 +71,7 @@ const emailLayout = (
                 al. Tadeusza Rejtana 53, 35-326 Rzeszów
               </p>
               <p style="margin:0;font-size:12px;color:${COLORS.gray400};text-align:center;">
-                schronisko@gmail.com
+                schronisko@example.com
               </p>
             </td>
           </tr>

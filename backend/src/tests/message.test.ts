@@ -22,7 +22,7 @@ describe('POST /api/contact', () => {
     // Sprawdza wysyłkę wiadomości kontaktowej.
     const res = await request(app).post('/api/contact').send({
       fullName: 'Niezalogowany',
-      email: 'niezalogowany@gmail.com',
+      email: 'niezalogowany@example.com',
       message: 'Testowa wiadomość',
     });
 
@@ -33,7 +33,7 @@ describe('POST /api/contact', () => {
   it('Powinno pozwolić użytkownikowi z rolą USER wysłać wiadomość', async () => {
     // Sprawdza wysyłkę wiadomości kontaktowej.
     const loginRes = await request(app).post('/api/auth/login').send({
-      email: 'michal@gmail.com',
+      email: 'michal@example.com',
       password: 'Haslo12345.',
     });
 
@@ -47,7 +47,7 @@ describe('POST /api/contact', () => {
       .set('Cookie', cookie || []) // Przesyłamy ciasteczko z tokenem
       .send({
         fullName: 'Michał',
-        email: 'michal@gmail.com',
+        email: 'michal@example.com',
         message: 'Testowa wiadomość od użytkownika',
       });
 
@@ -58,7 +58,7 @@ describe('POST /api/contact', () => {
   it('Nie powinno pozwolić użytkownikowi z rolą WORKER wysłać wiadomość', async () => {
     // Sprawdza wysyłkę wiadomości kontaktowej.
     const loginRes = await request(app).post('/api/auth/login').send({
-      email: 'pracownik@gmail.com',
+      email: 'pracownik@example.com',
       password: 'Haslo12345.',
     });
 
@@ -69,7 +69,7 @@ describe('POST /api/contact', () => {
       .set('Cookie', cookie || [])
       .send({
         fullName: 'Pracownik Ola',
-        email: 'pracownik@gmail.com',
+        email: 'pracownik@example.com',
         message: 'Testowa wiadomość od pracownika',
       });
 
@@ -80,7 +80,7 @@ describe('POST /api/contact', () => {
   it('Nie powinno pozwolić użytkownikowi z rolą ADMIN wysłać wiadomość', async () => {
     // Sprawdza wysyłkę wiadomości kontaktowej.
     const loginRes = await request(app).post('/api/auth/login').send({
-      email: 'admin@gmail.com',
+      email: 'admin@example.com',
       password: 'Haslo12345.',
     });
 
@@ -91,7 +91,7 @@ describe('POST /api/contact', () => {
       .set('Cookie', cookie || [])
       .send({
         fullName: 'Admin',
-        email: 'admin@gmail.com',
+        email: 'admin@example.com',
         message: 'Testowa wiadomość od admina',
       });
 

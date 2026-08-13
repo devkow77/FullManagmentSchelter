@@ -1,7 +1,9 @@
 import prisma from '../../src/prisma';
 import bcrypt from 'bcrypt';
-import { Gender, Role } from '../../src/generated/prisma/enums';
+import { Role } from '../../src/generated/prisma/enums';
 
+// Domena example.com jest zarezerwowana przez RFC 2606 i nigdy nie dostarcza
+// poczty, więc powiadomienia z aplikacji nie trafią do przypadkowych osób.
 const usersSeed = async () => {
   const hashedPassword = await bcrypt.hash('Haslo12345.', 10);
   console.log('Seed użytkowników...');
@@ -16,43 +18,43 @@ const usersSeed = async () => {
   await prisma.user.createMany({
     data: [
       {
-        fullName: 'Admin',
-        email: 'admin@gmail.com',
+        fullName: 'Admin Anna Nowak',
+        email: 'admin@example.com',
+        password: hashedPassword,
+        role: Role.ADMINISTRATOR,
+        isEmailVerified: true,
+      },
+      {
+        fullName: 'Admin Marek Zieliński',
+        email: 'admin2@example.com',
         password: hashedPassword,
         role: Role.ADMINISTRATOR,
         isEmailVerified: true,
       },
       {
         fullName: 'Pracownik Ola',
-        email: 'pracownik@gmail.com',
+        email: 'pracownik@example.com',
         password: hashedPassword,
         role: Role.PRACOWNIK,
         isEmailVerified: true,
       },
       {
         fullName: 'Pracownik Jan',
-        email: 'pracownik2@gmail.com',
-        password: hashedPassword,
-        role: Role.PRACOWNIK,
-        isEmailVerified: true,
-      },
-      {
-        fullName: 'Pracownik Anna',
-        email: 'pracownik3@gmail.com',
-        password: hashedPassword,
-        role: Role.PRACOWNIK,
-        isEmailVerified: true,
-      },
-      {
-        fullName: 'Pracownik Piotr',
-        email: 'pracownik4@gmail.com',
+        email: 'pracownik2@example.com',
         password: hashedPassword,
         role: Role.PRACOWNIK,
         isEmailVerified: true,
       },
       {
         fullName: 'Michał Kowalski',
-        email: 'michal@gmail.com',
+        email: 'michal@example.com',
+        password: hashedPassword,
+        role: Role.UZYTKOWNIK,
+        isEmailVerified: true,
+      },
+      {
+        fullName: 'Katarzyna Wiśniewska',
+        email: 'katarzyna@example.com',
         password: hashedPassword,
         role: Role.UZYTKOWNIK,
         isEmailVerified: true,

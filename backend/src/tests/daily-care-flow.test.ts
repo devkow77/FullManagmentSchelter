@@ -20,8 +20,8 @@ describe('Dzienna opieka E2E - Testy integracyjne', () => {
     await clearDomainData();
     await usersSeed();
 
-    adminAgent = await loginAs('admin@gmail.com');
-    workerAgent = await loginAs('pracownik@gmail.com');
+    adminAgent = await loginAs('admin@example.com');
+    workerAgent = await loginAs('pracownik@example.com');
 
     const cage = await prisma.cage.create({ data: { zone: 'A', number: 1 } });
     const animalRes = await adminAgent.post('/api/animals').send(
@@ -35,7 +35,7 @@ describe('Dzienna opieka E2E - Testy integracyjne', () => {
     animalId = animalRes.body.id;
 
     const worker = await prisma.user.findUniqueOrThrow({
-      where: { email: 'pracownik@gmail.com' },
+      where: { email: 'pracownik@example.com' },
       select: { id: true },
     });
     const today = new Date();

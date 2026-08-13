@@ -28,10 +28,10 @@ describe('Wygasanie zaakceptowanych wniosków adopcyjnych', () => {
   beforeAll(async () => {
     await clearDomainData();
     await usersSeed();
-    await fillAdoptionProfile('michal@gmail.com');
+    await fillAdoptionProfile('michal@example.com');
 
-    adminAgent = await loginAs('admin@gmail.com');
-    userAgent = await loginAs('michal@gmail.com');
+    adminAgent = await loginAs('admin@example.com');
+    userAgent = await loginAs('michal@example.com');
 
     const cage = await prisma.cage.create({ data: { zone: 'A', number: 1 } });
     const animalRes = await adminAgent

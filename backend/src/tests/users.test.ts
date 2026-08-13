@@ -31,9 +31,9 @@ describe('Zarządzanie użytkownikami - Testy integracyjne', () => {
   beforeAll(async () => {
     await usersSeed();
 
-    adminAgent = await loginAs('admin@gmail.com');
-    workerAgent = await loginAs('pracownik@gmail.com');
-    userAgent = await loginAs('michal@gmail.com');
+    adminAgent = await loginAs('admin@example.com');
+    workerAgent = await loginAs('pracownik@example.com');
+    userAgent = await loginAs('michal@example.com');
   });
 
   afterAll(async () => {
@@ -118,7 +118,7 @@ describe('Zarządzanie użytkownikami - Testy integracyjne', () => {
     it('Zwraca dane istniejącego użytkownika dla administratora', async () => {
       // Sprawdza poprawne pobranie danych i kształt odpowiedzi.
       const existingUser = await prisma.user.findUnique({
-        where: { email: 'michal@gmail.com' },
+        where: { email: 'michal@example.com' },
       });
 
       expect(existingUser).not.toBeNull();
@@ -126,14 +126,14 @@ describe('Zarządzanie użytkownikami - Testy integracyjne', () => {
       const res = await adminAgent.get(`/api/users/${existingUser!.id}`);
 
       expect(res.status).toBe(StatusCodes.OK);
-      expect(res.body.email).toBe('michal@gmail.com');
+      expect(res.body.email).toBe('michal@example.com');
       expect(res.body.fullName).toBe('Michał Kowalski');
     });
 
     it('Zwraca błąd 403 dla zwykłego użytkownika', async () => {
       // Sprawdza, że zwykły użytkownik nie ma dostępu (403).
       const existingUser = await prisma.user.findUnique({
-        where: { email: 'michal@gmail.com' },
+        where: { email: 'michal@example.com' },
       });
 
       expect(existingUser).not.toBeNull();
@@ -292,7 +292,7 @@ describe('Zarządzanie użytkownikami - Testy integracyjne', () => {
       expect(res.body.msg).toBe('Hasło zostało pomyślnie zaktualizowane!');
 
       await prisma.user.update({
-        where: { email: 'michal@gmail.com' },
+        where: { email: 'michal@example.com' },
         data: { password: await bcrypt.hash('Haslo12345.', 10) },
       });
     });
@@ -310,7 +310,7 @@ describe('Zarządzanie użytkownikami - Testy integracyjne', () => {
     it('Nie pozwala usunąć administratora', async () => {
       // Sprawdza ochronę konta administratora przed usunięciem.
       const adminUser = await prisma.user.findUnique({
-        where: { email: 'admin@gmail.com' },
+        where: { email: 'admin@example.com' },
       });
 
       expect(adminUser).not.toBeNull();

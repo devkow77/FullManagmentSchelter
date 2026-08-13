@@ -22,9 +22,9 @@ describe('Klatki - Testy integracyjne', () => {
     await clearDomainData();
     await usersSeed();
 
-    adminAgent = await loginAs('admin@gmail.com');
-    workerAgent = await loginAs('pracownik@gmail.com');
-    userAgent = await loginAs('michal@gmail.com');
+    adminAgent = await loginAs('admin@example.com');
+    workerAgent = await loginAs('pracownik@example.com');
+    userAgent = await loginAs('michal@example.com');
 
     const occupied = await prisma.cage.create({
       data: { zone: 'Z', number: 99 },

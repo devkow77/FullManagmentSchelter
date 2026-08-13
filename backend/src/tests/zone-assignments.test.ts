@@ -21,13 +21,13 @@ describe('Przypisania stref - Testy integracyjne', () => {
     await clearDomainData();
     await usersSeed();
 
-    adminAgent = await loginAs('admin@gmail.com');
-    workerAgent = await loginAs('pracownik@gmail.com');
+    adminAgent = await loginAs('admin@example.com');
+    workerAgent = await loginAs('pracownik@example.com');
 
     await prisma.cage.create({ data: { zone: 'A', number: 1 } });
 
     const worker = await prisma.user.findUnique({
-      where: { email: 'pracownik@gmail.com' },
+      where: { email: 'pracownik@example.com' },
     });
     expect(worker).not.toBeNull();
     workerId = worker!.id;

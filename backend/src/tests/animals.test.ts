@@ -78,9 +78,9 @@ describe('Animal CRUD - Testy integracyjne', () => {
     freeCageId = cageA.id;
     secondCageId = cageB.id;
 
-    adminAgent = await loginAs('admin@gmail.com');
-    workerAgent = await loginAs('pracownik@gmail.com');
-    userAgent = await loginAs('michal@gmail.com');
+    adminAgent = await loginAs('admin@example.com');
+    workerAgent = await loginAs('pracownik@example.com');
+    userAgent = await loginAs('michal@example.com');
   });
 
   afterAll(async () => {
@@ -414,7 +414,7 @@ describe('Animal CRUD - Testy integracyjne', () => {
       await prisma.dailyZoneAssignment.create({
         data: {
           workerId: (await prisma.user.findUnique({
-            where: { email: 'pracownik@gmail.com' },
+            where: { email: 'pracownik@example.com' },
             select: { id: true },
           }))!.id,
           zone: 'A',
@@ -468,7 +468,7 @@ describe('Animal CRUD - Testy integracyjne', () => {
 
     it('Pozwala pracownikowi odznaczyć karmienie w przypisanej strefie', async () => {
       const worker = await prisma.user.findUniqueOrThrow({
-        where: { email: 'pracownik@gmail.com' },
+        where: { email: 'pracownik@example.com' },
         select: { id: true },
       });
       const today = new Date();

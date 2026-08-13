@@ -14,7 +14,7 @@ describe('Ban aktywnej sesji - Testy integracyjne', () => {
     await usersSeed();
 
     const user = await prisma.user.findUnique({
-      where: { email: 'michal@gmail.com' },
+      where: { email: 'michal@example.com' },
     });
     expect(user).not.toBeNull();
     userId = user!.id;
@@ -24,7 +24,7 @@ describe('Ban aktywnej sesji - Testy integracyjne', () => {
       data: { isBanned: false },
     });
 
-    userAgent = await loginAs('michal@gmail.com');
+    userAgent = await loginAs('michal@example.com');
   });
 
   afterAll(async () => {
@@ -40,7 +40,7 @@ describe('Ban aktywnej sesji - Testy integracyjne', () => {
     const res = await userAgent.get('/api/auth/info');
 
     expect(res.status).toBe(StatusCodes.OK);
-    expect(res.body.email).toBe('michal@gmail.com');
+    expect(res.body.email).toBe('michal@example.com');
   });
 
   it('Po ustawieniu isBanned=true aktywna sesja jest odcinana', async () => {
@@ -59,7 +59,7 @@ describe('Ban aktywnej sesji - Testy integracyjne', () => {
   it('Zbanowany użytkownik nie może się ponownie zalogować', async () => {
     // Sprawdza blokadę logowania dla zbanowanego konta (403).
     const res = await request(app).post('/api/auth/login').send({
-      email: 'michal@gmail.com',
+      email: 'michal@example.com',
       password: SEED_PASSWORD,
     });
 
@@ -75,15 +75,15 @@ describe('Ban aktywnej sesji - Testy integracyjne', () => {
     });
 
     const loginRes = await request(app).post('/api/auth/login').send({
-      email: 'michal@gmail.com',
+      email: 'michal@example.com',
       password: SEED_PASSWORD,
     });
     expect(loginRes.status).toBe(StatusCodes.OK);
-    expect(loginRes.body.user.email).toBe('michal@gmail.com');
+    expect(loginRes.body.user.email).toBe('michal@example.com');
 
     const agent = request.agent(app);
     await agent.post('/api/auth/login').send({
-      email: 'michal@gmail.com',
+      email: 'michal@example.com',
       password: SEED_PASSWORD,
     });
     const infoRes = await agent.get('/api/auth/info');

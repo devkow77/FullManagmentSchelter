@@ -33,11 +33,11 @@ describe('Adopcje - Testy integracyjne', () => {
   beforeAll(async () => {
     await clearDomainData();
     await usersSeed();
-    await fillAdoptionProfile('michal@gmail.com');
+    await fillAdoptionProfile('michal@example.com');
 
-    adminAgent = await loginAs('admin@gmail.com');
-    workerAgent = await loginAs('pracownik@gmail.com');
-    userAgent = await loginAs('michal@gmail.com');
+    adminAgent = await loginAs('admin@example.com');
+    workerAgent = await loginAs('pracownik@example.com');
+    userAgent = await loginAs('michal@example.com');
 
     const [cageA, cageB] = await Promise.all([
       prisma.cage.create({ data: { zone: 'A', number: 1 } }),
@@ -87,7 +87,7 @@ describe('Adopcje - Testy integracyjne', () => {
 
     it('Odmawia gdy użytkownik nie uzupełnił danych osobowych', async () => {
       await prisma.user.update({
-        where: { email: 'michal@gmail.com' },
+        where: { email: 'michal@example.com' },
         data: {
           phoneNumber: null,
           city: null,
@@ -110,7 +110,7 @@ describe('Adopcje - Testy integracyjne', () => {
         'Aby złożyć wniosek o adopcję, uzupełnij najpierw wszystkie dane osobowe w formularzu!',
       );
 
-      await fillAdoptionProfile('michal@gmail.com');
+      await fillAdoptionProfile('michal@example.com');
     });
 
     it('Tworzy wniosek adopcyjny przez użytkownika', async () => {
