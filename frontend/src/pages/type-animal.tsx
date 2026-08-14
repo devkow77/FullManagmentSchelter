@@ -6,14 +6,35 @@ import {
   animalSizeOptions,
   animalTraitOptions,
 } from "@/constants/animal.constants";
-import { MultiValueSelector, AgeSlider, AnimalCard } from "@/components/shared";
+import {
+  MultiValueSelector,
+  AgeSlider,
+  AnimalCard,
+  EmptyState,
+  ErrorState,
+} from "@/components/shared";
 import { keepPreviousData, useInfiniteQuery } from "@tanstack/react-query";
-import { CircleAlert, Info, Loader2, RefreshCw } from "lucide-react";
-import { useLocation } from "react-router";
+import { Loader2, RefreshCw } from "lucide-react";
+import { Navigate, useLocation } from "react-router";
 import type { AnimalListItem, PaginatedResponse } from "@/types";
 
 const PAGE_SIZE = 6;
 const DEFAULT_AGE_RANGE: [number, number] = [0, 25];
+
+const formatWaitingAnimalsText = (count: number) => {
+  if (count === 1) {
+    return "Aktualnie posiadamy 1 zwierzę, które czeka na nowy dom!";
+  }
+
+  const mod10 = count % 10;
+  const mod100 = count % 100;
+  const noun =
+    mod10 >= 2 && mod10 <= 4 && (mod100 < 12 || mod100 > 14)
+      ? "zwierzęta"
+      : "zwierząt";
+
+  return `Aktualnie posiadamy ${count} ${noun}, które czekają na nowy dom!`;
+};
 
 const TYPE_SLUG_MAP: Record<string, { enum: string; title: string }> = {
   psy: { enum: "PIES", title: "Psy" },
@@ -155,7 +176,7 @@ const TypeAnimalPage = () => {
       "@context": "https://schema.org",
       "@type": "ItemList",
       name: animalTypeConfig.title,
-      numberOfItems: total,
+      numberOfItems: animals.length,
       itemListElement: animals.map((animal, index) => ({
         "@type": "ListItem",
         position: index + 1,
@@ -163,61 +184,10 @@ const TypeAnimalPage = () => {
         url: `/zwierzeta/${animal.id}`,
       })),
     };
-  }, [animalTypeConfig, animals, total]);
+  }, [animalTypeConfig, animals]);
 
   if (!animalTypeConfig) {
-    return null;
-  }
-
-  if (isError) {
-    return (
-      <main>
-        <Container className="space-y-12 md:space-y-16">
-          <section
-            aria-labelledby="type-animals-heading"
-            className="space-y-6 lg:space-y-8"
-          >
-            <div className="space-y-2">
-              <h1
-                id="type-animals-heading"
-                className="text-3xl font-bold text-green-900 md:text-5xl"
-              >
-                {animalTypeConfig.title}
-              </h1>
-              <p className="text-sm leading-6 md:text-base md:leading-7">
-                Aktualnie posiadamy zwierzęta, które czekają na nowy dom!
-              </p>
-            </div>
-          </section>
-          <div
-            role="alert"
-            className="flex flex-col items-center justify-center gap-4 rounded-xl border border-red-200 bg-red-50 px-6 py-12 text-center"
-          >
-            <CircleAlert className="size-12 text-red-600" aria-hidden="true" />
-            <div className="space-y-2">
-              <p className="text-xl font-semibold text-red-900">
-                Nie udało się załadować zwierząt
-              </p>
-              <p className="max-w-md text-sm text-red-800 md:text-base">
-                Wystąpił problem podczas pobierania listy zwierząt. Sprawdź
-                połączenie z internetem i spróbuj ponownie.
-              </p>
-            </div>
-            <Button
-              variant="destructive"
-              onClick={() => refetch()}
-              disabled={isFetching}
-            >
-              <RefreshCw
-                className={isFetching ? "animate-spin" : undefined}
-                aria-hidden="true"
-              />
-              {isFetching ? "Ponawianie..." : "Spróbuj ponownie"}
-            </Button>
-          </div>
-        </Container>
-      </main>
-    );
+    return <Navigate to="/zwierzeta" replace />;
   }
 
   return (
@@ -242,14 +212,15 @@ const TypeAnimalPage = () => {
               {animalTypeConfig.title}
             </h1>
             <p className="text-sm leading-6 md:text-base md:leading-7">
-              Aktualnie posiadamy {isPending ? "..." : total} zwierząt, które
-              czekają na nowy dom!
+              {isPending
+                ? "Aktualnie posiadamy zwierzęta, które czekają na nowy dom!"
+                : formatWaitingAnimalsText(total)}
             </p>
           </div>
           <div
             role="search"
             aria-label="Filtry zwierząt"
-            className="z-20 -mt-4 flex flex-wrap items-center gap-4 bg-white py-4 lg:-mt-8"
+            className="sticky top-0 z-20 -mt-4 flex flex-wrap items-center gap-4 bg-white py-4 lg:-mt-8"
           >
             <MultiValueSelector
               items={animalGenderOptions}
@@ -289,11 +260,35 @@ const TypeAnimalPage = () => {
               isFiltering ? "opacity-60 transition-opacity" : ""
             }`}
           >
-            {isPending && <LoadingAnimals />}
-            {!isPending && animals.length === 0 && <EmptyAnimals />}
-            {animals.map((animal) => (
-              <AnimalCard key={animal.id} animal={animal} />
-            ))}
+            {isPending ? (
+              <LoadingAnimals />
+            ) : isError && animals.length === 0 ? (
+              <ErrorState
+                title="Nie udało się załadować zwierząt"
+                description="Wystąpił problem podczas pobierania listy zwierząt. Sprawdź połączenie z internetem i spróbuj ponownie."
+              >
+                <Button
+                  variant="destructive"
+                  onClick={() => refetch()}
+                  disabled={isFetching}
+                >
+                  <RefreshCw
+                    className={isFetching ? "animate-spin" : undefined}
+                    aria-hidden="true"
+                  />
+                  {isFetching ? "Ponawianie..." : "Spróbuj ponownie"}
+                </Button>
+              </ErrorState>
+            ) : animals.length === 0 ? (
+              <EmptyState
+                title="Brak zwierząt"
+                description="Nie znaleziono zwierząt spełniających wybrane kryteria."
+              />
+            ) : (
+              animals.map((animal) => (
+                <AnimalCard key={animal.id} animal={animal} />
+              ))
+            )}
           </div>
 
           <div ref={loadMoreRef} className="flex justify-center py-4">
@@ -320,23 +315,6 @@ const LoadingAnimals = () => {
       </div>
     </div>
   ));
-};
-
-const EmptyAnimals = () => {
-  return (
-    <div
-      role="status"
-      className="col-span-full flex flex-col items-center justify-center gap-4 rounded-2xl border border-blue-900 bg-blue-50 px-6 py-12 text-center"
-    >
-      <Info className="size-12 text-blue-600" aria-hidden="true" />
-      <div className="space-y-2">
-        <p className="text-xl font-semibold text-blue-900">Brak zwierząt</p>
-        <p className="max-w-md text-sm text-blue-900 md:text-base">
-          Nie znaleziono zwierząt spełniających wybrane kryteria.
-        </p>
-      </div>
-    </div>
-  );
 };
 
 export default TypeAnimalPage;

@@ -85,10 +85,6 @@ const router = createBrowserRouter([
         element: <AnimalsPage />,
       },
       {
-        path: "/zwierzeta/:id",
-        element: <AnimalPage />,
-      },
-      {
         path: "/zwierzeta/psy",
         element: <TypeAnimalPage />,
       },
@@ -103,6 +99,10 @@ const router = createBrowserRouter([
       {
         path: "/zwierzeta/króliki",
         element: <TypeAnimalPage />,
+      },
+      {
+        path: "/zwierzeta/:id",
+        element: <AnimalPage />,
       },
       {
         path: "/znalezione-zwierzeta",

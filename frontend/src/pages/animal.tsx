@@ -14,7 +14,7 @@ import {
   Textarea,
 } from "@/components/ui";
 import axios, { AxiosError } from "axios";
-import { useParams } from "react-router";
+import { Link, Navigate, useParams } from "react-router";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Pagination } from "swiper/modules";
 import "swiper/css";
@@ -36,7 +36,6 @@ import type {
   AnimalHealthStatus,
   OwnProfile,
 } from "@/types";
-import { Link } from "react-router";
 import { AnimalCard } from "@/components/shared";
 import { useAuth } from "@/context/AuthContext";
 import { useEffect, useMemo, useState } from "react";
@@ -141,8 +140,12 @@ const TraitIcon = ({ active }: { active: boolean }) =>
     <X className="text-red-600" aria-hidden="true" />
   );
 
+const isNumericAnimalId = (value: string | undefined): value is string =>
+  Boolean(value && /^\d+$/.test(value));
+
 const AnimalPage = () => {
   const { id } = useParams();
+  const hasValidId = isNumericAnimalId(id);
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const [showAdoptionForm, setShowAdoptionForm] = useState(false);
@@ -157,11 +160,19 @@ const AnimalPage = () => {
     defaultValues: { message: "" },
   });
 
-  const { data } = useQuery({
+  const { data, isError, error } = useQuery({
     queryKey: ["animal", id],
-    queryFn: () =>
-      Promise.all([getAnimal(id as string), getOtherAnimals(id as string)]),
-    enabled: Boolean(id), // uruchamia query tylko jeśli id nie jest undefined
+    queryFn: () => Promise.all([getAnimal(id!), getOtherAnimals(id!)]),
+    enabled: hasValidId,
+    retry: (failureCount, err) => {
+      if (
+        err instanceof AxiosError &&
+        (err.response?.status === 400 || err.response?.status === 404)
+      ) {
+        return false;
+      }
+      return failureCount < 3;
+    },
   });
 
   const { data: myAdoptions = [] } = useQuery({
@@ -341,6 +352,15 @@ const AnimalPage = () => {
       setIsCancellingAdoption(false);
     }
   };
+
+  const isMissingAnimal =
+    isError &&
+    error instanceof AxiosError &&
+    (error.response?.status === 400 || error.response?.status === 404);
+
+  if (!hasValidId || isMissingAnimal) {
+    return <Navigate to="/zwierzeta" replace />;
+  }
 
   return (
     <main>

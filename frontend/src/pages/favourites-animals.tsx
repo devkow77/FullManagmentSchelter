@@ -1,6 +1,10 @@
 import { Button, Container, Skeleton } from "@/components/ui";
-import { FavouriteAnimalButton } from "@/components/shared";
-import { CircleAlert, ImageOff, Heart, Loader2 } from "lucide-react";
+import {
+  EmptyState,
+  ErrorState,
+  FavouriteAnimalButton,
+} from "@/components/shared";
+import { ImageOff, Heart, Loader2 } from "lucide-react";
 import { Link } from "react-router";
 import {
   calculateAge,
@@ -159,13 +163,25 @@ const FavouritesAnimalsPage = () => {
           </div>
 
           <div className="grid grid-cols-1 gap-4 lg:gap-6">
-            {isLoadingFavourites && <LoadingFavourites />}
-            {isError && <ErrorFavourites />}
-            {!isLoadingFavourites &&
-              !isError &&
-              favouritesAnimals.length === 0 && <EmptyFavourites />}
-            {!isLoadingFavourites &&
-              !isError &&
+            {isLoadingFavourites ? (
+              <LoadingFavourites />
+            ) : isError ? (
+              <ErrorState
+                title="Wystąpił błąd"
+                description="Wystąpił błąd podczas ładowania zwierząt. Odśwież stronę lub spróbuj później."
+              />
+            ) : favouritesAnimals.length === 0 ? (
+              <EmptyState
+                variant="success"
+                icon={Heart}
+                title="Brak ulubionych zwierząt"
+                description="Nie masz jeszcze żadnych zwierząt w ulubionych. Przejrzyj listę zwierząt i dodaj te, które Cię zainteresują."
+              >
+                <Button asChild>
+                  <Link to="/zwierzeta">Przejrzyj zwierzęta</Link>
+                </Button>
+              </EmptyState>
+            ) : (
               favouritesAnimals.map((animal) => (
                 <Link
                   to={`/zwierzeta/${animal.id}`}
@@ -208,7 +224,8 @@ const FavouritesAnimalsPage = () => {
                     </p>
                   </div>
                 </Link>
-              ))}
+              ))
+            )}
           </div>
 
           <div ref={loadMoreRef} className="flex justify-center py-4">
@@ -243,49 +260,6 @@ const LoadingFavourites = () => {
       </div>
     </div>
   ));
-};
-
-const ErrorFavourites = () => {
-  return (
-    <div
-      role="alert"
-      className="col-span-full flex flex-col items-center justify-center gap-4 rounded-2xl border border-red-200 bg-red-50 px-6 py-12 text-center"
-    >
-      <CircleAlert className="size-12 text-red-600" aria-hidden="true" />
-      <div className="space-y-2">
-        <p className="text-lg font-semibold text-red-900 md:text-xl">
-          Wystąpił błąd
-        </p>
-        <p className="max-w-md text-sm text-red-800 md:text-base">
-          Wystąpił błąd podczas ładowania zwierząt. Odśwież stronę lub spróbuj
-          później.
-        </p>
-      </div>
-    </div>
-  );
-};
-
-const EmptyFavourites = () => {
-  return (
-    <div
-      role="status"
-      className="col-span-full flex flex-col items-center justify-center gap-4 rounded-xl border border-green-200 bg-green-50 px-6 py-12 text-center"
-    >
-      <Heart className="size-12 text-green-600" aria-hidden="true" />
-      <div className="space-y-2">
-        <p className="text-xl font-semibold text-green-900">
-          Brak ulubionych zwierząt
-        </p>
-        <p className="max-w-md text-sm text-green-800 md:text-base">
-          Nie masz jeszcze żadnych zwierząt w ulubionych. Przejrzyj listę
-          zwierząt i dodaj te, które Cię zainteresują.
-        </p>
-      </div>
-      <Button asChild>
-        <Link to="/zwierzeta">Przejrzyj zwierzęta</Link>
-      </Button>
-    </div>
-  );
 };
 
 export default FavouritesAnimalsPage;

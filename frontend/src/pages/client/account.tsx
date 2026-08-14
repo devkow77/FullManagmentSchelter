@@ -24,7 +24,12 @@ import { useNavigate, Link } from "react-router";
 import { useEffect, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTotp } from "@/hooks/useTotp";
-import { DisableTotpForm, VerifyTotpForm } from "@/components/shared";
+import {
+  DisableTotpForm,
+  EmptyState,
+  ErrorState,
+  VerifyTotpForm,
+} from "@/components/shared";
 import ClientDashboardNavbar from "@/components/layout/client/DashboardNavbar";
 import {
   formatAdoptionStatus,
@@ -34,7 +39,7 @@ import {
   styleUserRole,
 } from "@/lib/utils";
 import type { Adoption } from "@/types";
-import { CircleAlert, ImageOff, Info } from "lucide-react";
+import { ImageOff } from "lucide-react";
 
 const updatePasswordSchema = z
   .object({
@@ -190,9 +195,15 @@ const AccountPage = () => {
             {isAdoptionsPending ? (
               <LoadingAdoptions />
             ) : isAdoptionsError && !hasAdoptionsData ? (
-              <ErrorAdoptions />
+              <ErrorState
+                title="Wystąpił błąd"
+                description="Nie udało się załadować Twoich adopcji. Odśwież stronę lub spróbuj później."
+              />
             ) : adoptions.length === 0 ? (
-              <EmptyAdoptions />
+              <EmptyState
+                title="Brak adopcji"
+                description="Nie masz jeszcze żadnych wniosków adopcyjnych. Przejrzyj nasze zwierzęta i złóż pierwszy wniosek."
+              />
             ) : (
               adoptions.map((adoption) => (
                 <AdoptionCard
@@ -502,46 +513,6 @@ const LoadingAdoptions = () => {
       </div>
     </div>
   ));
-};
-
-const ErrorAdoptions = () => {
-  return (
-    <div
-      role="alert"
-      className="col-span-full flex flex-col items-center justify-center gap-4 rounded-2xl border border-red-200 bg-red-50 px-6 py-12 text-center"
-    >
-      <CircleAlert className="size-12 text-red-600" aria-hidden="true" />
-      <div className="space-y-2">
-        <p className="text-lg font-semibold text-red-900 md:text-xl">
-          Wystąpił błąd
-        </p>
-        <p className="max-w-md text-sm text-red-800 md:text-base">
-          Nie udało się załadować Twoich adopcji. Odśwież stronę lub spróbuj
-          później.
-        </p>
-      </div>
-    </div>
-  );
-};
-
-const EmptyAdoptions = () => {
-  return (
-    <div
-      role="status"
-      className="col-span-full flex flex-col items-center justify-center gap-4 rounded-2xl border border-blue-900 bg-blue-50 px-6 py-12 text-center"
-    >
-      <Info className="size-12 text-blue-600" aria-hidden="true" />
-      <div className="space-y-2">
-        <p className="text-lg font-semibold text-blue-900 md:text-xl">
-          Brak adopcji
-        </p>
-        <p className="max-w-md text-sm text-blue-900 md:text-base">
-          Nie masz jeszcze żadnych wniosków adopcyjnych. Przejrzyj nasze
-          zwierzęta i złóż pierwszy wniosek.
-        </p>
-      </div>
-    </div>
-  );
 };
 
 export default AccountPage;

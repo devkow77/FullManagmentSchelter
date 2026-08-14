@@ -1,10 +1,11 @@
 import { Container, Skeleton } from "@/components/ui";
 import { styleAnimalStatus } from "@/lib/utils";
-import { CircleAlert, ImageOff, Info, Loader2 } from "lucide-react";
+import { ImageOff, Loader2 } from "lucide-react";
 import { Link } from "react-router";
 import axios from "axios";
 import { useEffect, useMemo, useRef } from "react";
 import { useInfiniteQuery } from "@tanstack/react-query";
+import { EmptyState, ErrorState } from "@/components/shared";
 import type { FoundAnimal, PaginatedResponse } from "@/types";
 
 const PAGE_SIZE = 6;
@@ -116,14 +117,26 @@ const FoundAnimalsPage = () => {
             </p>
           </div>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 lg:gap-6">
-            {isPending && <LoadingFoundAnimals />}
-            {isError && <ErrorFoundAnimals />}
-            {!isPending && !isError && foundAnimals.length === 0 && (
-              <EmptyFoundAnimals />
+            {isPending ? (
+              <LoadingFoundAnimals />
+            ) : isError ? (
+              <ErrorState
+                title="Wystąpił błąd"
+                description="Wystąpił błąd podczas ładowania zwierząt. Odśwież stronę lub spróbuj później."
+              />
+            ) : foundAnimals.length === 0 ? (
+              <EmptyState
+                title="Brak znalezionych zwierząt"
+                description="Aktualnie brak znalezionych zwierząt. Wróć wkrótce, aby poznać nasze znalezione zwierzaki."
+              />
+            ) : (
+              foundAnimals.map((foundAnimal) => (
+                <FoundAnimalCard
+                  key={foundAnimal.id}
+                  foundAnimal={foundAnimal}
+                />
+              ))
             )}
-            {foundAnimals.map((foundAnimal) => (
-              <FoundAnimalCard key={foundAnimal.id} foundAnimal={foundAnimal} />
-            ))}
           </div>
           <div ref={loadMoreRef} className="flex justify-center py-4">
             {isFetchingNextPage && (
@@ -191,48 +204,6 @@ const LoadingFoundAnimals = () => {
       </div>
     </div>
   ));
-};
-
-// UI podczas wystąpienia błędu
-const ErrorFoundAnimals = () => {
-  return (
-    <div
-      role="alert"
-      className="col-span-full flex flex-col items-center justify-center gap-4 rounded-2xl border border-red-200 bg-red-50 px-6 py-12 text-center"
-    >
-      <CircleAlert className="size-12 text-red-600" aria-hidden="true" />
-      <div className="space-y-2">
-        <p className="text-lg font-semibold text-red-900 md:text-xl">
-          Wystapił błąd
-        </p>
-        <p className="max-w-md text-sm text-red-800 md:text-base">
-          Wystąpił błąd podczas ładowania zwierząt. Odśwież stronę lub spróbuj
-          później.
-        </p>
-      </div>
-    </div>
-  );
-};
-
-// UI podczas braku zwierzat
-const EmptyFoundAnimals = () => {
-  return (
-    <div
-      role="status"
-      className="col-span-full flex flex-col items-center justify-center gap-4 rounded-2xl border border-blue-900 bg-blue-50 px-6 py-12 text-center"
-    >
-      <Info className="size-12 text-blue-600" aria-hidden="true" />
-      <div className="space-y-2">
-        <p className="text-lg font-semibold text-blue-900 md:text-xl">
-          Brak znalezionych zwierząt
-        </p>
-        <p className="max-w-md text-sm text-blue-900 md:text-base">
-          Aktualnie brak znalezionych zwierząt. Wróć wkrótce, aby poznać nasze
-          znalezione zwierzaki.
-        </p>
-      </div>
-    </div>
-  );
 };
 
 export default FoundAnimalsPage;

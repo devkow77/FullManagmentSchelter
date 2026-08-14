@@ -11,6 +11,11 @@ import BlogCard from "./BlogCard";
 import UserAvatar from "./UserAvatar";
 import AnimalAvatar from "./AnimalAvatar";
 import TablePagination from "./TablePagination";
+import StatusMessage, {
+  ErrorState,
+  InfoState,
+  EmptyState,
+} from "./StatusMessage";
 import DashboardErrorState from "./DashboardErrorState";
 import DashboardTableSkeleton from "./DashboardTableSkeleton";
 import TableRowActions from "./TableRowActions";
@@ -35,6 +40,10 @@ export {
   UserAvatar,
   AnimalAvatar,
   TablePagination,
+  StatusMessage,
+  ErrorState,
+  InfoState,
+  EmptyState,
   DashboardErrorState,
   DashboardTableSkeleton,
   TableRowActions,

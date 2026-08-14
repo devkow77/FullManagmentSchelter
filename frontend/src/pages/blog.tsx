@@ -2,9 +2,8 @@ import { useEffect } from "react";
 import { Container, Skeleton } from "@/components/ui";
 import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
-import { CircleAlert, Info } from "lucide-react";
 import { Link } from "react-router";
-import { BlogCard } from "@/components/shared";
+import { BlogCard, EmptyState, ErrorState } from "@/components/shared";
 import { buildCmsImageUrl } from "@/lib/utils";
 import type { BlogPost } from "@/types";
 
@@ -88,10 +87,29 @@ const BlogPage = () => {
             </p>
           </div>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:gap-6">
-            {isLoading && <LoadingBlog />}
-            {error && <ErrorBlog />}
-            {!isLoading && !error && posts.length === 0 && <EmptyBlog />}
-            {!isLoading && !error && featuredPost && (
+            {isLoading ? (
+              <LoadingBlog />
+            ) : error ? (
+              <ErrorState
+                title="Wystąpił błąd"
+                description={
+                  <>
+                    Wystąpił błąd podczas ładowania postów. <br /> Spróbuj
+                    później ponownie.
+                  </>
+                }
+              />
+            ) : posts.length === 0 ? (
+              <EmptyState
+                title="Brak postów"
+                description={
+                  <>
+                    Nie ma jeszcze żadnych postów do wyświetlenia. <br /> Wróć
+                    wkrótce, aby poznać historie z życia naszego schroniska.
+                  </>
+                }
+              />
+            ) : featuredPost ? (
               <>
                 <Link
                   to={`/blog/${featuredPost.slug}`}
@@ -128,7 +146,7 @@ const BlogPage = () => {
                   <BlogCard key={post.slug} post={post} />
                 ))}
               </>
-            )}
+            ) : null}
           </div>
         </section>
       </Container>
@@ -159,46 +177,6 @@ const LoadingBlog = () => {
         </div>
       ))}
     </>
-  );
-};
-
-// UI podczas braku postów
-const EmptyBlog = () => {
-  return (
-    <div
-      role="status"
-      className="col-span-full flex flex-col items-center justify-center gap-4 rounded-xl border border-blue-200 bg-blue-50 px-6 py-12 text-center"
-    >
-      <Info className="size-12 text-blue-600" aria-hidden="true" />
-      <div className="space-y-2">
-        <p className="text-xl font-semibold text-blue-900">Brak postów</p>
-        <p className="max-w-md text-sm text-blue-800 md:text-base">
-          Nie ma jeszcze żadnych postów do wyświetlenia. <br /> Wróć wkrótce,
-          aby poznać historie z życia naszego schroniska.
-        </p>
-      </div>
-    </div>
-  );
-};
-
-// UI podczas wystąpienia błędu podczas ładowania postów
-const ErrorBlog = () => {
-  return (
-    <div
-      role="alert"
-      className="col-span-full flex flex-col items-center justify-center gap-4 rounded-2xl border border-red-200 bg-red-50 px-6 py-12 text-center"
-    >
-      <CircleAlert className="size-12 text-red-600" aria-hidden="true" />
-      <div className="space-y-2">
-        <p className="text-lg font-semibold text-red-900 md:text-xl">
-          Wystapił błąd
-        </p>
-        <p className="max-w-md text-sm text-red-800 md:text-base">
-          Wystąpił błąd podczas ładowania postów. <br /> Spróbuj później
-          ponownie.
-        </p>
-      </div>
-    </div>
   );
 };
 

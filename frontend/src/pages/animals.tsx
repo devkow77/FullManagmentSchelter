@@ -7,10 +7,16 @@ import {
   animalSizeOptions,
   animalTraitOptions,
 } from "@/constants/animal.constants";
-import { MultiValueSelector, AgeSlider, AnimalCard } from "@/components/shared";
+import {
+  MultiValueSelector,
+  AgeSlider,
+  AnimalCard,
+  EmptyState,
+  ErrorState,
+} from "@/components/shared";
 import { keepPreviousData, useInfiniteQuery } from "@tanstack/react-query";
 import { cn } from "@/lib/utils";
-import { CircleAlert, Info, Loader2 } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import type { AnimalListItem, PaginatedResponse } from "@/types";
 
 const PAGE_SIZE = 6;
@@ -100,31 +106,7 @@ const AnimalsPage = () => {
   });
 
   const loadMoreRef = useRef<HTMLDivElement | null>(null);
-  const lastScrollY = useRef(0);
-  const [isFiltersVisible, setIsFiltersVisible] = useState(true);
   const isFiltering = isFetching && !isFetchingNextPage && !isPending;
-
-  useEffect(() => {
-    lastScrollY.current = window.scrollY;
-
-    const onScroll = () => {
-      const currentY = window.scrollY;
-      const delta = currentY - lastScrollY.current;
-
-      if (currentY < 80) {
-        setIsFiltersVisible(true);
-      } else if (delta > 8) {
-        setIsFiltersVisible(false);
-      } else if (delta < -8) {
-        setIsFiltersVisible(true);
-      }
-
-      lastScrollY.current = currentY;
-    };
-
-    window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
-  }, []);
 
   useEffect(() => {
     const target = loadMoreRef.current;
@@ -200,10 +182,7 @@ const AnimalsPage = () => {
             role="search"
             aria-label="Filtry zwierząt"
             className={cn(
-              "sticky top-0 z-20 -mt-4 flex flex-wrap items-center gap-4 bg-white py-4 transition-transform duration-300 lg:-mt-8",
-              isFiltersVisible
-                ? "translate-y-0"
-                : "pointer-events-none -translate-y-full",
+              "sticky top-0 z-20 -mt-4 flex flex-wrap items-center gap-4 bg-white py-4 lg:-mt-8",
             )}
           >
             <MultiValueSelector
@@ -249,12 +228,23 @@ const AnimalsPage = () => {
               isFiltering ? "opacity-60 transition-opacity" : ""
             }`}
           >
-            {isError && <ErrorAnimals />}
-            {isPending && <LoadingAnimals />}
-            {!isPending && animals.length === 0 && <EmptyAnimals />}
-            {animals.map((animal) => (
-              <AnimalCard key={animal.id} animal={animal} />
-            ))}
+            {isPending ? (
+              <LoadingAnimals />
+            ) : isError && animals.length === 0 ? (
+              <ErrorState
+                title="Nie udało się załadować zwierząt"
+                description="Wystąpił problem podczas pobierania listy zwierząt. Sprawdź połączenie z internetem i spróbuj ponownie."
+              />
+            ) : animals.length === 0 ? (
+              <EmptyState
+                title="Brak zwierząt"
+                description="Nie znaleziono zwierząt spełniających wybrane kryteria."
+              />
+            ) : (
+              animals.map((animal) => (
+                <AnimalCard key={animal.id} animal={animal} />
+              ))
+            )}
           </div>
 
           <div ref={loadMoreRef} className="flex justify-center py-4">
@@ -282,45 +272,6 @@ const LoadingAnimals = () => {
       </div>
     </div>
   ));
-};
-
-// UI podczas braku zwierzat
-const EmptyAnimals = () => {
-  return (
-    <div
-      role="status"
-      className="col-span-full flex flex-col items-center justify-center gap-4 rounded-2xl border border-blue-900 bg-blue-50 px-6 py-12 text-center"
-    >
-      <Info className="size-12 text-blue-600" aria-hidden="true" />
-      <div className="space-y-2">
-        <p className="text-xl font-semibold text-blue-900">Brak zwierząt</p>
-        <p className="max-w-md text-sm text-blue-900 md:text-base">
-          Nie znaleziono zwierząt spełniających wybrane kryteria.
-        </p>
-      </div>
-    </div>
-  );
-};
-
-// UI podczas wystąpienia błędu
-const ErrorAnimals = () => {
-  return (
-    <div
-      role="alert"
-      className="col-span-full flex flex-col items-center justify-center gap-4 rounded-xl border border-red-200 bg-red-50 px-6 py-12 text-center"
-    >
-      <CircleAlert className="size-12 text-red-600" aria-hidden="true" />
-      <div className="space-y-2">
-        <p className="text-xl font-semibold text-red-900">
-          Nie udało się załadować zwierząt
-        </p>
-        <p className="max-w-md text-sm text-red-800 md:text-base">
-          Wystąpił problem podczas pobierania listy zwierząt. Sprawdź połączenie
-          z internetem i spróbuj ponownie.
-        </p>
-      </div>
-    </div>
-  );
 };
 
 export default AnimalsPage;

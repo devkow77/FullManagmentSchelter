@@ -5,11 +5,12 @@ import {
   AnimalCard,
   BlogCard,
   shortFaqData,
+  ErrorState,
+  EmptyState,
 } from "@/components/shared";
 import { Link } from "react-router";
 import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
-import { CircleAlert, Info } from "lucide-react";
 import type { BlogPost, IconCard, LongestWaitingAnimal } from "@/types";
 
 interface AnimalTypeTile {
@@ -163,19 +164,20 @@ const faqJsonLd = {
 };
 
 const HomePage = () => {
+  // Ustawienie tytułu strony
   useEffect(() => {
     document.title = PAGE_TITLE;
   }, []);
 
-  const cmsUrl = import.meta.env.VITE_STRIPE_CMS_ADMIN_URL as string | undefined;
+  const cmsUrl = import.meta.env.VITE_STRIPE_CMS_ADMIN_URL!;
   const hasRemoteCms = Boolean(cmsUrl) && /^https?:\/\//i.test(cmsUrl!);
 
   const {
-    data: longestWaintingAnimals = [],
+    data: longestWaitingAnimals = [],
     isLoading: isAnimalsLoading,
     error: animalsError,
   } = useQuery({
-    queryKey: ["longestWaintingAnimals"],
+    queryKey: ["longestWaitingAnimals"],
     queryFn: async () => {
       const res = await axios.get<LongestWaitingAnimal[]>(
         "/api/animals?limit=8&sort=foundAt:asc&status=SZUKA_DOMU",
@@ -220,13 +222,13 @@ const HomePage = () => {
               Schronisko
             </h1>
             <p className="text-sm leading-6 md:text-base md:leading-7">
-              Aktualnie posiadamy ponad 100 zwierząt, które czekają na nowy dom!{" "}
-              <br /> Nie bądź obojętny i stań się rodzicem jednego z naszych
-              czworonogich przyjacieli.
+              Każdego dnia nasze zwierzaki czekają na kogoś, kto da im nowy
+              dom. <br /> Nie bądź obojętny i stań się rodzicem jednego z
+              naszych czworonożnych przyjacieli.
             </p>
           </div>
           <ul className="grid grid-cols-2 gap-4 md:grid-cols-4 lg:gap-6">
-            {animalTypes.map((animal: AnimalTypeTile) => (
+            {animalTypes.map((animal) => (
               <li key={animal.href}>
                 <AnimalTypeCard animal={animal} />
               </li>
@@ -263,9 +265,9 @@ const HomePage = () => {
             </p>
           </div>
           <ul className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 lg:gap-6">
-            {adoptionsReasons.map((reason: IconCard) => (
+            {adoptionsReasons.map((reason) => (
               <li key={reason.title}>
-                <AdoptionReasonCard reason={reason} />
+                <IconFeatureCard item={reason} />
               </li>
             ))}
           </ul>
@@ -290,20 +292,25 @@ const HomePage = () => {
             </p>
           </div>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 lg:gap-6">
-            {isAnimalsLoading && <LoadingLongestWaitingAnimals />}
-            {animalsError && <ErrorLongestWaitingAnimals />}
-            {!isAnimalsLoading &&
-              !animalsError &&
-              longestWaintingAnimals.length === 0 && (
-                <EmptyLongestWaitingAnimals />
-              )}
-            {!isAnimalsLoading &&
-              !animalsError &&
-              longestWaintingAnimals.map((animal) => (
+            {isAnimalsLoading ? (
+              <LoadingLongestWaitingAnimals />
+            ) : animalsError ? (
+              <ErrorState
+                title="Wystąpił błąd"
+                description="Wystąpił błąd podczas ładowania zwierząt. Odśwież stronę lub spróbuj później."
+              />
+            ) : longestWaitingAnimals.length === 0 ? (
+              <EmptyState
+                title="Brak zwierząt"
+                description="Aktualnie brak zwierząt w naszym schronisku. Wróć wkrótce, aby poznać nasze zwierzaki."
+              />
+            ) : (
+              longestWaitingAnimals.map((animal) => (
                 <AnimalCard key={animal.id} animal={animal} />
-              ))}
+              ))
+            )}
           </div>
-          <Button variant={"success"} asChild>
+          <Button variant="success" asChild>
             <Link to="/zwierzeta">Zobacz wszystkie</Link>
           </Button>
         </section>
@@ -326,9 +333,9 @@ const HomePage = () => {
             </p>
           </div>
           <ul className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-5 lg:gap-6">
-            {adoptionProcess.map((step: IconCard) => (
+            {adoptionProcess.map((step) => (
               <li key={step.title}>
-                <AdoptionProcessCard step={step} />
+                <IconFeatureCard item={step} />
               </li>
             ))}
           </ul>
@@ -350,14 +357,14 @@ const HomePage = () => {
           <div className="space-y-4 md:flex md:gap-6">
             <ShortFaqList />
             <ul className="flex-1 space-y-4 md:pl-6">
-              {faqFeatures.map((feature: IconCard) => (
+              {faqFeatures.map((feature) => (
                 <li key={feature.title}>
                   <FaqCard feature={feature} />
                 </li>
               ))}
             </ul>
           </div>
-          <Button variant={"success"} asChild>
+          <Button variant="success" asChild>
             <Link to="/kontakt">Skontaktuj się z nami</Link>
           </Button>
         </section>
@@ -376,16 +383,25 @@ const HomePage = () => {
             </h2>
           </div>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 lg:gap-6">
-            {isBlogLoading && <LoadingBlogPosts />}
-            {blogError && <ErrorBlogPosts />}
-            {!isBlogLoading && !blogError && blogPosts.length === 0 && (
-              <EmptyBlogPosts />
+            {isBlogLoading ? (
+              <LoadingBlogPosts />
+            ) : blogError ? (
+              <ErrorState
+                title="Wystąpił błąd"
+                description="Wystąpił błąd podczas ładowania postów z bloga. Odśwież stronę lub spróbuj później."
+              />
+            ) : blogPosts.length === 0 ? (
+              <EmptyState
+                title="Brak postów"
+                description="Aktualnie brak postów w naszym blogu. Wróć wkrótce, aby poznać nasze ostatnie akcje."
+              />
+            ) : (
+              blogPosts.map((post) => (
+                <BlogCard key={post.slug} post={post} />
+              ))
             )}
-            {blogPosts.map((post: BlogPost) => (
-              <BlogCard key={post.slug} post={post} />
-            ))}
           </div>
-          <Button variant={"success"} asChild>
+          <Button variant="success" asChild>
             <Link to="/blog">Zobacz nasze akcje</Link>
           </Button>
         </section>
@@ -418,45 +434,25 @@ const AnimalTypeCard = ({ animal }: { animal: AnimalTypeTile }) => {
   );
 };
 
-// Karta powodu adoptowania zwierzęcia
-const AdoptionReasonCard = ({ reason }: { reason: IconCard }) => {
+const IconFeatureCard = ({ item }: { item: IconCard }) => {
   return (
     <div className="space-y-2">
       <div
-        className={`${reason.bgColor} grid aspect-square place-items-center rounded-full text-3xl`}
+        className={`${item.bgColor} grid aspect-square place-items-center rounded-full text-3xl`}
         aria-hidden="true"
       >
-        {reason.icon}
+        {item.icon}
       </div>
       <div className="space-y-1 text-center">
-        <h3 className="font-semibold md:text-lg">{reason.title}</h3>
-        <p className="text-xs md:text-sm">{reason.description}</p>
+        <h3 className="font-semibold md:text-lg">{item.title}</h3>
+        <p className="text-xs md:text-sm">{item.description}</p>
       </div>
     </div>
   );
 };
 
-// Karta kroku procesu adopcji
-const AdoptionProcessCard = ({ step }: { step: IconCard }) => {
-  return (
-    <div className="space-y-2">
-      <div
-        className={`${step.bgColor} grid aspect-square place-items-center rounded-full text-3xl`}
-        aria-hidden="true"
-      >
-        {step.icon}
-      </div>
-      <div className="space-y-1 text-center">
-        <h3 className="font-semibold md:text-lg">{step.title}</h3>
-        <p className="text-xs md:text-sm">{step.description}</p>
-      </div>
-    </div>
-  );
-};
-
-// UI podczas ładowania najdłużej czekających zwierząt
 const LoadingLongestWaitingAnimals = () => {
-  return Array.from({ length: 8 }).map((_, index: number) => (
+  return Array.from({ length: 8 }).map((_, index) => (
     <div key={index} className="space-y-2" aria-hidden="true">
       <Skeleton className="aspect-video" />
       <div className="space-y-2">
@@ -467,51 +463,8 @@ const LoadingLongestWaitingAnimals = () => {
   ));
 };
 
-// UI podczas wystąpienia błędu podczas ładowania najdłużej czekających zwierząt
-const ErrorLongestWaitingAnimals = () => {
-  return (
-    <div
-      role="alert"
-      className="col-span-full flex flex-col items-center justify-center gap-4 rounded-2xl border border-red-200 bg-red-50 px-6 py-12 text-center"
-    >
-      <CircleAlert className="size-12 text-red-600" aria-hidden="true" />
-      <div className="space-y-2">
-        <p className="text-lg font-semibold text-red-900 md:text-xl">
-          Wystapił błąd
-        </p>
-        <p className="max-w-md text-sm text-red-800 md:text-base">
-          Wystąpił błąd podczas ładowania zwierząt. Odśwież stronę lub spróbuj
-          później.
-        </p>
-      </div>
-    </div>
-  );
-};
-
-// UI podczas braku najdłużej czekających zwierząt
-const EmptyLongestWaitingAnimals = () => {
-  return (
-    <div
-      role="status"
-      className="col-span-full flex flex-col items-center justify-center gap-4 rounded-2xl border border-blue-900 bg-blue-50 px-6 py-12 text-center"
-    >
-      <Info className="size-12 text-blue-600" aria-hidden="true" />
-      <div className="space-y-2">
-        <p className="text-lg font-semibold text-blue-900 md:text-xl">
-          Brak zwierząt
-        </p>
-        <p className="max-w-md text-sm text-blue-900 md:text-base">
-          Aktualnie brak zwierząt w naszym schronisku. Wróć wkrótce, aby poznać
-          nasze zwierzaki.
-        </p>
-      </div>
-    </div>
-  );
-};
-
-// UI podczas ładowania postów z bloga
 const LoadingBlogPosts = () => {
-  return Array.from({ length: 6 }).map((_, index: number) => (
+  return Array.from({ length: 6 }).map((_, index) => (
     <div key={index} className="space-y-2" aria-hidden="true">
       <Skeleton className="aspect-video" />
       <div className="space-y-2">
@@ -523,49 +476,6 @@ const LoadingBlogPosts = () => {
   ));
 };
 
-// UI podczas wystąpienia błędu podczas ładowania postów z bloga
-const ErrorBlogPosts = () => {
-  return (
-    <div
-      role="alert"
-      className="col-span-full flex flex-col items-center justify-center gap-4 rounded-2xl border border-red-200 bg-red-50 px-6 py-12 text-center"
-    >
-      <CircleAlert className="size-12 text-red-600" aria-hidden="true" />
-      <div className="space-y-2">
-        <p className="text-lg font-semibold text-red-900 md:text-xl">
-          Wystapił błąd
-        </p>
-        <p className="max-w-md text-sm text-red-800 md:text-base">
-          Wystąpił błąd podczas ładowania postów z bloga. Odśwież stronę lub
-          spróbuj później.
-        </p>
-      </div>
-    </div>
-  );
-};
-
-// UI podczas braku postów z bloga
-const EmptyBlogPosts = () => {
-  return (
-    <div
-      role="status"
-      className="col-span-full flex flex-col items-center justify-center gap-4 rounded-2xl border border-blue-900 bg-blue-50 px-6 py-12 text-center"
-    >
-      <Info className="size-12 text-blue-600" aria-hidden="true" />
-      <div className="space-y-2">
-        <p className="text-lg font-semibold text-blue-900 md:text-xl">
-          Brak postów
-        </p>
-        <p className="max-w-md text-sm text-blue-900 md:text-base">
-          Aktualnie brak postów w naszym blogu. Wróć wkrótce, aby poznać nasze
-          ostatnie akcje.
-        </p>
-      </div>
-    </div>
-  );
-};
-
-// Karta pytania i odpowiedzi
 const FaqCard = ({ feature }: { feature: IconCard }) => {
   return (
     <div className="flex items-center gap-x-4">
