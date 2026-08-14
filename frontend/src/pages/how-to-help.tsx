@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, type ReactNode } from "react";
 import { Container } from "@/components/ui";
 import type { IconCard } from "@/types";
 
@@ -48,9 +48,10 @@ const helpOptions: IconCard[] = [
 ];
 
 const PAGE_TITLE = "Jak nam pomóc? | Schronisko";
+const DONATION_IBAN = "PL00 0000 0000 0000 0000 0000 0000";
 
 const volunteerSteps = [
-  "Przejdź do sekcji „Wolontariat” w naszej aplikacji.",
+  "Przejdź do strony „Kontakt” i napisz do nas w sprawie wolontariatu.",
   "Wypełnij formularz zgłoszeniowy, podając swoje dane i doświadczenie.",
   "Wybierz dostępne dni i godziny, w których możesz pomagać w schronisku.",
   "Poczekaj na potwierdzenie od koordynatora wolontariatu.",
@@ -58,9 +59,17 @@ const volunteerSteps = [
 ];
 
 const donationSteps = [
-  "Wpłać darowiznę na konto bankowe schroniska: PL12 3456 7890 1234 5678 9012 3456.",
+  `Wpłać darowiznę na konto bankowe schroniska: ${DONATION_IBAN}.`,
   "W tytule przelewu wpisz „Darowizna na zwierzęta” i opcjonalnie swoje imię.",
   "Po dokonaniu wpłaty możesz wysłać potwierdzenie na e-mail schroniska, aby otrzymać podziękowanie.",
+];
+
+const needsSteps = [
+  "Karma dla psów i kotów – zarówno mokra, jak i sucha.",
+  "Koce, ręczniki i posłania dla zwierząt.",
+  "Zabawki, gryzaki i smycze dla zwierząt.",
+  "Środki czystości – płyny dezynfekujące, rękawice, worki na śmieci.",
+  "Akcesoria weterynaryjne – szczepionki, witaminy, środki przeciw pasożytom.",
 ];
 
 const howToHelpJsonLd = {
@@ -94,7 +103,29 @@ const howToHelpJsonLd = {
         text,
       })),
     },
+    {
+      "@type": "ItemList",
+      name: "Co najbardziej potrzebujemy?",
+      itemListElement: needsSteps.map((text, index) => ({
+        "@type": "ListItem",
+        position: index + 1,
+        name: text,
+      })),
+    },
   ],
+};
+
+const highlightIban = (text: string): ReactNode => {
+  if (!text.includes(DONATION_IBAN)) return text;
+
+  const [before, after] = text.split(DONATION_IBAN);
+  return (
+    <>
+      {before}
+      <strong>{DONATION_IBAN}</strong>
+      {after}
+    </>
+  );
 };
 
 const HowToHelp = () => {
@@ -121,22 +152,22 @@ const HowToHelp = () => {
               Jak nam pomóc?
             </h1>
             <p className="text-sm leading-6 md:text-base md:leading-7">
-              Cieszę się, że chcesz pomóc! Oto kilka sposobów, w jakie możesz
+              Cieszymy się, że chcesz pomóc! Oto kilka sposobów, w jakie możesz
               wesprzeć nasze schronisko.
             </p>
           </div>
-          <ul className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 lg:gap-6">
-            {helpOptions.map((reason) => (
-              <li className="space-y-2" key={reason.title}>
+          <ul className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:gap-6">
+            {helpOptions.map((option) => (
+              <li className="space-y-2" key={option.title}>
                 <div
-                  className={`${reason.bgColor} grid aspect-square place-items-center rounded-full text-5xl`}
+                  className={`${option.bgColor} grid aspect-square place-items-center rounded-full text-5xl`}
                   aria-hidden="true"
                 >
-                  {reason.icon}
+                  {option.icon}
                 </div>
                 <div className="space-y-1 text-center">
-                  <h3 className="font-semibold md:text-lg">{reason.title}</h3>
-                  <p className="text-xs md:text-sm">{reason.description}</p>
+                  <h3 className="font-semibold md:text-lg">{option.title}</h3>
+                  <p className="text-xs md:text-sm">{option.description}</p>
                 </div>
               </li>
             ))}
@@ -153,19 +184,9 @@ const HowToHelp = () => {
             Jak zostać wolontariuszem?
           </h2>
           <ol className="w-fit list-inside list-decimal space-y-2 bg-red-100 p-4 text-sm leading-6 md:text-base md:leading-7">
-            <li>Przejdź do sekcji „Wolontariat” w naszej aplikacji.</li>
-            <li>
-              Wypełnij formularz zgłoszeniowy, podając swoje dane i
-              doświadczenie.
-            </li>
-            <li>
-              Wybierz dostępne dni i godziny, w których możesz pomagać w
-              schronisku.
-            </li>
-            <li>Poczekaj na potwierdzenie od koordynatora wolontariatu.</li>
-            <li>
-              Po akceptacji, rozpocznij swoją przygodę z pomocą zwierzętom!
-            </li>
+            {volunteerSteps.map((step) => (
+              <li key={step}>{step}</li>
+            ))}
           </ol>
         </section>
         <section
@@ -179,18 +200,9 @@ const HowToHelp = () => {
             Na jakie konto wpłacać darowizny?
           </h2>
           <ol className="w-fit list-inside list-decimal space-y-2 bg-yellow-100 p-4 text-sm leading-6 md:text-base md:leading-7">
-            <li>
-              Wpłać darowiznę na konto bankowe schroniska:{" "}
-              <strong>PL00 0000 0000 0000 0000 0000 0000</strong>.
-            </li>
-            <li>
-              W tytule przelewu wpisz „Darowizna na zwierzęta” i opcjonalnie
-              swoje imię.
-            </li>
-            <li>
-              Po dokonaniu wpłaty możesz wysłać potwierdzenie na e-mail
-              schroniska, aby otrzymać podziękowanie.
-            </li>
+            {donationSteps.map((step) => (
+              <li key={step}>{highlightIban(step)}</li>
+            ))}
           </ol>
         </section>
         <section
@@ -204,16 +216,9 @@ const HowToHelp = () => {
             Co najbardziej potrzebujemy?
           </h2>
           <ol className="w-fit list-inside list-decimal space-y-2 bg-green-100 p-4 text-sm leading-6 md:text-base md:leading-7">
-            <li>Karma dla psów i kotów – zarówno mokra, jak i sucha.</li>
-            <li>Koce, ręczniki i posłania dla zwierząt.</li>
-            <li>Zabawki, gryzaki i smycze dla zwierząt.</li>
-            <li>
-              Środki czystości – płyny dezynfekujące, rękawice, worki na śmieci.
-            </li>
-            <li>
-              Akcesoria weterynaryjne – szczepionki, witaminy, środki przeciw
-              pasożytom.
-            </li>
+            {needsSteps.map((step) => (
+              <li key={step}>{step}</li>
+            ))}
           </ol>
         </section>
         <section

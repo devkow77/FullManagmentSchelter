@@ -1,76 +1,54 @@
-import { Container } from "@/components/ui";
-import { useState, useEffect } from "react";
-import axios from "axios";
-import { useParams, Link } from "react-router";
+import { useEffect } from "react";
+import { Button, Container, Skeleton } from "@/components/ui";
+import { useQuery } from "@tanstack/react-query";
+import { Navigate, useParams, Link } from "react-router";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Pagination } from "swiper/modules";
 import "swiper/css";
 import "swiper/css/pagination";
-import { Skeleton } from "@/components/ui";
+import { ImageOff, RefreshCw } from "lucide-react";
+import { BlocksRenderer, type BlocksContent } from "@strapi/blocks-react-renderer";
+import { ErrorState } from "@/components/shared";
 import { buildCmsImageUrl } from "@/lib/utils";
-import type { BlogPost } from "@/types";
+import {
+  cmsAdminUrl,
+  getBlogPlainText,
+  getBlogPosts,
+  hasRemoteCms,
+} from "@/lib/cms";
 
-const cmsUrl = import.meta.env.VITE_STRIPE_CMS_ADMIN_URL as string | undefined;
-const hasRemoteCms = Boolean(cmsUrl) && /^https?:\/\//i.test(cmsUrl!);
+const calculateTimeReading = (text: string) => {
+  const numberOfWords = text.trim().split(/\s+/).filter(Boolean).length;
+  return Math.max(1, Math.ceil(numberOfWords / 100));
+};
 
 const BlogPostPage = () => {
-  const [post, setPost] = useState<BlogPost>();
-  const [loading, setLoading] = useState<boolean>(true);
-  const [similiarPosts, setSimiliarPosts] = useState<BlogPost[]>([]);
-
   const { slug } = useParams();
 
-  useEffect(() => {
-    const fetchPost = async () => {
-      if (!hasRemoteCms) {
-        setLoading(false);
-        return;
-      }
+  const {
+    data: posts = [],
+    isLoading,
+    isFetching,
+    isError,
+    refetch,
+  } = useQuery({
+    queryKey: ["posts", cmsAdminUrl],
+    enabled: hasRemoteCms,
+    queryFn: getBlogPosts,
+  });
 
-      try {
-        const res = await axios.get(
-          `${cmsUrl}/api/posts?populate=*`,
-        );
-
-        const allPosts = res.data.data;
-
-        const currentPost = allPosts.find((p: BlogPost) => p.slug === slug);
-        const similiarPosts = allPosts
-          .filter((p: BlogPost) => p.slug !== slug)
-          .slice(0, 6);
-
-        setPost(currentPost);
-        setSimiliarPosts(similiarPosts);
-      } catch (err) {
-        console.error("Błąd pobierania posta", err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchPost();
-  }, [slug]);
+  const post = posts.find((item) => item.slug === slug);
+  const similarPosts = posts.filter((item) => item.slug !== slug).slice(0, 6);
+  const postImageUrl = buildCmsImageUrl(post?.image?.[0]?.url);
+  const postPlainText = getBlogPlainText(post?.content);
 
   useEffect(() => {
     if (post?.title) {
       document.title = `${post.title} | Schronisko`;
-    } else if (!loading) {
-      document.title = "Post | Schronisko";
     }
-  }, [post?.title, loading]);
+  }, [post?.title]);
 
-  const postJsonLd = post
-    ? {
-        "@context": "https://schema.org",
-        "@type": "BlogPosting",
-        headline: post.title,
-        datePublished: post.createdAt,
-        image: buildCmsImageUrl(post.image?.[0]?.url),
-        url: `/blog/${post.slug}`,
-      }
-    : null;
-
-  if (loading) {
+  if (isLoading) {
     return (
       <main>
         <Container className="space-y-12 md:space-y-16">
@@ -90,7 +68,7 @@ const BlogPostPage = () => {
             </div>
           </section>
           <section
-            id="similiarPosts"
+            id="similarPosts"
             className="hidden space-y-6 md:block lg:space-y-8"
             aria-hidden="true"
           >
@@ -113,74 +91,99 @@ const BlogPostPage = () => {
     );
   }
 
-  const calculateTimeReading = (text: string) => {
-    const numberOfWords = text.trim().split(/\s+/).length;
-    return Math.max(1, Math.ceil(numberOfWords / 100));
-  };
+  if (isError) {
+    return (
+      <main>
+        <Container className="space-y-12 md:space-y-16">
+          <ErrorState
+            title="Wystąpił błąd"
+            description="Wystąpił błąd podczas ładowania posta. Odśwież stronę lub spróbuj później."
+          >
+            <Button
+              variant="destructive"
+              onClick={() => refetch()}
+              disabled={isFetching}
+            >
+              <RefreshCw
+                className={isFetching ? "animate-spin" : undefined}
+                aria-hidden="true"
+              />
+              {isFetching ? "Ponawianie..." : "Spróbuj ponownie"}
+            </Button>
+          </ErrorState>
+        </Container>
+      </main>
+    );
+  }
 
-  const getPlainText = (content: { children: { text: string }[] }[]) => {
-    return content
-      ?.map((block) =>
-        block.children?.map((child: { text: string }) => child.text).join(" "),
-      )
-      .join(" ");
+  if (!post) {
+    return <Navigate to="/blog" replace />;
+  }
+
+  const postJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "BlogPosting",
+    headline: post.title,
+    datePublished: post.createdAt,
+    image: postImageUrl,
+    url: `/blog/${post.slug}`,
   };
 
   return (
     <main>
-      {postJsonLd && (
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(postJsonLd) }}
-        />
-      )}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(postJsonLd) }}
+      />
       <Container className="space-y-12 md:space-y-16">
         <article
           id="post"
           aria-labelledby="blog-post-heading"
           className="space-y-6 gap-x-8 lg:flex lg:space-y-8"
         >
-          <div className="relative mx-auto aspect-square max-h-100 flex-1 overflow-hidden rounded-full bg-black/20">
-            {post?.image?.[0]?.url ? (
+          <div className="relative mx-auto grid aspect-square max-h-100 flex-1 place-items-center overflow-hidden rounded-full bg-black/20">
+            {postImageUrl ? (
               <img
-                src={buildCmsImageUrl(post.image[0].url)}
+                src={postImageUrl}
                 alt={post.title}
                 width={400}
                 height={400}
                 className="absolute size-full object-cover object-center"
               />
-            ) : null}
+            ) : (
+              <ImageOff
+                className="size-10 text-gray-300 md:size-20"
+                aria-hidden="true"
+              />
+            )}
           </div>
           <div className="flex-2 space-y-4">
             <h1
               id="blog-post-heading"
               className="text-3xl font-bold text-green-900 md:text-5xl"
             >
-              {post?.title}
+              {post.title}
             </h1>
             <ul
               aria-label="Informacje o poście"
               className="text-sm leading-6 font-medium md:text-base md:leading-7"
             >
               <li>
-                Opublikowano{" "}
-                {new Date(post?.createdAt as string).toLocaleDateString(
-                  "pl-PL",
-                )}{" "}
+                Opublikowano {new Date(post.createdAt).toLocaleDateString("pl-PL")}{" "}
                 r.
               </li>
               <li>
-                Szacowany czas czytania:{" "}
-                {calculateTimeReading(getPlainText(post?.content || []))} min
+                Szacowany czas czytania: {calculateTimeReading(postPlainText)}{" "}
+                min
               </li>
             </ul>
-            <p className="text-sm leading-6 md:text-base md:leading-7">
-              {getPlainText(post?.content || [])}
-            </p>
+            <div className="space-y-4 text-sm leading-6 md:text-base md:leading-7 [&_a]:text-green-800 [&_a]:underline [&_h2]:text-xl [&_h2]:font-semibold [&_h3]:text-lg [&_h3]:font-semibold [&_ol]:list-decimal [&_ol]:pl-5 [&_ul]:list-disc [&_ul]:pl-5">
+              <BlocksRenderer content={post.content as BlocksContent} />
+            </div>
           </div>
         </article>
         <section
-          id="similiarPosts"
+          id="similarPosts"
           aria-labelledby="similar-posts-heading"
           className="space-y-6 lg:space-y-8"
         >
@@ -205,43 +208,54 @@ const BlogPostPage = () => {
               },
             }}
           >
-            {similiarPosts.map((similarPost: BlogPost) => (
-              <SwiperSlide key={similarPost.slug}>
-                <Link
-                  to={`/blog/${similarPost.slug}`}
-                  className="space-y-2 transition-colors hover:text-green-900"
-                >
-                  <div className="relative grid aspect-video place-items-center overflow-hidden rounded-2xl bg-black/5">
-                    {similarPost.image?.[0]?.url ? (
-                      <img
-                        src={buildCmsImageUrl(similarPost.image[0].url)}
-                        alt={similarPost.title}
-                        width={640}
-                        height={360}
-                        className="absolute size-full object-cover object-center"
-                      />
-                    ) : null}
-                  </div>
-                  <div className="space-y-1">
-                    <h3 className="font-semibold lg:text-lg">
-                      {similarPost.title}
-                    </h3>
-                    <ul className="text-xs leading-6 font-medium md:text-sm md:leading-7">
-                      <li>
-                        Opublikowano{" "}
-                        {new Date(
-                          similarPost.createdAt as string,
-                        ).toLocaleDateString("pl-PL")}{" "}
-                        r.
-                      </li>
-                    </ul>
-                    <p className="line-clamp-2 text-xs leading-5 lg:text-sm lg:leading-6">
-                      {getPlainText(similarPost.content)}
-                    </p>
-                  </div>
-                </Link>
-              </SwiperSlide>
-            ))}
+            {similarPosts.map((similarPost) => {
+              const similarImageUrl = buildCmsImageUrl(
+                similarPost.image?.[0]?.url,
+              );
+
+              return (
+                <SwiperSlide key={similarPost.slug}>
+                  <Link
+                    to={`/blog/${similarPost.slug}`}
+                    className="space-y-2 transition-colors hover:text-green-900"
+                  >
+                    <div className="relative grid aspect-video place-items-center overflow-hidden rounded-2xl bg-black/5">
+                      {similarImageUrl ? (
+                        <img
+                          src={similarImageUrl}
+                          alt={similarPost.title}
+                          width={640}
+                          height={360}
+                          className="absolute size-full object-cover object-center"
+                        />
+                      ) : (
+                        <ImageOff
+                          className="absolute size-10 object-cover text-gray-300 md:size-20"
+                          aria-hidden="true"
+                        />
+                      )}
+                    </div>
+                    <div className="space-y-1">
+                      <h3 className="font-semibold lg:text-lg">
+                        {similarPost.title}
+                      </h3>
+                      <ul className="text-xs leading-6 font-medium md:text-sm md:leading-7">
+                        <li>
+                          Opublikowano{" "}
+                          {new Date(similarPost.createdAt).toLocaleDateString(
+                            "pl-PL",
+                          )}{" "}
+                          r.
+                        </li>
+                      </ul>
+                      <p className="line-clamp-2 text-xs leading-5 lg:text-sm lg:leading-6">
+                        {getBlogPlainText(similarPost.content)}
+                      </p>
+                    </div>
+                  </Link>
+                </SwiperSlide>
+              );
+            })}
             <SwiperSlide>
               <Link
                 to="/blog"

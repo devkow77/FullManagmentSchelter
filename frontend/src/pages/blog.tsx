@@ -1,36 +1,30 @@
 import { useEffect } from "react";
-import { Container, Skeleton } from "@/components/ui";
+import { Button, Container, Skeleton } from "@/components/ui";
 import { useQuery } from "@tanstack/react-query";
-import axios from "axios";
 import { Link } from "react-router";
+import { ImageOff, RefreshCw } from "lucide-react";
 import { BlogCard, EmptyState, ErrorState } from "@/components/shared";
 import { buildCmsImageUrl } from "@/lib/utils";
-import type { BlogPost } from "@/types";
+import { cmsAdminUrl, getBlogPlainText, getBlogPosts, hasRemoteCms } from "@/lib/cms";
 
 const PAGE_TITLE = "Nasze życie schroniska | Schronisko";
-const cmsUrl = import.meta.env.VITE_STRIPE_CMS_ADMIN_URL as string | undefined;
-const hasRemoteCms = Boolean(cmsUrl) && /^https?:\/\//i.test(cmsUrl!);
 
 const BlogPage = () => {
-  const getPosts = async () => {
-    const res = await axios.get<{ data: BlogPost[] }>(
-      `${cmsUrl}/api/posts?populate=*`,
-    );
-    return res.data.data ?? [];
-  };
-
   const {
     data: posts = [],
     isLoading,
-    error,
+    isFetching,
+    isError,
+    refetch,
   } = useQuery({
-    queryKey: ["posts", cmsUrl],
+    queryKey: ["posts", cmsAdminUrl],
     enabled: hasRemoteCms,
-    queryFn: getPosts,
+    queryFn: getBlogPosts,
   });
 
   const featuredPost = posts[0];
   const otherPosts = posts.slice(1);
+  const featuredImageUrl = buildCmsImageUrl(featuredPost?.image?.[0]?.url);
 
   useEffect(() => {
     document.title = PAGE_TITLE;
@@ -51,14 +45,6 @@ const BlogPage = () => {
           })),
         }
       : null;
-
-  const getPlainText = (content: { children: { text: string }[] }[]) => {
-    return content
-      ?.map((block) =>
-        block.children?.map((child: { text: string }) => child.text).join(" "),
-      )
-      .join(" ");
-  };
 
   return (
     <main>
@@ -89,7 +75,7 @@ const BlogPage = () => {
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:gap-6">
             {isLoading ? (
               <LoadingBlog />
-            ) : error ? (
+            ) : isError ? (
               <ErrorState
                 title="Wystąpił błąd"
                 description={
@@ -98,8 +84,20 @@ const BlogPage = () => {
                     później ponownie.
                   </>
                 }
-              />
-            ) : posts.length === 0 ? (
+              >
+                <Button
+                  variant="destructive"
+                  onClick={() => refetch()}
+                  disabled={isFetching}
+                >
+                  <RefreshCw
+                    className={isFetching ? "animate-spin" : undefined}
+                    aria-hidden="true"
+                  />
+                  {isFetching ? "Ponawianie..." : "Spróbuj ponownie"}
+                </Button>
+              </ErrorState>
+            ) : posts.length === 0 || !featuredPost ? (
               <EmptyState
                 title="Brak postów"
                 description={
@@ -109,22 +107,27 @@ const BlogPage = () => {
                   </>
                 }
               />
-            ) : featuredPost ? (
+            ) : (
               <>
                 <Link
                   to={`/blog/${featuredPost.slug}`}
                   className="space-y-2 transition-colors hover:text-green-900 sm:col-span-2 lg:space-y-4"
                 >
-                  <div className="relative aspect-video overflow-hidden rounded-2xl bg-gray-100">
-                    {featuredPost.image?.[0]?.url ? (
+                  <div className="relative grid aspect-video place-items-center overflow-hidden rounded-2xl bg-gray-100">
+                    {featuredImageUrl ? (
                       <img
-                        src={buildCmsImageUrl(featuredPost.image[0].url)}
+                        src={featuredImageUrl}
                         alt={featuredPost.title}
                         width={1280}
                         height={720}
                         className="absolute size-full object-cover"
                       />
-                    ) : null}
+                    ) : (
+                      <ImageOff
+                        className="absolute size-10 object-cover text-gray-300 md:size-20"
+                        aria-hidden="true"
+                      />
+                    )}
                   </div>
                   <div className="space-y-1 sm:space-y-2">
                     <h2 className="font-semibold sm:text-lg lg:text-2xl">
@@ -138,15 +141,15 @@ const BlogPage = () => {
                       r.
                     </p>
                     <p className="line-clamp-3 text-xs leading-5 sm:text-sm sm:leading-6">
-                      {getPlainText(featuredPost.content)}
+                      {getBlogPlainText(featuredPost.content)}
                     </p>
                   </div>
                 </Link>
-                {otherPosts.map((post: BlogPost) => (
+                {otherPosts.map((post) => (
                   <BlogCard key={post.slug} post={post} />
                 ))}
               </>
-            ) : null}
+            )}
           </div>
         </section>
       </Container>
@@ -154,7 +157,6 @@ const BlogPage = () => {
   );
 };
 
-// UI podczas ładowania postów
 const LoadingBlog = () => {
   return (
     <>
@@ -166,7 +168,7 @@ const LoadingBlog = () => {
           <Skeleton className="h-10 w-70 md:w-140" />
         </div>
       </div>
-      {Array.from({ length: 4 }).map((_, index: number) => (
+      {Array.from({ length: 4 }).map((_, index) => (
         <div key={index} className="space-y-4" aria-hidden="true">
           <Skeleton className="relative aspect-video" />
           <div className="space-y-2">

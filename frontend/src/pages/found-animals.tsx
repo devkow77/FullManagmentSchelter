@@ -1,6 +1,6 @@
-import { Container, Skeleton } from "@/components/ui";
-import { styleAnimalStatus } from "@/lib/utils";
-import { ImageOff, Loader2 } from "lucide-react";
+import { Button, Container, Skeleton } from "@/components/ui";
+import { formatAnimalStatus, styleAnimalStatus } from "@/lib/utils";
+import { ImageOff, Loader2, RefreshCw } from "lucide-react";
 import { Link } from "react-router";
 import axios from "axios";
 import { useEffect, useMemo, useRef } from "react";
@@ -30,10 +30,12 @@ const FoundAnimalsPage = () => {
   const {
     data,
     isPending,
+    isFetching,
     isFetchingNextPage,
     hasNextPage,
     fetchNextPage,
     isError,
+    refetch,
   } = useInfiniteQuery({
     queryKey: ["found-animals"],
     queryFn: ({ pageParam }) => getFoundAnimalsPage(pageParam),
@@ -65,7 +67,6 @@ const FoundAnimalsPage = () => {
     () => data?.pages.flatMap((page) => page.data) ?? [],
     [data],
   );
-  const total = data?.pages[0]?.total ?? 0;
 
   useEffect(() => {
     document.title = PAGE_TITLE;
@@ -78,7 +79,7 @@ const FoundAnimalsPage = () => {
       "@context": "https://schema.org",
       "@type": "ItemList",
       name: "Znalezione zwierzęta",
-      numberOfItems: total,
+      numberOfItems: foundAnimals.length,
       itemListElement: foundAnimals.map((animal, index) => ({
         "@type": "ListItem",
         position: index + 1,
@@ -86,7 +87,7 @@ const FoundAnimalsPage = () => {
         url: `/zwierzeta/${animal.id}`,
       })),
     };
-  }, [foundAnimals, total]);
+  }, [foundAnimals]);
 
   return (
     <main>
@@ -119,11 +120,23 @@ const FoundAnimalsPage = () => {
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 lg:gap-6">
             {isPending ? (
               <LoadingFoundAnimals />
-            ) : isError ? (
+            ) : isError && foundAnimals.length === 0 ? (
               <ErrorState
                 title="Wystąpił błąd"
                 description="Wystąpił błąd podczas ładowania zwierząt. Odśwież stronę lub spróbuj później."
-              />
+              >
+                <Button
+                  variant="destructive"
+                  onClick={() => refetch()}
+                  disabled={isFetching}
+                >
+                  <RefreshCw
+                    className={isFetching ? "animate-spin" : undefined}
+                    aria-hidden="true"
+                  />
+                  {isFetching ? "Ponawianie..." : "Spróbuj ponownie"}
+                </Button>
+              </ErrorState>
             ) : foundAnimals.length === 0 ? (
               <EmptyState
                 title="Brak znalezionych zwierząt"
@@ -163,7 +176,7 @@ const FoundAnimalCard = ({ foundAnimal }: { foundAnimal: FoundAnimal }) => {
         <span
           className={`${styleAnimalStatus("ZNALEZIONY")} absolute top-3 right-3 z-2 rounded-2xl px-4 py-2 text-xs font-semibold`}
         >
-          ZNALEZIONY
+          {formatAnimalStatus.ZNALEZIONY}
         </span>
         {foundAnimal.imageUrl.length > 0 ? (
           <img
@@ -182,7 +195,8 @@ const FoundAnimalCard = ({ foundAnimal }: { foundAnimal: FoundAnimal }) => {
       </div>
       <div className="space-y-1">
         <h3 className="font-semibold lg:text-lg">
-          Znaleziono dnia {new Date(foundAnimal.foundAt).toLocaleDateString()} w
+          Znaleziono dnia{" "}
+          {new Date(foundAnimal.foundAt).toLocaleDateString("pl-PL")} w
           miejscowości {foundAnimal.foundLocation || "nieznanej"}.
         </h3>
         <p className="line-clamp-4 text-xs leading-5 lg:text-sm lg:leading-6">
