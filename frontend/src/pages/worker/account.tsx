@@ -43,13 +43,13 @@ const accountConfig = {
   ADMINISTRATOR: {
     panelTitle: "Panel administratora",
     pageTitle: "Panel administratora | Schronisko",
-    avatarSrc: "/admin-logged-avatar.png",
+    avatarSrc: "/avatars/admin-logged-avatar.png",
     avatarAlt: "profilowe administratora",
   },
   PRACOWNIK: {
     panelTitle: "Panel pracownika",
     pageTitle: "Panel pracownika | Schronisko",
-    avatarSrc: "/worker-logged-avatar.png",
+    avatarSrc: "/avatars/worker-logged-avatar.png",
     avatarAlt: "profilowe pracownika",
   },
 } as const;

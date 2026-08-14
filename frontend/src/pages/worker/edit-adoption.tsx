@@ -45,47 +45,13 @@ import {
   editAdoptionSchema,
   type EditAdoptionFormData,
 } from "@/schemas/adoption.schema";
-
-type InitialDecisionStatus = "ZAAKCEPTOWANA" | "ODRZUCONA" | "ANULOWANA";
-type PostMeetingDecisionStatus = "ZAKONCZONA" | "ANULOWANA";
-type DecisionStatus = InitialDecisionStatus | PostMeetingDecisionStatus;
-
-type AdoptionUser = {
-  id: number;
-  fullName: string;
-  gender: string;
-  phoneNumber?: string | null;
-  city?: string | null;
-  postalCode?: string | null;
-  street?: string | null;
-  dateOfBirth?: string | null;
-  hasChildren?: boolean;
-  hasOtherAnimals?: boolean;
-  housingType?: string | null;
-  hasGardenOrBalcony?: boolean;
-  livingConditions?: string | null;
-  imageUrl?: string | null;
-  adminNote?: string | null;
-};
-
-type AdoptionAnimal = {
-  id: number;
-  name: string;
-  type: string;
-  gender: string;
-  dateOfBirth: string;
-  healthStatus: string;
-  traits: string;
-  imageUrl: string[];
-};
-
-type AdoptionDetails = {
-  status: string;
-  message: string | null;
-  employeeNote: string | null;
-  user: AdoptionUser;
-  animal: AdoptionAnimal;
-};
+import type {
+  AdoptionDetails,
+  AdoptionUser,
+  DecisionStatus,
+  InitialDecisionStatus,
+  PostMeetingDecisionStatus,
+} from "@/types";
 
 const INITIAL_DECISION_OPTIONS: {
   value: InitialDecisionStatus;

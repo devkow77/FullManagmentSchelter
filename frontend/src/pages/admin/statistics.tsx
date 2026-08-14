@@ -43,104 +43,11 @@ import {
   formatMedicalRecordStatus,
   formatMedicalRecordType,
 } from "@/lib/utils";
-
-type WorkerTotals = {
-  total: number;
-  administrators: number;
-  employees: number;
-  twoFactorEnabled: number;
-  twoFactorPercent: number;
-  men: number;
-  women: number;
-};
-
-type WorkerStatsResponse = {
-  totals: WorkerTotals;
-  newWorkersByMonth: { month: string; count: number }[];
-  roleDistribution: { role: string; value: number }[];
-  genderDistribution: { gender: string; value: number }[];
-  adoptionActivity: { name: string; adoptions: number }[];
-};
-
-type NamedCount = { key: string; value: number };
-
-type ShelterStatsResponse = {
-  overview: {
-    animals: number;
-    seekingHome: number;
-    adoptions: number;
-    pendingAdoptions: number;
-    cages: number;
-    cageOccupancyPercent: number;
-    medicalRecords: number;
-    medicalCostTotal: number;
-    activeNeeds: number;
-    users: number;
-    newsletterSubscribers: number;
-  };
-  animals: {
-    totals: {
-      total: number;
-      seekingHome: number;
-      found: number;
-      inAdoption: number;
-      adopted: number;
-    };
-    byStatus: NamedCount[];
-    byType: NamedCount[];
-    byHealth: NamedCount[];
-    newByMonth: { month: string; count: number }[];
-  };
-  adoptions: {
-    totals: {
-      total: number;
-      pending: number;
-      accepted: number;
-      rejected: number;
-      canceled: number;
-      completed: number;
-    };
-    byStatus: NamedCount[];
-    newByMonth: { month: string; count: number }[];
-  };
-  cages: {
-    totals: {
-      total: number;
-      occupied: number;
-      free: number;
-      occupancyPercent: number;
-    };
-    byZone: { zone: string; total: number; occupied: number }[];
-  };
-  medical: {
-    totals: {
-      total: number;
-      toDo: number;
-      inProgress: number;
-      done: number;
-      costTotal: number;
-    };
-    byStatus: NamedCount[];
-    byType: NamedCount[];
-    costByMonth: { month: string; cost: number }[];
-  };
-  needs: {
-    totals: {
-      active: number;
-      inactive: number;
-      total: number;
-    };
-    byCategory: NamedCount[];
-  };
-  users: {
-    totals: {
-      total: number;
-      banned: number;
-      formFilled: number;
-      newsletterSubscribers: number;
-    };
-  };
-};
+import type {
+  NamedCount,
+  ShelterStatsResponse,
+  WorkerStatsResponse,
+} from "@/types";
 
 const NEED_CATEGORY_LABELS: Record<string, string> = {
   JEDZENIE: "Jedzenie",

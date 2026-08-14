@@ -11,30 +11,14 @@ import axios from "axios";
 import { useInfiniteQuery } from "@tanstack/react-query";
 import { useFavoritesStore } from "@/store/useFavoritesStore";
 import { useEffect, useMemo, useRef } from "react";
+import type { FavouriteAnimal, PaginatedResponse } from "@/types";
 
 const PAGE_SIZE = 6;
 const PAGE_TITLE = "Ulubione zwierzęta | Schronisko";
 
-interface FavouritesAnimalsResponse {
-  id: number;
-  name: string;
-  description: string;
-  gender: string;
-  traits: string;
-  dateOfBirth: Date | string;
-  type: string;
-  imageUrl: string[];
-}
-
-type PageResponse = {
-  data: FavouritesAnimalsResponse[];
-  total: number;
-  page: number;
-  pageSize: number;
-  hasMore: boolean;
+type FavouritesPageResult = PaginatedResponse<FavouriteAnimal> & {
+  missingIds: number[];
 };
-
-type FavouritesPageResult = PageResponse & { missingIds: number[] };
 
 const getFavouritesPage = async ({
   pageParam,
@@ -49,7 +33,7 @@ const getFavouritesPage = async ({
   const results = await Promise.all(
     pageIds.map(async (id) => {
       try {
-        const res = await axios.get<FavouritesAnimalsResponse>(
+        const res = await axios.get<FavouriteAnimal>(
           `/api/animals/${id}`,
         );
         return { id, animal: res.data, missing: false };
@@ -62,7 +46,7 @@ const getFavouritesPage = async ({
 
   const data = results
     .map((result) => result.animal)
-    .filter((animal): animal is FavouritesAnimalsResponse => animal !== null);
+    .filter((animal): animal is FavouriteAnimal => animal !== null);
 
   return {
     data,

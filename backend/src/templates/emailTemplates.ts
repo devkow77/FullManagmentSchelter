@@ -1,3 +1,5 @@
+import type { AdoptionStatusEmailKind } from '../types';
+
 const COLORS = {
   green950: '#052e16',
   green900: '#14532d',
@@ -411,15 +413,6 @@ export const adoptionApplicationConfirmationText = (params: {
   accountUrl: string;
 }) =>
   `Dziękujemy za wniosek o adopcję!\n\nCześć ${params.userName}!\n\nPotwierdzamy przyjęcie Twojego wniosku o adopcję zwierzęcia ${params.animalName}.\n\nWniosek zostanie rozpatrzony w ciągu kilku dni roboczych. Skontaktujemy się z Tobą po podjęciu decyzji.\n\nStatus wniosku: ${params.accountUrl}\n\nDo czasu decyzji możesz anulować wniosek z poziomu konta.`;
-
-export type AdoptionStatusEmailKind =
-  | 'accepted'
-  | 'rejected'
-  | 'cancelled'
-  | 'completed'
-  | 'cancelled_after_meeting'
-  | 'cancelled_other_accepted'
-  | 'expired_no_visit';
 
 const adoptionStatusEmailCopy: Record<
   AdoptionStatusEmailKind,

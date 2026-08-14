@@ -11,8 +11,8 @@ import { chatMessageSchema } from '../validators/chat.validator';
 import {
   OTHER_CATEGORY_MESSAGE,
   replyWithGemini,
-  type AnimalCatalogItem,
 } from '../services/geminiService';
+import type { AnimalCatalogItem } from '../types';
 
 const SHELTER_FAQ = [
   {

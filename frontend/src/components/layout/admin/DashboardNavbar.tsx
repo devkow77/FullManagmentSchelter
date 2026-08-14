@@ -1,4 +1,3 @@
-import type { IconType } from "react-icons";
 import {
   PawPrint,
   UsersRound,
@@ -17,6 +16,7 @@ import {
 import { Link, useLocation } from "react-router";
 import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
+import type { DashboardNavOption } from "@/types";
 
 const dailyCareStatusQueryKey = ["animals", "daily-care-status"] as const;
 const animalNeedsStatusQueryKey = ["animals", "needs-status"] as const;
@@ -72,13 +72,7 @@ const getWeekCoverageStatus = async () => {
   return res.data;
 };
 
-interface AdminOptions {
-  icon?: IconType;
-  href: string;
-  name: string;
-}
-
-const adminOptions: AdminOptions[] = [
+const adminOptions: DashboardNavOption[] = [
   {
     icon: PawPrint,
     href: "/pracownik/zwierzeta",

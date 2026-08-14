@@ -1,13 +1,9 @@
-import { Request, Response, NextFunction } from 'express';
+import { Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import { StatusCodes } from 'http-status-codes';
 import { Role } from '../generated/prisma/enums';
 import prisma from '../prisma';
-
-export interface AuthRequest extends Request {
-  userId?: number;
-  userRole?: Role;
-}
+import type { AuthRequest, JwtPayload } from '../types';
 
 // FUNKCJA SPRAWDZAJACA CZY UZYTKOWNIK JEST ZALOGOWANY
 export const authenticateUser = async (
@@ -24,10 +20,7 @@ export const authenticateUser = async (
   }
 
   try {
-    const payload = jwt.verify(token, process.env.JWT_SECRET!) as {
-      userId: number;
-      userRole: Role;
-    };
+    const payload = jwt.verify(token, process.env.JWT_SECRET!) as JwtPayload;
 
     const user = await prisma.user.findUnique({
       where: { id: payload.userId },

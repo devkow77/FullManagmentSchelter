@@ -6,14 +6,7 @@ import { CircleAlert, Info } from "lucide-react";
 import { Link } from "react-router";
 import { BlogCard } from "@/components/shared";
 import { buildCmsImageUrl } from "@/lib/utils";
-
-interface Post {
-  slug: string;
-  title: string;
-  content: { children: { text: string }[] }[];
-  image: { url: string }[];
-  createdAt: string;
-}
+import type { BlogPost } from "@/types";
 
 const PAGE_TITLE = "Nasze życie schroniska | Schronisko";
 const cmsUrl = import.meta.env.VITE_STRIPE_CMS_ADMIN_URL as string | undefined;
@@ -21,7 +14,7 @@ const hasRemoteCms = Boolean(cmsUrl) && /^https?:\/\//i.test(cmsUrl!);
 
 const BlogPage = () => {
   const getPosts = async () => {
-    const res = await axios.get<{ data: Post[] }>(
+    const res = await axios.get<{ data: BlogPost[] }>(
       `${cmsUrl}/api/posts?populate=*`,
     );
     return res.data.data ?? [];
@@ -131,7 +124,7 @@ const BlogPage = () => {
                     </p>
                   </div>
                 </Link>
-                {otherPosts.map((post: Post) => (
+                {otherPosts.map((post: BlogPost) => (
                   <BlogCard key={post.slug} post={post} />
                 ))}
               </>

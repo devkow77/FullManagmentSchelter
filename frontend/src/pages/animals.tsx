@@ -11,34 +11,11 @@ import { MultiValueSelector, AgeSlider, AnimalCard } from "@/components/shared";
 import { keepPreviousData, useInfiniteQuery } from "@tanstack/react-query";
 import { cn } from "@/lib/utils";
 import { CircleAlert, Info, Loader2 } from "lucide-react";
+import type { AnimalListItem, PaginatedResponse } from "@/types";
 
 const PAGE_SIZE = 6;
 const DEFAULT_AGE_RANGE: [number, number] = [0, 25];
 const PAGE_TITLE = "Wszystkie zwierzęta | Schronisko";
-
-interface AnimalListItem {
-  id: number;
-  name: string;
-  type: string;
-  gender: string;
-  size: string;
-  traits: string[];
-  dateOfBirth: Date | string;
-  status: string;
-  healthStatus: string;
-  imageUrl: string[];
-  needsCount: number;
-  nextVisitDate: Date | string;
-  description: string;
-}
-
-type PageResponse = {
-  data: AnimalListItem[];
-  total: number;
-  page: number;
-  pageSize: number;
-  hasMore: boolean;
-};
 
 interface Filters {
   types: string[];
@@ -72,7 +49,7 @@ const getAnimalsPage = async ({ pageParam, filters }: PageParams) => {
     params.set("ageMax", String(filters.ageRange[1]));
   }
 
-  const res = await axios.get<PageResponse>(
+  const res = await axios.get<PaginatedResponse<AnimalListItem>>(
     `/api/animals?${params.toString()}`,
   );
 

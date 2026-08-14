@@ -19,7 +19,7 @@ import {
   animalHealthStatusValues,
   animalEnergyLevelOptions,
 } from "@/constants/animal.constants";
-import type { Cage } from "@/types/animal";
+import type { Cage } from "@/types";
 import { useQuery } from "@tanstack/react-query";
 
 const getAvailableCages = async () => {

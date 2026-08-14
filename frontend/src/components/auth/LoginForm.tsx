@@ -6,6 +6,7 @@ import axios, { AxiosError } from "axios";
 import { Link, useNavigate } from "react-router";
 import { toast } from "sonner";
 import { useAuth } from "@/context/AuthContext";
+import type { LoginResponse } from "@/types";
 
 const loginSchema = z.object({
   email: z
@@ -16,18 +17,6 @@ const loginSchema = z.object({
 });
 
 type LoginFormData = z.infer<typeof loginSchema>;
-
-interface LoginResponse {
-  requires2FA: boolean;
-  tempToken: string;
-  user: {
-    id: number;
-    fullName: string;
-    email: string;
-    role: "UZYTKOWNIK" | "PRACOWNIK" | "ADMINISTRATOR";
-    twoFactorEnabled: boolean;
-  };
-}
 
 type LoginFormProps = {
   on2FARequired: (tempToken: string) => void;

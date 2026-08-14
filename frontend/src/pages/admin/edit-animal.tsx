@@ -16,7 +16,7 @@ import {
   getMinNextVisitDate,
   getMaxPastOrTodayDate,
 } from "@/schemas/animal.schema";
-import type { Animal, Cage } from "@/types/animal";
+import type { Animal, Cage } from "@/types";
 import {
   animalTypeValues,
   animalGenderValues,

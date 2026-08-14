@@ -13,31 +13,7 @@ import { Button, Input } from "@/components/ui";
 import { shortFaqData } from "@/components/shared/ShortFaqList";
 import { useAuth } from "@/context/AuthContext";
 import { calculateAge, cn, formatAnimalEnergyLevel } from "@/lib/utils";
-
-type ChatAnimal = {
-  id: number;
-  name: string;
-  imageUrl: string[];
-  dateOfBirth: string | Date;
-  description: string;
-  breed?: string;
-  energyLevel?: string;
-  reason?: string;
-};
-
-type ChatMessage = {
-  id: string;
-  role: "user" | "assistant";
-  content: string;
-  animals?: ChatAnimal[];
-  isError?: boolean;
-};
-
-type ChatResponse = {
-  category?: "FIND_ANIMAL" | "SHELTER_INFO" | "OTHER";
-  message: string;
-  animals: ChatAnimal[];
-};
+import type { ChatAnimal, ChatMessage, ChatResponse } from "@/types";
 
 /** Krótka etykieta na chipie + pełna treść wysyłana do API */
 const SUGGESTIONS = [

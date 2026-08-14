@@ -1,17 +1,10 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import axios from "axios";
-
-type User = {
-  id: number;
-  fullName: string;
-  email: string;
-  role: "UZYTKOWNIK" | "PRACOWNIK" | "ADMINISTRATOR";
-  twoFactorEnabled: boolean;
-};
+import type { AuthUser } from "@/types";
 
 type AuthContextType = {
-  user: User | null;
-  setUser: (user: User | null) => void;
+  user: AuthUser | null;
+  setUser: (user: AuthUser | null) => void;
   loading: boolean;
   logout: () => Promise<void>;
 };
@@ -19,14 +12,14 @@ type AuthContextType = {
 export const AuthContext = createContext<AuthContextType | null>(null);
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<AuthUser | null>(null);
   const [loading, setLoading] = useState(true);
 
   // sprawdzamy zalogowanego usera przy starcie (gość = 200 + null, bez 401)
   useEffect(() => {
     const handleCheckAuth = async () => {
       try {
-        const res = await axios.get<User | null>("/api/auth/info", {
+        const res = await axios.get<AuthUser | null>("/api/auth/info", {
           withCredentials: true,
         });
         setUser(res.data ?? null);

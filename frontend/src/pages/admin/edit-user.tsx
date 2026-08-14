@@ -36,31 +36,8 @@ import {
 } from "@/schemas/user.schema";
 import { userRoleValues, userGenderValues, housingTypeOptions } from "@/constants/user.constants";
 import { adoptionStatusOptions } from "@/constants/adoption.constants";
-import type { Adoption } from "@/types/adoption";
+import type { Adoption, UserDetails } from "@/types";
 import { formatAdoptionStatus, styleAdoptionStatus } from "@/lib/utils";
-
-type AppUser = {
-  id: number;
-  fullName: string;
-  email: string;
-  gender: string;
-  role: string;
-  phoneNumber: string | null;
-  city: string | null;
-  postalCode: string | null;
-  street: string | null;
-  dateOfBirth: string | null;
-  hasChildren: boolean;
-  hasOtherAnimals: boolean;
-  housingType: "DOM" | "MIESZKANIE" | "INNE" | null;
-  hasGardenOrBalcony: boolean;
-  livingConditions: string | null;
-  isBanned: boolean;
-  adminNote: string | null;
-  imageUrl: string | null;
-  twoFactorEnabled: boolean;
-  createdAt: string;
-};
 
 const formatDateInput = (value: string | Date | null | undefined) => {
   if (!value) return "";
@@ -145,7 +122,7 @@ const EditUserPage = () => {
   useEffect(() => {
     const fetchUser = async () => {
       try {
-        const res = await axios.get<AppUser>(`/api/users/${id}`, {
+        const res = await axios.get<UserDetails>(`/api/users/${id}`, {
           withCredentials: true,
         });
 

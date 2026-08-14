@@ -1,5 +1,6 @@
 import { StatusCodes } from 'http-status-codes';
 import prisma from '../prisma';
+import { paginate } from '../utils/pagination';
 import { type Request, type Response } from 'express';
 import { animalSchema } from '../validators/animal.validator';
 import { triggerNewAnimalNotification } from '../services/emailService';
@@ -15,7 +16,7 @@ import {
   mapAnimalListItem,
   parseAnimalsQuery,
 } from '../utils/animalHelpers';
-import type { AuthRequest } from '../middlewares/auth.middleware';
+import type { AuthRequest } from '../types';
 
 const DAILY_CARE_FIELDS = ['fed', 'watered', 'cleaned'] as const;
 type DailyCareField = (typeof DAILY_CARE_FIELDS)[number];
@@ -164,13 +165,16 @@ export const getAnimals = async (req: Request, res: Response) => {
         includeDailyCare ? getTodayZoneWorkersMap() : Promise.resolve(null),
       ]);
 
-      return res.status(StatusCodes.OK).json({
-        data: mapAnimalsWithZoneWorkers(animals, zoneWorkers),
-        total,
-        page,
-        pageSize,
-        hasMore: page * pageSize < total,
-      });
+      return res
+        .status(StatusCodes.OK)
+        .json(
+          paginate(
+            mapAnimalsWithZoneWorkers(animals, zoneWorkers),
+            total,
+            page,
+            pageSize,
+          ),
+        );
     }
 
     // -- Jesli bez paginacji -- //
@@ -541,11 +545,7 @@ export const getMyDailyCareTasks = async (req: AuthRequest, res: Response) => {
       );
 
       return res.status(StatusCodes.OK).json({
-        data: [],
-        total: 0,
-        page,
-        pageSize,
-        hasMore: false,
+        ...paginate([], 0, page, pageSize),
         zones: [],
       });
     }
@@ -622,11 +622,12 @@ export const getMyDailyCareTasks = async (req: AuthRequest, res: Response) => {
     ]);
 
     return res.status(StatusCodes.OK).json({
-      data: mapAnimalsWithZoneWorkers(animals, null),
-      total,
-      page,
-      pageSize,
-      hasMore: page * pageSize < total,
+      ...paginate(
+        mapAnimalsWithZoneWorkers(animals, null),
+        total,
+        page,
+        pageSize,
+      ),
       zones: zones.sort((a, b) => a.localeCompare(b)),
     });
   } catch (err) {

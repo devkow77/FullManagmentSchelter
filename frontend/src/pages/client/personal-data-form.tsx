@@ -18,26 +18,7 @@ import {
   housingTypeOptions,
 } from "@/constants/user.constants";
 import { useAuth } from "@/context/AuthContext";
-
-type OwnProfile = {
-  id: number;
-  fullName: string;
-  email: string;
-  gender: string;
-  phoneNumber: string | null;
-  city: string | null;
-  postalCode: string | null;
-  street: string | null;
-  dateOfBirth: string | null;
-  hasChildren: boolean;
-  hasOtherAnimals: boolean;
-  housingType: "DOM" | "MIESZKANIE" | "INNE" | null;
-  hasGardenOrBalcony: boolean;
-  livingConditions: string | null;
-  imageUrl: string | null;
-  twoFactorEnabled: boolean;
-  createdAt: string;
-};
+import type { OwnProfile } from "@/types";
 
 const formatDateInput = (value: string | Date | null | undefined) => {
   if (!value) return "";

@@ -29,7 +29,7 @@ import {
   DashboardPage,
   FilterToolbar,
 } from "@/components/shared";
-import type { AnimalType } from "@/types/animal";
+import type { CareField, MyTasksResponse, TodayCare } from "@/types";
 
 const dailyCareStatusQueryKey = ["animals", "daily-care-status"] as const;
 const PAGE_SIZE = 8;
@@ -43,33 +43,6 @@ const careStatusToParam = (
   if (label === "Wykonano") return "complete";
   if (label === "Niewykonano") return "incomplete";
   return null;
-};
-
-type TodayCare = {
-  fed: boolean;
-  watered: boolean;
-  cleaned: boolean;
-};
-
-type CareField = "fed" | "watered" | "cleaned";
-
-type AnimalListItem = {
-  id: number;
-  name: string;
-  type: AnimalType;
-  gender: string;
-  cageNumber: string | null;
-  imageUrl: string[];
-  todayCare: TodayCare;
-};
-
-type MyTasksResponse = {
-  data: AnimalListItem[];
-  total: number;
-  page: number;
-  pageSize: number;
-  hasMore: boolean;
-  zones: string[];
 };
 
 const emptyCare = (): TodayCare => ({

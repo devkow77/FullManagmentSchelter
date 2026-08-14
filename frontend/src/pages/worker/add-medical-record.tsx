@@ -13,7 +13,7 @@ import { useEffect, useMemo, useState } from "react";
 import axios from "axios";
 import { toast } from "sonner";
 import { formatAnimalType } from "@/lib/utils";
-import type { LabelValueType } from "@/types/common";
+import type { AnimalOption, LabelValueType, VetOption } from "@/types";
 import { SingleValueSelector, DashboardPage } from "@/components/shared";
 import {
   medicalRecordSchema,
@@ -24,22 +24,10 @@ import {
   medicalRecordStatusOptions,
 } from "@/constants/medical-record.constants";
 
-type Vet = {
-  id: number;
-  name: string;
-  clinic: string | null;
-};
-
-type Animal = {
-  id: number;
-  name: string;
-  type: string;
-};
-
 const AddMedicalRecordPage = () => {
   const navigate = useNavigate();
-  const [vets, setVets] = useState<Vet[]>([]);
-  const [animals, setAnimals] = useState<Animal[]>([]);
+  const [vets, setVets] = useState<VetOption[]>([]);
+  const [animals, setAnimals] = useState<AnimalOption[]>([]);
   const [isLoadingOptions, setIsLoadingOptions] = useState(true);
 
   const {
@@ -64,8 +52,8 @@ const AddMedicalRecordPage = () => {
     const fetchOptions = async () => {
       try {
         const [vetsRes, animalsRes] = await Promise.all([
-          axios.get<Vet[]>("/api/vets", { withCredentials: true }),
-          axios.get<Animal[]>("/api/animals", { withCredentials: true }),
+          axios.get<VetOption[]>("/api/vets", { withCredentials: true }),
+          axios.get<AnimalOption[]>("/api/animals", { withCredentials: true }),
         ]);
 
         setVets(vetsRes.data);

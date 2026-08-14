@@ -33,7 +33,7 @@ import {
   styleAdoptionStatus,
   styleUserRole,
 } from "@/lib/utils";
-import type { Adoption } from "@/types/adoption";
+import type { Adoption } from "@/types";
 import { CircleAlert, ImageOff, Info } from "lucide-react";
 
 const updatePasswordSchema = z
@@ -135,7 +135,7 @@ const AccountPage = () => {
         >
           <div className="relative mx-auto h-50 w-50 overflow-hidden rounded-full md:mx-0">
             <img
-              src="/client-logged-avatar.png"
+              src="/avatars/client-logged-avatar.png"
               alt="profilowe klienta"
               width={200}
               height={200}

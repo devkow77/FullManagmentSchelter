@@ -30,7 +30,7 @@ import {
   DashboardPage,
   FilterToolbar,
 } from "@/components/shared";
-import type { Cage } from "@/types/animal";
+import type { CageListItem, CageOptions, PaginatedResponse } from "@/types";
 import { formatCageLabel } from "@/lib/utils";
 
 const PAGE_SIZE = 8;
@@ -48,31 +48,6 @@ const cageStatusToParam = (
   return null;
 };
 
-type CageListItem = Cage & {
-  label: string;
-  isOccupied: boolean;
-  animal: {
-    id: number;
-    name: string;
-    type: string;
-    imageUrl: string[];
-  } | null;
-};
-
-type CagesPageResponse = {
-  data: CageListItem[];
-  total: number;
-  page: number;
-  pageSize: number;
-  hasMore: boolean;
-};
-
-type CageOptionsResponse = {
-  zones: string[];
-  numbers: number[];
-  byZone?: Record<string, number[]>;
-};
-
 type CagesFilters = {
   zones: string[];
   numbers: string[];
@@ -80,7 +55,7 @@ type CagesFilters = {
 };
 
 const getCageOptions = async () => {
-  const res = await axios.get<CageOptionsResponse>("/api/cages/options", {
+  const res = await axios.get<CageOptions>("/api/cages/options", {
     withCredentials: true,
   });
   return res.data;
@@ -109,7 +84,7 @@ const getCagesPage = async ({
     params.set("status", status);
   }
 
-  const res = await axios.get<CagesPageResponse>(
+  const res = await axios.get<PaginatedResponse<CageListItem>>(
     `/api/cages?${params.toString()}`,
     { withCredentials: true },
   );

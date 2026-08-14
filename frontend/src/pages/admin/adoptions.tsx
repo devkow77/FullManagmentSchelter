@@ -12,7 +12,7 @@ import {
 import { useState, useMemo } from "react";
 import axios from "axios";
 import { formatAdoptionStatus, styleAdoptionStatus } from "@/lib/utils";
-import type { Adoption } from "@/types/adoption";
+import type { Adoption, PaginatedResponse } from "@/types";
 import {
   MultiValueSelector,
   DashboardTableFooter,
@@ -28,14 +28,6 @@ import { keepPreviousData, useQuery } from "@tanstack/react-query";
 
 const PAGE_SIZE = 10;
 const adminAdoptionsQueryKey = ["admin-adoptions"] as const;
-
-type AdoptionsPageResponse = {
-  data: Adoption[];
-  total: number;
-  page: number;
-  pageSize: number;
-  hasMore: boolean;
-};
 
 type AdoptionsFilters = {
   statuses: string[];
@@ -57,7 +49,7 @@ const getAdoptionsPage = async ({
     params.set("status", filters.statuses.join(","));
   }
 
-  const res = await axios.get<AdoptionsPageResponse>(
+  const res = await axios.get<PaginatedResponse<Adoption>>(
     `/api/adoptions?${params.toString()}`,
   );
   return res.data;

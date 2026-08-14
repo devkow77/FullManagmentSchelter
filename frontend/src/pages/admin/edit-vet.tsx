@@ -19,8 +19,7 @@ import {
 } from "@/components/ui";
 import axios from "axios";
 import { vetSchema, type VetFormData } from "@/schemas/vet.schema";
-import type { Vet } from "@/types/vet";
-import type { MedicalRecord } from "@/types/medical-record";
+import type { MedicalRecord, Vet } from "@/types";
 import {
   styleMedicalRecordStatus,
   styleMedicalRecordType,

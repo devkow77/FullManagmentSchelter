@@ -5,26 +5,10 @@ import { Link } from "react-router";
 import axios from "axios";
 import { useEffect, useMemo, useRef } from "react";
 import { useInfiniteQuery } from "@tanstack/react-query";
+import type { FoundAnimal, PaginatedResponse } from "@/types";
 
 const PAGE_SIZE = 6;
 const PAGE_TITLE = "Znalezione zwierzęta | Schronisko";
-
-interface FoundAnimal {
-  id: number;
-  name: string;
-  imageUrl: string[];
-  description: string;
-  foundAt: string;
-  foundLocation: string;
-}
-
-type PageResponse = {
-  data: FoundAnimal[];
-  total: number;
-  page: number;
-  pageSize: number;
-  hasMore: boolean;
-};
 
 const getFoundAnimalsPage = async (pageParam: number) => {
   const params = new URLSearchParams({
@@ -34,7 +18,7 @@ const getFoundAnimalsPage = async (pageParam: number) => {
     status: "ZNALEZIONY",
   });
 
-  const res = await axios.get<PageResponse>(
+  const res = await axios.get<PaginatedResponse<FoundAnimal>>(
     `/api/animals?${params.toString()}`,
   );
 

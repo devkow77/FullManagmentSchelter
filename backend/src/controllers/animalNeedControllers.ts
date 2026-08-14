@@ -1,6 +1,7 @@
 import { StatusCodes } from 'http-status-codes';
 import { type Request, type Response } from 'express';
 import prisma from '../prisma';
+import { paginate } from '../utils/pagination';
 import { formatCageLabel } from '../selects/animal.select';
 import type { Prisma } from '../generated/prisma/client';
 import { AnimalNeedCategory } from '../generated/prisma/enums';
@@ -137,13 +138,9 @@ export const getAnimalNeeds = async (req: Request, res: Response) => {
         prisma.animalNeed.count({ where }),
       ]);
 
-      return res.status(StatusCodes.OK).json({
-        data: needs.map(mapNeed),
-        total,
-        page: pageNumber,
-        pageSize,
-        hasMore: pageNumber * pageSize < total,
-      });
+      return res
+        .status(StatusCodes.OK)
+        .json(paginate(needs.map(mapNeed), total, pageNumber, pageSize));
     }
 
     const needs = await prisma.animalNeed.findMany({

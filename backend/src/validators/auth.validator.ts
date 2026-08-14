@@ -1,12 +1,5 @@
 import { z } from 'zod';
 
-interface RegisterSchema {
-  fullName: string;
-  email: string;
-  password: string;
-  confirmPassword: string;
-}
-
 export const registerSchema = z
   .object({
     fullName: z
@@ -25,7 +18,7 @@ export const registerSchema = z
       ),
     confirmPassword: z.string(),
   })
-  .refine((data: RegisterSchema) => data.password === data.confirmPassword, {
+  .refine((data) => data.password === data.confirmPassword, {
     message: 'Hasła muszą być takie same.',
     path: ['confirmPassword'],
   });

@@ -8,22 +8,15 @@ import "swiper/css";
 import "swiper/css/pagination";
 import { Skeleton } from "@/components/ui";
 import { buildCmsImageUrl } from "@/lib/utils";
-
-interface Post {
-  slug: string;
-  title: string;
-  content: { children: { text: string }[] }[];
-  image: { url: string }[];
-  createdAt: string;
-}
+import type { BlogPost } from "@/types";
 
 const cmsUrl = import.meta.env.VITE_STRIPE_CMS_ADMIN_URL as string | undefined;
 const hasRemoteCms = Boolean(cmsUrl) && /^https?:\/\//i.test(cmsUrl!);
 
 const BlogPostPage = () => {
-  const [post, setPost] = useState<Post>();
+  const [post, setPost] = useState<BlogPost>();
   const [loading, setLoading] = useState<boolean>(true);
-  const [similiarPosts, setSimiliarPosts] = useState<Post[]>([]);
+  const [similiarPosts, setSimiliarPosts] = useState<BlogPost[]>([]);
 
   const { slug } = useParams();
 
@@ -41,9 +34,9 @@ const BlogPostPage = () => {
 
         const allPosts = res.data.data;
 
-        const currentPost = allPosts.find((p: Post) => p.slug === slug);
+        const currentPost = allPosts.find((p: BlogPost) => p.slug === slug);
         const similiarPosts = allPosts
-          .filter((p: Post) => p.slug !== slug)
+          .filter((p: BlogPost) => p.slug !== slug)
           .slice(0, 6);
 
         setPost(currentPost);
@@ -212,7 +205,7 @@ const BlogPostPage = () => {
               },
             }}
           >
-            {similiarPosts.map((similarPost: Post) => (
+            {similiarPosts.map((similarPost: BlogPost) => (
               <SwiperSlide key={similarPost.slug}>
                 <Link
                   to={`/blog/${similarPost.slug}`}

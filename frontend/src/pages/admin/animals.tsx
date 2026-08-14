@@ -52,33 +52,10 @@ import {
   animalTraitOptions,
   animalHealthStatusOptions,
 } from "@/constants/animal.constants";
+import type { AnimalListItem, PaginatedResponse } from "@/types";
 
 const PAGE_SIZE = 8;
 const adminAnimalsQueryKey = ["admin-animals"] as const;
-
-export type AnimalListItem = {
-  id: number;
-  name: string;
-  type: string;
-  gender: string;
-  size: string;
-  traits: string[];
-  dateOfBirth: Date | string;
-  status: string;
-  healthStatus: string;
-  imageUrl: string[];
-  needsCount: number;
-  nextVisitDate: Date | string;
-  description: string;
-};
-
-type AnimalsPageResponse = {
-  data: AnimalListItem[];
-  total: number;
-  page: number;
-  pageSize: number;
-  hasMore: boolean;
-};
 
 type AnimalsFilters = {
   search: string;
@@ -129,7 +106,7 @@ const getAnimalsPage = async ({
     params.set("ageMax", String(filters.ageRange[1]));
   }
 
-  const res = await axios.get<AnimalsPageResponse>(
+  const res = await axios.get<PaginatedResponse<AnimalListItem>>(
     `/api/animals?${params.toString()}`,
   );
   return res.data;

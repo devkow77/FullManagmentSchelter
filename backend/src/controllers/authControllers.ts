@@ -11,7 +11,11 @@ import {
 import { StatusCodes } from 'http-status-codes';
 import bcrypt from 'bcrypt';
 import { generateToken } from '../utils/jwt';
-import { AuthRequest } from '../middlewares/auth.middleware';
+import type {
+  AuthRequest,
+  JwtTwoFactorPayload,
+  JwtUserIdPayload,
+} from '../types';
 import speakeasy from 'speakeasy';
 import QRCode from 'qrcode';
 import jwt from 'jsonwebtoken';
@@ -387,9 +391,10 @@ export const authInfo = async (req: Request, res: Response) => {
   }
 
   try {
-    const payload = jwt.verify(token, process.env.JWT_SECRET!) as {
-      userId: number;
-    };
+    const payload = jwt.verify(
+      token,
+      process.env.JWT_SECRET!,
+    ) as JwtUserIdPayload;
 
     const user = await prisma.user.findUnique({
       where: { id: payload.userId },
@@ -506,9 +511,10 @@ export const verifyTwoFactorCode = async (req: Request, res: Response) => {
       .status(StatusCodes.BAD_REQUEST)
       .json({ msg: 'Kod TOTP jest wymagany' });
 
-  const payload = jwt.verify(token, process.env.JWT_SECRET!) as {
-    userId: number;
-  };
+  const payload = jwt.verify(
+    token,
+    process.env.JWT_SECRET!,
+  ) as JwtUserIdPayload;
 
   const user = await prisma.user.findUnique({ where: { id: payload.userId } });
   if (!user || !user.twoFactorSecret)
@@ -547,9 +553,10 @@ export const disableTwoFactor = async (req: Request, res: Response) => {
     return res.status(StatusCodes.UNAUTHORIZED).json({ msg: 'Brak tokenu' });
   }
 
-  const payload = jwt.verify(token, process.env.JWT_SECRET!) as {
-    userId: number;
-  };
+  const payload = jwt.verify(
+    token,
+    process.env.JWT_SECRET!,
+  ) as JwtUserIdPayload;
 
   await prisma.user.update({
     where: { id: payload.userId },
@@ -573,10 +580,10 @@ export const loginWithTotp = async (req: Request, res: Response) => {
   let payload;
 
   try {
-    payload = jwt.verify(tempToken, process.env.JWT_SECRET!) as {
-      userId: number;
-      twoFactorEnabled: boolean;
-    };
+    payload = jwt.verify(
+      tempToken,
+      process.env.JWT_SECRET!,
+    ) as JwtTwoFactorPayload;
   } catch {
     return res.status(StatusCodes.UNAUTHORIZED).json({ msg: 'Token wygasł' });
   }

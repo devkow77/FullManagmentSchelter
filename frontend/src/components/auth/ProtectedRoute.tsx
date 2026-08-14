@@ -2,10 +2,11 @@ import { useAuth } from "@/context/AuthContext";
 import { useNavigate } from "react-router";
 import { useEffect } from "react";
 import { toast } from "sonner";
+import type { UserRole } from "@/types";
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
-  requiredRole?: ("ADMINISTRATOR" | "UZYTKOWNIK" | "PRACOWNIK")[];
+  requiredRole?: UserRole[];
 }
 
 export const ProtectedRoute = ({

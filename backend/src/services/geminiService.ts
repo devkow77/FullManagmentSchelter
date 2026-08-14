@@ -1,49 +1,15 @@
+import type {
+  AnimalCatalogItem,
+  AnimalMatch,
+  ChatCategory,
+  ChatHistoryItem,
+  ChatReplyResult,
+} from '../types';
+
 const DEFAULT_MODEL = 'gemini-3.6-flash';
 
 export const OTHER_CATEGORY_MESSAGE =
   'Jestem asystentem do udzielania informacji odnośnie schroniska lub doboru zwierzęcia do adopcji na podstawie podanych parametrów.';
-
-export type ChatCategory = 'FIND_ANIMAL' | 'SHELTER_INFO' | 'OTHER';
-
-export type AnimalCatalogItem = {
-  id: number;
-  name: string;
-  type: string;
-  gender: string;
-  size: string;
-  breed: string;
-  energyLevel: string;
-  ageYears: number;
-  healthStatus: string;
-  traits: string | null;
-  description: string;
-  isSterilized: boolean;
-  isVaccinated: boolean;
-  isChildFriendly: boolean;
-  isTrained: boolean;
-  lovesPlay: boolean;
-  lovesWalks: boolean;
-  acceptsDogs: boolean;
-  acceptsCats: boolean;
-  lovesAffection: boolean;
-  poorlyToleratesShelter: boolean;
-};
-
-export type AnimalMatch = {
-  id: number;
-  reason: string;
-};
-
-export type ChatReplyResult = {
-  category: ChatCategory;
-  message: string;
-  matches: AnimalMatch[];
-};
-
-export type ChatHistoryItem = {
-  role: 'user' | 'assistant';
-  content: string;
-};
 
 const SYSTEM_PROMPT = `Jesteś asystentem polskiego schroniska dla zwierząt.
 Najpierw sklasyfikuj AKTUALNĄ wiadomość użytkownika do DOKŁADNIE jednej kategorii:

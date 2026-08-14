@@ -1,17 +1,12 @@
 import { create } from "zustand";
 import axios from "axios";
-
-interface User {
-  fullName: string;
-  email: string;
-  role: "UZYTKOWNIK" | "PRACOWNIK" | "ADMINISTRATOR";
-}
+import type { AuthUser } from "@/types";
 
 interface AuthState {
-  user: User | null;
+  user: AuthUser | null;
   isAuthenticated: boolean;
   isLoading: boolean;
-  setUser: (user: User | null) => void;
+  setUser: (user: AuthUser | null) => void;
   checkAuth: () => Promise<void>;
   logout: () => Promise<void>;
 }

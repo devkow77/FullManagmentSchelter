@@ -8,6 +8,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Button, Input, Label } from "@/components/ui";
 import axios from "axios";
 import { SingleValueSelector, DashboardPage } from "@/components/shared";
+import type { CageOptions } from "@/types";
 
 const cageSchema = z.object({
   zone: z
@@ -24,12 +25,6 @@ const cageSchema = z.object({
 
 type CageFormInput = z.input<typeof cageSchema>;
 type CageFormData = z.output<typeof cageSchema>;
-
-type CageOptionsResponse = {
-  zones: string[];
-  numbers: number[];
-  byZone: Record<string, number[]>;
-};
 
 const formatCageNumber = (value: number) => String(value).padStart(2, "0");
 
@@ -69,7 +64,7 @@ const getNextFreeNumber = (numbers: number[]) => {
 };
 
 const getCageOptions = async () => {
-  const res = await axios.get<CageOptionsResponse>("/api/cages/options", {
+  const res = await axios.get<CageOptions>("/api/cages/options", {
     withCredentials: true,
   });
   return res.data;

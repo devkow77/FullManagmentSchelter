@@ -29,7 +29,7 @@ import {
   DashboardPage,
   FilterToolbar,
 } from "@/components/shared";
-import type { MedicalRecord } from "@/types/medical-record";
+import type { MedicalRecord, PaginatedResponse } from "@/types";
 import {
   medicalRecordAnimalTypeOptions,
   medicalRecordTypeOptions,
@@ -47,14 +47,6 @@ import {
 
 const PAGE_SIZE = 10;
 const medicalRecordsQueryKey = ["medical-records"] as const;
-
-type MedicalRecordsPageResponse = {
-  data: MedicalRecord[];
-  total: number;
-  page: number;
-  pageSize: number;
-  hasMore: boolean;
-};
 
 type MedicalRecordsFilters = {
   search: string;
@@ -88,7 +80,7 @@ const getMedicalRecordsPage = async ({
     params.set("status", filters.statuses.join(","));
   }
 
-  const res = await axios.get<MedicalRecordsPageResponse>(
+  const res = await axios.get<PaginatedResponse<MedicalRecord>>(
     `/api/medical-records?${params.toString()}`,
   );
   return res.data;

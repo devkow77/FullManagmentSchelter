@@ -1,7 +1,7 @@
 import { Response } from 'express';
 import { StatusCodes } from 'http-status-codes';
 import { contactSchema } from '../validators/message.validator';
-import { AuthRequest } from '../middlewares/auth.middleware';
+import type { AuthRequest } from '../types';
 import { createEmailTransporter } from '../services/emailService';
 
 export const sendContactMessage = async (req: AuthRequest, res: Response) => {

@@ -2,16 +2,9 @@ import { Link } from "react-router";
 import { ImageOff } from "lucide-react";
 import { FavouriteAnimalButton } from "@/components/shared";
 import { calculateAge } from "@/lib/utils";
+import type { AnimalCardItem } from "@/types";
 
-interface Animal {
-  id: number;
-  name: string;
-  imageUrl: string[];
-  dateOfBirth: Date | string;
-  description: string;
-}
-
-const AnimalCard = ({ animal }: { animal: Animal }) => {
+const AnimalCard = ({ animal }: { animal: AnimalCardItem }) => {
   return (
     <Link
       to={`/zwierzeta/${animal.id}`}

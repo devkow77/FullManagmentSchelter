@@ -8,7 +8,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import type { AnimalType } from "@/types/animal";
+import type { AnimalType } from "@/types";
 
 const iconByType: Record<AnimalType, LucideIcon> = {
   PIES: Dog,

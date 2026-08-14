@@ -11,14 +11,9 @@ import {
 import { Link, useLocation } from "react-router";
 import { styleActiveLink } from "@/lib/utils";
 import { Heart } from "lucide-react";
+import type { NavMenuItem } from "@/types";
 
-interface Animal {
-  title: string;
-  href: string;
-  description: string;
-}
-
-const animals: Animal[] = [
+const animals: NavMenuItem[] = [
   {
     title: "Psy",
     href: "/zwierzeta/psy",

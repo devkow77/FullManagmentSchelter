@@ -1,5 +1,6 @@
 import { StatusCodes } from 'http-status-codes';
 import prisma from '../prisma';
+import { paginate } from '../utils/pagination';
 import { type Request, type Response } from 'express';
 import {
   createAdoptionSchema,
@@ -11,9 +12,8 @@ import {
 } from '../selects/adoption.select';
 import { AdoptionStatus, AnimalStatus, Role } from '../generated/prisma/enums';
 import type { Prisma } from '../generated/prisma/client';
-import type { AuthRequest } from '../middlewares/auth.middleware';
 import { triggerAdoptionApplicationConfirmation, triggerAdoptionStatusChangeEmail } from '../services/emailService';
-import type { AdoptionStatusEmailKind } from '../templates/emailTemplates';
+import type { AdoptionStatusEmailKind, AuthRequest } from '../types';
 
 const DEFAULT_ADOPTIONS_PAGE_SIZE = 10;
 
@@ -222,13 +222,9 @@ export const getAdoptions = async (req: AuthRequest, res: Response) => {
         prisma.adoption.count({ where }),
       ]);
 
-      return res.status(StatusCodes.OK).json({
-        data: adoptions,
-        total,
-        page: pageNumber,
-        pageSize,
-        hasMore: pageNumber * pageSize < total,
-      });
+      return res
+        .status(StatusCodes.OK)
+        .json(paginate(adoptions, total, pageNumber, pageSize));
     }
 
     const adoptions = await prisma.adoption.findMany({

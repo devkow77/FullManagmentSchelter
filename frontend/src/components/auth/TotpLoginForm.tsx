@@ -6,22 +6,13 @@ import { z } from "zod";
 import axios, { AxiosError } from "axios";
 import { toast } from "sonner";
 import { useNavigate } from "react-router";
+import type { TotpLoginResponse } from "@/types";
 
 const verifyTotpSchema = z.object({
   code: z.string().min(6, "Kod musi mieć 6 cyfr").max(6, "Kod musi mieć 6 cyfr"),
 });
 
 type VerifyTotpFormData = z.infer<typeof verifyTotpSchema>;
-
-interface TotpLoginResponse {
-  user: {
-    id: number;
-    fullName: string;
-    email: string;
-    role: "UZYTKOWNIK" | "PRACOWNIK" | "ADMINISTRATOR";
-    twoFactorEnabled: boolean;
-  };
-}
 
 type Props = {
   tempToken: string;

@@ -10,6 +10,7 @@ import { MultiValueSelector, AgeSlider, AnimalCard } from "@/components/shared";
 import { keepPreviousData, useInfiniteQuery } from "@tanstack/react-query";
 import { CircleAlert, Info, Loader2, RefreshCw } from "lucide-react";
 import { useLocation } from "react-router";
+import type { AnimalListItem, PaginatedResponse } from "@/types";
 
 const PAGE_SIZE = 6;
 const DEFAULT_AGE_RANGE: [number, number] = [0, 25];
@@ -19,30 +20,6 @@ const TYPE_SLUG_MAP: Record<string, { enum: string; title: string }> = {
   koty: { enum: "KOT", title: "Koty" },
   kroliki: { enum: "KROLIK", title: "Króliki" },
   króliki: { enum: "KROLIK", title: "Króliki" },
-};
-
-interface AnimalListItem {
-  id: number;
-  name: string;
-  type: string;
-  gender: string;
-  size: string;
-  traits: string[];
-  dateOfBirth: Date | string;
-  status: string;
-  healthStatus: string;
-  imageUrl: string[];
-  needsCount: number;
-  nextVisitDate: Date | string;
-  description: string;
-}
-
-type PageResponse = {
-  data: AnimalListItem[];
-  total: number;
-  page: number;
-  pageSize: number;
-  hasMore: boolean;
 };
 
 interface Filters {
@@ -81,7 +58,7 @@ const getAnimalsPage = async ({
     params.set("ageMax", String(filters.ageRange[1]));
   }
 
-  const res = await axios.get<PageResponse>(
+  const res = await axios.get<PaginatedResponse<AnimalListItem>>(
     `/api/animals?${params.toString()}`,
   );
 

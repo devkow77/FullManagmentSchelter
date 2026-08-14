@@ -24,7 +24,7 @@ import {
   DashboardPage,
   FilterToolbar,
 } from "@/components/shared";
-import type { Vet } from "@/types/vet";
+import type { PaginatedResponse, Vet } from "@/types";
 import {
   keepPreviousData,
   useMutation,
@@ -34,14 +34,6 @@ import {
 
 const PAGE_SIZE = 8;
 const adminVetsQueryKey = ["admin-vets"] as const;
-
-type VetsPageResponse = {
-  data: Vet[];
-  total: number;
-  page: number;
-  pageSize: number;
-  hasMore: boolean;
-};
 
 type VetsFilters = {
   search: string;
@@ -67,7 +59,7 @@ const getVetsPage = async ({
     params.set("clinic", filters.clinics.join(","));
   }
 
-  const res = await axios.get<VetsPageResponse>(
+  const res = await axios.get<PaginatedResponse<Vet>>(
     `/api/vets?${params.toString()}`,
   );
   return res.data;

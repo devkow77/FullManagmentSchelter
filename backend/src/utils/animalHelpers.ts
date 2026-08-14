@@ -9,6 +9,7 @@ import {
 import type { Prisma } from '../generated/prisma/client';
 import { formatCageLabel } from '../selects/animal.select';
 import prisma from '../prisma';
+import type { CageInfo, DailyCareRecord } from '../types';
 
 // ** ZMIENNE GLOBALNE **//
 
@@ -69,14 +70,6 @@ export const getTodayRange = () => {
 
   return { start, end };
 };
-
-type DailyCareRecord = {
-  fed: boolean;
-  watered: boolean;
-  cleaned: boolean;
-};
-
-type CageInfo = { id: number; zone: string; number: number } | null;
 
 // FP 5. FUNKCJA ZMIENIA W ANIMAL _COUNT { NEEDS: NUMBER } NA NEEDSCOUNT: NUMBER -- //
 export const mapAnimalListItem = <

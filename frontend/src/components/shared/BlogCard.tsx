@@ -1,14 +1,7 @@
 import { Link } from "react-router";
 import { ImageOff } from "lucide-react";
 import { buildCmsImageUrl } from "@/lib/utils";
-
-interface BlogPost {
-  slug: string;
-  title: string;
-  content: { children: { text: string }[] }[];
-  image: { url: string; formats?: { small?: { url: string } } }[];
-  createdAt: string;
-}
+import type { BlogPost } from "@/types";
 
 const BlogCard = ({ post }: { post: BlogPost }) => {
   const imageUrl = buildCmsImageUrl(

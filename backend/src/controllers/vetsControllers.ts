@@ -1,5 +1,6 @@
 import { StatusCodes } from 'http-status-codes';
 import prisma from '../prisma';
+import { paginate } from '../utils/pagination';
 import { type Request, type Response } from 'express';
 import { vetSchema } from '../validators/vet.validator';
 import { vetIdSelect, vetSelect } from '../selects/vet.select';
@@ -67,13 +68,9 @@ export const getVets = async (req: Request, res: Response) => {
         prisma.vet.count({ where }),
       ]);
 
-      return res.status(StatusCodes.OK).json({
-        data: vets,
-        total,
-        page: pageNumber,
-        pageSize,
-        hasMore: pageNumber * pageSize < total,
-      });
+      return res
+        .status(StatusCodes.OK)
+        .json(paginate(vets, total, pageNumber, pageSize));
     }
 
     // Bez paginacji — np. selecty w formularzach rekordów medycznych

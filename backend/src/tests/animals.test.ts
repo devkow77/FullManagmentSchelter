@@ -4,8 +4,7 @@ import app from '../app';
 import prisma from '../prisma';
 import { StatusCodes } from 'http-status-codes';
 import usersSeed from '../../prisma/seed/usersSeed';
-
-type Agent = ReturnType<typeof request.agent>;
+import type { Agent } from './testHelpers';
 
 const loginAs = async (email: string, password = 'Haslo12345.') => {
   const agent = request.agent(app);

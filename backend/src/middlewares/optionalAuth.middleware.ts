@@ -1,10 +1,6 @@
-import { Request, Response, NextFunction } from 'express';
+import { Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
-
-export interface AuthRequest extends Request {
-  userId?: number;
-  userRole?: 'UŻYTKOWNIK' | 'PRACOWNIK' | 'ADMINISTRATOR';
-}
+import type { AuthRequest, JwtPayload } from '../types';
 
 export const optionalAuthenticateUser = (
   req: AuthRequest,
@@ -16,10 +12,7 @@ export const optionalAuthenticateUser = (
   if (!token) next();
 
   try {
-    const payload = jwt.verify(token, process.env.JWT_SECRET!) as {
-      userId: number;
-      userRole: 'UŻYTKOWNIK' | 'PRACOWNIK' | 'ADMINISTRATOR';
-    };
+    const payload = jwt.verify(token, process.env.JWT_SECRET!) as JwtPayload;
 
     req.userId = payload.userId;
     req.userRole = payload.userRole;

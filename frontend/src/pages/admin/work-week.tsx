@@ -32,8 +32,18 @@ import {
   DashboardPage,
 } from "@/components/shared";
 import axios from "axios";
-import type { LabelValueType } from "@/types/common";
-import type { User } from "@/types/user";
+import type {
+  AssignZoneConflictResponse,
+  CageOptions,
+  LabelValueType,
+  User,
+  WorkerZoneRow,
+  WorkersZoneOverviewResponse,
+  ZoneAssignmentConflict,
+  ZoneCoverageRow,
+  ZoneWeekAssignment,
+  ZoneWeekCoverage,
+} from "@/types";
 
 const zoneOverviewQueryKey = ["zone-assignments", "workers-overview"] as const;
 const weekCoverageStatusQueryKey = [
@@ -128,65 +138,6 @@ const assignmentSchema = z
 
 type AssignmentFormInput = z.input<typeof assignmentSchema>;
 type AssignmentFormData = z.output<typeof assignmentSchema>;
-
-type CageOptionsResponse = {
-  zones: string[];
-};
-
-type WeekInfo = {
-  from: string;
-  to: string;
-  label: string;
-};
-
-type ZoneWeekAssignment = {
-  zone: string;
-  dates: string[];
-  label: string;
-};
-
-type WorkerZoneRow = {
-  id: number;
-  fullName: string;
-  imageUrl: string | null;
-  role: string;
-  currentWeekZones: ZoneWeekAssignment[];
-  nextWeekZones: ZoneWeekAssignment[];
-  previousWeekZones: ZoneWeekAssignment[];
-  twoWeeksAgoZones: ZoneWeekAssignment[];
-};
-
-type ZoneCoverageWorker = {
-  id: number;
-  fullName: string;
-  dates: string[];
-  label: string;
-};
-
-type ZoneWeekCoverage = {
-  uncoveredDates: string[];
-  uncoveredLabel: string;
-  workers: ZoneCoverageWorker[];
-};
-
-type ZoneCoverageRow = {
-  zone: string;
-  currentWeek: ZoneWeekCoverage;
-  nextWeek: ZoneWeekCoverage;
-  previousWeek: ZoneWeekCoverage;
-  twoWeeksAgo: ZoneWeekCoverage;
-};
-
-type WorkersZoneOverviewResponse = {
-  weeks: {
-    current: WeekInfo;
-    next: WeekInfo;
-    previous: WeekInfo;
-    twoWeeksAgo: WeekInfo;
-  };
-  workers: WorkerZoneRow[];
-  zones: ZoneCoverageRow[];
-};
 
 const clampToTodayOrLater = (date: Date) => {
   const minDate = todayDate();
@@ -435,7 +386,7 @@ const getWorkers = async () => {
 };
 
 const getCageOptions = async () => {
-  const res = await axios.get<CageOptionsResponse>("/api/cages/options", {
+  const res = await axios.get<CageOptions>("/api/cages/options", {
     withCredentials: true,
   });
   return res.data;
@@ -447,20 +398,6 @@ const getWorkersZoneOverview = async () => {
     { withCredentials: true },
   );
   return res.data;
-};
-
-type ZoneAssignmentConflict = {
-  workerId: number;
-  fullName: string;
-  currentLabel: string;
-  newLabel: string;
-  summary: string;
-};
-
-type AssignZoneConflictResponse = {
-  requiresConfirmation: true;
-  msg: string;
-  conflicts: ZoneAssignmentConflict[];
 };
 
 const assignZoneRange = async ({

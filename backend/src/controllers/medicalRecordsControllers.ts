@@ -1,5 +1,6 @@
 import { StatusCodes } from 'http-status-codes';
 import prisma from '../prisma';
+import { paginate } from '../utils/pagination';
 import { type Request, type Response } from 'express';
 import {
   AnimalType,
@@ -105,13 +106,9 @@ export const getRecords = async (req: Request, res: Response) => {
         prisma.medicalRecord.count({ where }),
       ]);
 
-      return res.status(StatusCodes.OK).json({
-        data: medicalRecords,
-        total,
-        page: pageNumber,
-        pageSize,
-        hasMore: pageNumber * pageSize < total,
-      });
+      return res
+        .status(StatusCodes.OK)
+        .json(paginate(medicalRecords, total, pageNumber, pageSize));
     }
 
     const medicalRecords = await prisma.medicalRecord.findMany({

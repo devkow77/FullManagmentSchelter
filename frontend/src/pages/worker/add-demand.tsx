@@ -7,15 +7,9 @@ import { useEffect, useMemo, useState } from "react";
 import axios from "axios";
 import { toast } from "sonner";
 import { formatAnimalType } from "@/lib/utils";
-import type { LabelValueType } from "@/types/common";
+import type { AnimalNeedInput, AnimalOption, LabelValueType } from "@/types";
 import { SingleValueSelector, DashboardPage } from "@/components/shared";
 import { useAuth } from "@/context/AuthContext";
-
-type Animal = {
-  id: number;
-  name: string;
-  type: string;
-};
 
 const categoryOptions: LabelValueType[] = [
   { value: "JEDZENIE", label: "Jedzenie / karma" },
@@ -25,17 +19,10 @@ const categoryOptions: LabelValueType[] = [
   { value: "INNE", label: "Inne" },
 ];
 
-type DemandFormData = {
-  animalId: number;
-  category: string;
-  name: string;
-  description: string;
-};
-
 const AddDemandPage = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const [animals, setAnimals] = useState<Animal[]>([]);
+  const [animals, setAnimals] = useState<AnimalOption[]>([]);
   const [isLoadingOptions, setIsLoadingOptions] = useState(true);
 
   const {
@@ -43,7 +30,7 @@ const AddDemandPage = () => {
     handleSubmit,
     control,
     formState: { errors, isSubmitting },
-  } = useForm<DemandFormData>({
+  } = useForm<AnimalNeedInput>({
     defaultValues: {
       animalId: 0,
       category: "INNE",
@@ -55,7 +42,7 @@ const AddDemandPage = () => {
   useEffect(() => {
     const fetchOptions = async () => {
       try {
-        const res = await axios.get<Animal[]>("/api/animals", {
+        const res = await axios.get<AnimalOption[]>("/api/animals", {
           withCredentials: true,
         });
         setAnimals(res.data);
@@ -78,7 +65,7 @@ const AddDemandPage = () => {
     [animals],
   );
 
-  const onSubmit = async (data: DemandFormData) => {
+  const onSubmit = async (data: AnimalNeedInput) => {
     try {
       await axios.post("/api/animal-needs", data, {
         withCredentials: true,

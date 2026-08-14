@@ -13,7 +13,12 @@ import { useEffect, useMemo, useState } from "react";
 import axios from "axios";
 import { toast } from "sonner";
 import { formatAnimalType } from "@/lib/utils";
-import type { LabelValueType } from "@/types/common";
+import type {
+  AnimalOption,
+  LabelValueType,
+  MedicalRecordDetails,
+  VetOption,
+} from "@/types";
 import { SingleValueSelector, DashboardPage } from "@/components/shared";
 import {
   medicalRecordSchema,
@@ -24,34 +29,11 @@ import {
   medicalRecordStatusOptions,
 } from "@/constants/medical-record.constants";
 
-type Vet = {
-  id: number;
-  name: string;
-  clinic: string | null;
-};
-
-type Animal = {
-  id: number;
-  name: string;
-  type: string;
-};
-
-type MedicalRecord = {
-  id: number;
-  vetId: number;
-  animalId: number;
-  type: MedicalRecordFormData["type"];
-  description: string;
-  date: string;
-  cost: number;
-  status: MedicalRecordFormData["status"];
-};
-
 const EditMedicalRecordPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const [vets, setVets] = useState<Vet[]>([]);
-  const [animals, setAnimals] = useState<Animal[]>([]);
+  const [vets, setVets] = useState<VetOption[]>([]);
+  const [animals, setAnimals] = useState<AnimalOption[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   const {
@@ -77,9 +59,9 @@ const EditMedicalRecordPage = () => {
     const fetchData = async () => {
       try {
         const [vetsRes, animalsRes, recordRes] = await Promise.all([
-          axios.get<Vet[]>("/api/vets", { withCredentials: true }),
-          axios.get<Animal[]>("/api/animals", { withCredentials: true }),
-          axios.get<MedicalRecord>(`/api/medical-records/${id}`, {
+          axios.get<VetOption[]>("/api/vets", { withCredentials: true }),
+          axios.get<AnimalOption[]>("/api/animals", { withCredentials: true }),
+          axios.get<MedicalRecordDetails>(`/api/medical-records/${id}`, {
             withCredentials: true,
           }),
         ]);

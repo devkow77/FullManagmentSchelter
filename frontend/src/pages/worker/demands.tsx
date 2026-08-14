@@ -31,7 +31,7 @@ import {
   DashboardPage,
   FilterToolbar,
 } from "@/components/shared";
-import type { Worker } from "@/types/user";
+import type { AnimalNeedListItem, PaginatedResponse, Worker } from "@/types";
 
 const PAGE_SIZE = 8;
 const animalNeedsQueryKey = ["animal-needs"] as const;
@@ -40,33 +40,6 @@ const workersForNeedsFilterQueryKey = [
   "workers",
   "animal-needs-filter",
 ] as const;
-
-type AnimalNeedListItem = {
-  id: number;
-  name: string;
-  description: string | null;
-  category: string;
-  isActive: boolean;
-  animal: {
-    id: number;
-    name: string;
-    type: string;
-    imageUrl: string[];
-    cageNumber: string | null;
-  };
-  reportedBy: {
-    id: number;
-    fullName: string;
-  } | null;
-};
-
-type AnimalNeedsPageResponse = {
-  data: AnimalNeedListItem[];
-  total: number;
-  page: number;
-  pageSize: number;
-  hasMore: boolean;
-};
 
 type NeedsFilters = {
   search: string;
@@ -101,7 +74,7 @@ const getAnimalNeedsPage = async ({
     params.set("reportedBy", filters.reportedBy.join(","));
   }
 
-  const res = await axios.get<AnimalNeedsPageResponse>(
+  const res = await axios.get<PaginatedResponse<AnimalNeedListItem>>(
     `/api/animal-needs?${params.toString()}`,
     { withCredentials: true },
   );

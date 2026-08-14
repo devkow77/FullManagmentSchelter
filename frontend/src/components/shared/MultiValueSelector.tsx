@@ -9,7 +9,7 @@ import {
   ComboboxValue,
   ComboboxChip,
 } from "@/components/ui";
-import type { LabelValueType } from "@/types/common";
+import type { LabelValueType } from "@/types";
 
 type SelectorProps = {
   items: LabelValueType[];

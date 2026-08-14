@@ -42,18 +42,10 @@ import {
   useQuery,
   useQueryClient,
 } from "@tanstack/react-query";
-import type { Worker } from "@/types/user";
+import type { PaginatedResponse, Worker } from "@/types";
 
 const PAGE_SIZE = 8;
 const adminWorkersQueryKey = ["admin-workers"] as const;
-
-type WorkersPageResponse = {
-  data: Worker[];
-  total: number;
-  page: number;
-  pageSize: number;
-  hasMore: boolean;
-};
 
 type WorkersFilters = {
   search: string;
@@ -95,7 +87,7 @@ const getWorkersPage = async ({
     params.set("isFormFilled", filters.isFormFilled.join(","));
   }
 
-  const res = await axios.get<WorkersPageResponse>(
+  const res = await axios.get<PaginatedResponse<Worker>>(
     `/api/users/workers?${params.toString()}`,
   );
   return res.data;

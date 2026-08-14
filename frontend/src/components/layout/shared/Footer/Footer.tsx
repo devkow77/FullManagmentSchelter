@@ -1,6 +1,5 @@
 import { Container, Input, Button } from "@/components/ui";
 import { FaFacebookSquare, FaInstagram, FaTiktok } from "react-icons/fa";
-import type { IconType } from "react-icons";
 import GoogleMaps from "./GoogleMaps";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -9,12 +8,7 @@ import axios from "axios";
 import { toast } from "sonner";
 import { useMutation } from "@tanstack/react-query";
 import { Link } from "react-router";
-
-interface FooterLink {
-  name: string;
-  href?: string;
-  icon?: IconType;
-}
+import type { FooterLink } from "@/types";
 
 const links: FooterLink[] = [
   {

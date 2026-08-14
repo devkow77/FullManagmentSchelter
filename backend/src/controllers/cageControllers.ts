@@ -1,6 +1,7 @@
 import { StatusCodes } from 'http-status-codes';
 import { type Request, type Response } from 'express';
 import prisma from '../prisma';
+import { paginate } from '../utils/pagination';
 import { formatCageLabel } from '../selects/animal.select';
 import type { Prisma } from '../generated/prisma/client';
 
@@ -84,10 +85,9 @@ export const getCageOptions = async (_req: Request, res: Response) => {
     const byZone: Record<string, number[]> = {};
 
     for (const cage of cages) {
-      if (!byZone[cage.zone]) {
-        byZone[cage.zone] = [];
-      }
-      byZone[cage.zone].push(cage.number);
+      const numbersInZone = byZone[cage.zone] ?? [];
+      numbersInZone.push(cage.number);
+      byZone[cage.zone] = numbersInZone;
     }
 
     return res.status(StatusCodes.OK).json({
@@ -173,13 +173,9 @@ export const getCages = async (req: Request, res: Response) => {
         prisma.cage.count({ where }),
       ]);
 
-      return res.status(StatusCodes.OK).json({
-        data: cages.map(mapCage),
-        total,
-        page: pageNumber,
-        pageSize,
-        hasMore: pageNumber * pageSize < total,
-      });
+      return res
+        .status(StatusCodes.OK)
+        .json(paginate(cages.map(mapCage), total, pageNumber, pageSize));
     }
 
     const cages = await prisma.cage.findMany({

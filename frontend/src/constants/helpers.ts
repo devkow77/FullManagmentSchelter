@@ -1,4 +1,4 @@
-import type { LabelValueType } from "@/types/common";
+import type { LabelValueType } from "@/types";
 
 export const toLabelValueOptions = (
   map: Record<string, string>,

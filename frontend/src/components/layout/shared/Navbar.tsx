@@ -42,7 +42,7 @@ export default function Navbar() {
   return (
     <nav className="mb-6 py-6 md:mb-10">
       <Container className="flex items-center justify-between">
-        <img src="/logo.png" alt="Logo" className="h-14 w-auto" />
+        <img src="/logo/logo.png" alt="Logo" className="h-14 w-auto" />
         <DesktopMenu />
         <div className="flex items-center sm:gap-2">
           <Profile />

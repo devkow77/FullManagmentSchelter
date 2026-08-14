@@ -5,6 +5,7 @@ import bcrypt from 'bcrypt';
 import app from '../app';
 import prisma from '../prisma';
 import usersSeed from '../../prisma/seed/usersSeed';
+import type { Agent } from './testHelpers';
 
 const loginAs = async (email: string) => {
   const agent = request.agent(app);
@@ -20,8 +21,6 @@ const loginAs = async (email: string) => {
 };
 
 describe('Zarządzanie użytkownikami - Testy integracyjne', () => {
-  type Agent = ReturnType<typeof request.agent>;
-
   let adminAgent: Agent;
   let workerAgent: Agent;
   let userAgent: Agent;

@@ -22,11 +22,14 @@ import {
   adoptionStatusChangeTemplate,
   adoptionStatusChangeText,
   getAdoptionStatusEmailSubject,
-  type AdoptionStatusEmailKind,
 } from '../templates/emailTemplates';
+import type { AdoptionStatusEmailKind } from '../types';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const LOGO_PATH = path.resolve(__dirname, '../../../frontend/public/logo.png');
+const LOGO_PATH = path.resolve(
+  __dirname,
+  '../../../frontend/public/logo/logo.png',
+);
 
 const ANIMAL_TYPE_LABELS: Record<string, string> = {
   PIES: 'Pies',

@@ -1,14 +1,8 @@
 import { useEffect } from "react";
 import { Container } from "@/components/ui";
+import type { IconCard } from "@/types";
 
-interface HelpOption {
-  icon: string;
-  bgColor: string;
-  title: string;
-  description: string;
-}
-
-const helpOptions: HelpOption[] = [
+const helpOptions: IconCard[] = [
   {
     icon: "🐾",
     title: "Adoptuj zwierzę",
@@ -187,7 +181,7 @@ const HowToHelp = () => {
           <ol className="w-fit list-inside list-decimal space-y-2 bg-yellow-100 p-4 text-sm leading-6 md:text-base md:leading-7">
             <li>
               Wpłać darowiznę na konto bankowe schroniska:{" "}
-              <strong>PL12 3456 7890 1234 5678 9012 3456</strong>.
+              <strong>PL00 0000 0000 0000 0000 0000 0000</strong>.
             </li>
             <li>
               W tytule przelewu wpisz „Darowizna na zwierzęta” i opcjonalnie

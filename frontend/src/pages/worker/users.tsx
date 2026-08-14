@@ -26,7 +26,7 @@ import axios from "axios";
 import { Link, useNavigate } from "react-router";
 import { useAuth } from "@/context/AuthContext";
 import { toast } from "sonner";
-import type { User } from "@/types/user";
+import type { PaginatedResponse, User } from "@/types";
 import {
   genderOptions,
   booleanFilterOptions,
@@ -41,14 +41,6 @@ import {
 
 const PAGE_SIZE = 10;
 const workerUsersQueryKey = ["worker-users"] as const;
-
-type UsersPageResponse = {
-  data: User[];
-  total: number;
-  page: number;
-  pageSize: number;
-  hasMore: boolean;
-};
 
 type UsersFilters = {
   search: string;
@@ -86,7 +78,7 @@ const getUsersPage = async ({
     params.set("isFormFilled", filters.isFormFilled.join(","));
   }
 
-  const res = await axios.get<UsersPageResponse>(
+  const res = await axios.get<PaginatedResponse<User>>(
     `/api/users?${params.toString()}`,
   );
   return res.data;

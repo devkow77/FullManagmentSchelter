@@ -30,8 +30,12 @@ import {
   formatShelterVisitCountdown,
   getDaysUntilShelterVisit,
 } from "@/lib/utils";
-import type { AnimalHealthStatus, AnimalStatus } from "@/types/animal";
-import type { Adoption } from "@/types/adoption";
+import type {
+  Adoption,
+  Animal,
+  AnimalHealthStatus,
+  OwnProfile,
+} from "@/types";
 import { Link } from "react-router";
 import { AnimalCard } from "@/components/shared";
 import { useAuth } from "@/context/AuthContext";
@@ -43,45 +47,6 @@ import {
   createAdoptionSchema,
   type CreateAdoptionFormData,
 } from "@/schemas/adoption.schema";
-
-type OwnProfile = {
-  fullName: string;
-  gender: string;
-  phoneNumber: string | null;
-  city: string | null;
-  postalCode: string | null;
-  street: string | null;
-  dateOfBirth: string | null;
-  housingType: string | null;
-  livingConditions: string | null;
-};
-
-interface Animal {
-  id: number;
-  name: string;
-  description: string;
-  imageUrl: string[];
-  createdAt: string;
-  dateOfBirth: string | Date;
-  type: string;
-  size: string;
-  breed: string;
-  energyLevel: string;
-  traits: string;
-  healthStatus: string;
-  status: AnimalStatus;
-  foundAt: string | Date;
-  isSterilized: boolean;
-  isVaccinated: boolean;
-  isChildFriendly: boolean;
-  isTrained: boolean;
-  lovesPlay: boolean;
-  lovesWalks: boolean;
-  acceptsDogs: boolean;
-  acceptsCats: boolean;
-  lovesAffection: boolean;
-  poorlyToleratesShelter: boolean;
-}
 
 // Cechy zwierzęcia
 const ANIMAL_TRAIT_ITEMS = [

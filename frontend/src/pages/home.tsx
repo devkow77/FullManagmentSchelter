@@ -10,43 +10,37 @@ import { Link } from "react-router";
 import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
 import { CircleAlert, Info } from "lucide-react";
+import type { BlogPost, IconCard, LongestWaitingAnimal } from "@/types";
 
-interface AnimalType {
+interface AnimalTypeTile {
   name: string;
   image: string;
   href: string;
   label: string;
 }
 
-const animalTypes: AnimalType[] = [
+const animalTypes: AnimalTypeTile[] = [
   {
     name: "Psy",
-    image: "/dog.webp",
+    image: "/images/dog.webp",
     href: "/zwierzeta/psy",
     label: "Zobacz psy do adopcji",
   },
   {
     name: "Koty",
-    image: "/cat.webp",
+    image: "/images/cat.webp",
     href: "/zwierzeta/koty",
     label: "Zobacz koty do adopcji",
   },
   {
     name: "Króliki",
-    image: "/rabbit.webp",
+    image: "/images/rabbit.webp",
     href: "/zwierzeta/kroliki",
     label: "Zobacz króliki do adopcji",
   },
 ];
 
-interface AdoptionReason {
-  icon: string;
-  bgColor: string;
-  title: string;
-  description: string;
-}
-
-const adoptionsReasons: AdoptionReason[] = [
+const adoptionsReasons: IconCard[] = [
   {
     icon: "🐾",
     title: "Ratujesz życie",
@@ -77,21 +71,7 @@ const adoptionsReasons: AdoptionReason[] = [
   },
 ];
 
-type FaqFeature = {
-  icon: string;
-  title: string;
-  description: string;
-  bgColor: string;
-};
-
-interface AdoptionProcess {
-  icon: string;
-  bgColor: string;
-  title: string;
-  description: string;
-}
-
-const adoptionProcess: AdoptionProcess[] = [
+const adoptionProcess: IconCard[] = [
   {
     icon: "🔍",
     bgColor: "bg-blue-100",
@@ -136,7 +116,7 @@ const adoptionProcess: AdoptionProcess[] = [
   },
 ];
 
-const faqFeatures: FaqFeature[] = [
+const faqFeatures: IconCard[] = [
   {
     icon: "📢",
     title: "Uświadamiaj innych",
@@ -166,22 +146,6 @@ const faqFeatures: FaqFeature[] = [
       "Każda wpłata pomaga zapewnić zwierzętom jedzenie, leczenie i lepsze warunki życia.",
   },
 ];
-
-interface LongestWaintingAnimal {
-  id: number;
-  name: string;
-  imageUrl: string[];
-  dateOfBirth: string;
-  description: string;
-}
-
-interface BlogPost {
-  slug: string;
-  title: string;
-  content: { children: { text: string }[] }[];
-  image: { url: string; formats?: { small?: { url: string } } }[];
-  createdAt: string;
-}
 
 const PAGE_TITLE = "Schronisko dla zwierząt – adoptuj pupila";
 
@@ -213,7 +177,7 @@ const HomePage = () => {
   } = useQuery({
     queryKey: ["longestWaintingAnimals"],
     queryFn: async () => {
-      const res = await axios.get<LongestWaintingAnimal[]>(
+      const res = await axios.get<LongestWaitingAnimal[]>(
         "/api/animals?limit=8&sort=foundAt:asc&status=SZUKA_DOMU",
       );
       return res.data;
@@ -262,7 +226,7 @@ const HomePage = () => {
             </p>
           </div>
           <ul className="grid grid-cols-2 gap-4 md:grid-cols-4 lg:gap-6">
-            {animalTypes.map((animal: AnimalType) => (
+            {animalTypes.map((animal: AnimalTypeTile) => (
               <li key={animal.href}>
                 <AnimalTypeCard animal={animal} />
               </li>
@@ -299,7 +263,7 @@ const HomePage = () => {
             </p>
           </div>
           <ul className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 lg:gap-6">
-            {adoptionsReasons.map((reason: AdoptionReason) => (
+            {adoptionsReasons.map((reason: IconCard) => (
               <li key={reason.title}>
                 <AdoptionReasonCard reason={reason} />
               </li>
@@ -362,7 +326,7 @@ const HomePage = () => {
             </p>
           </div>
           <ul className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-5 lg:gap-6">
-            {adoptionProcess.map((step: AdoptionProcess) => (
+            {adoptionProcess.map((step: IconCard) => (
               <li key={step.title}>
                 <AdoptionProcessCard step={step} />
               </li>
@@ -386,7 +350,7 @@ const HomePage = () => {
           <div className="space-y-4 md:flex md:gap-6">
             <ShortFaqList />
             <ul className="flex-1 space-y-4 md:pl-6">
-              {faqFeatures.map((feature: FaqFeature) => (
+              {faqFeatures.map((feature: IconCard) => (
                 <li key={feature.title}>
                   <FaqCard feature={feature} />
                 </li>
@@ -431,7 +395,7 @@ const HomePage = () => {
 };
 
 // Karta gatunku zwierzęcia
-const AnimalTypeCard = ({ animal }: { animal: AnimalType }) => {
+const AnimalTypeCard = ({ animal }: { animal: AnimalTypeTile }) => {
   return (
     <Link
       to={animal.href}
@@ -455,7 +419,7 @@ const AnimalTypeCard = ({ animal }: { animal: AnimalType }) => {
 };
 
 // Karta powodu adoptowania zwierzęcia
-const AdoptionReasonCard = ({ reason }: { reason: AdoptionReason }) => {
+const AdoptionReasonCard = ({ reason }: { reason: IconCard }) => {
   return (
     <div className="space-y-2">
       <div
@@ -473,7 +437,7 @@ const AdoptionReasonCard = ({ reason }: { reason: AdoptionReason }) => {
 };
 
 // Karta kroku procesu adopcji
-const AdoptionProcessCard = ({ step }: { step: AdoptionProcess }) => {
+const AdoptionProcessCard = ({ step }: { step: IconCard }) => {
   return (
     <div className="space-y-2">
       <div
@@ -602,7 +566,7 @@ const EmptyBlogPosts = () => {
 };
 
 // Karta pytania i odpowiedzi
-const FaqCard = ({ feature }: { feature: FaqFeature }) => {
+const FaqCard = ({ feature }: { feature: IconCard }) => {
   return (
     <div className="flex items-center gap-x-4">
       <div

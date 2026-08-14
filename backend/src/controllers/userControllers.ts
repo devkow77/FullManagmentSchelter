@@ -1,5 +1,6 @@
 import { StatusCodes } from 'http-status-codes';
 import prisma from '../prisma';
+import { paginate } from '../utils/pagination';
 import { type Request, type Response } from 'express';
 import {
   updatePasswordSchema,
@@ -223,13 +224,9 @@ export const getWorkers = async (req: Request, res: Response) => {
         prisma.user.count({ where }),
       ]);
 
-      return res.status(StatusCodes.OK).json({
-        data: users,
-        total,
-        page: pageNumber,
-        pageSize,
-        hasMore: pageNumber * pageSize < total,
-      });
+      return res
+        .status(StatusCodes.OK)
+        .json(paginate(users, total, pageNumber, pageSize));
     }
 
     // -- Bez paginacji — pełna lista (np. do selectów / statystyk) -- //
@@ -457,13 +454,9 @@ export const getUsers = async (req: Request, res: Response) => {
         prisma.user.count({ where }),
       ]);
 
-      return res.status(StatusCodes.OK).json({
-        data: users,
-        total,
-        page: pageNumber,
-        pageSize,
-        hasMore: pageNumber * pageSize < total,
-      });
+      return res
+        .status(StatusCodes.OK)
+        .json(paginate(users, total, pageNumber, pageSize));
     }
 
     const users = await prisma.user.findMany({

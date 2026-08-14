@@ -33,8 +33,17 @@ import {
   FilterToolbar,
 } from "@/components/shared";
 import { useAuth } from "@/context/AuthContext";
-import type { Worker } from "@/types/user";
-import type { AnimalType } from "@/types/animal";
+import type {
+  AssignedWorker,
+  CageOptions,
+  CareField,
+  DailyCareAnimal,
+  PaginatedResponse,
+  TodayCare,
+  Worker,
+  WorkerProgressItem,
+  WorkersProgressResponse,
+} from "@/types";
 
 const dailyCareStatusQueryKey = ["animals", "daily-care-status"] as const;
 const workersProgressQueryKey = [
@@ -62,60 +71,10 @@ const careStatusToParam = (
   return null;
 };
 
-type AssignedWorker = {
-  id: number;
-  fullName: string;
-};
-
-type TodayCare = {
-  fed: boolean;
-  watered: boolean;
-  cleaned: boolean;
-};
-
-type CareField = "fed" | "watered" | "cleaned";
-
-export type AnimalListItem = {
-  id: number;
-  name: string;
-  type: AnimalType;
-  gender: string;
-  cageNumber: string | null;
-  imageUrl: string[];
-  todayCare: TodayCare;
-  assignedWorkers?: AssignedWorker[];
-};
-
-type AnimalsPageResponse = {
-  data: AnimalListItem[];
-  total: number;
-  page: number;
-  pageSize: number;
-  hasMore: boolean;
-};
-
-type CageOptionsResponse = {
-  zones: string[];
-};
-
 type Filters = {
   careStatus: CareStatusLabel | null;
   careBy: string[];
   zones: string[];
-};
-
-type WorkerProgressItem = {
-  id: number;
-  fullName: string;
-  imageUrl: string | null;
-  zones: string[];
-  completedCages: number;
-  totalCages: number;
-  percent: number;
-};
-
-type WorkersProgressResponse = {
-  workers: WorkerProgressItem[];
 };
 
 const emptyCare = (): TodayCare => ({
@@ -136,7 +95,7 @@ const getWorkersForFilter = async () => {
 };
 
 const getCageOptions = async () => {
-  const res = await axios.get<CageOptionsResponse>("/api/cages/options", {
+  const res = await axios.get<CageOptions>("/api/cages/options", {
     withCredentials: true,
   });
   return res.data;
@@ -174,7 +133,7 @@ const getAnimalsPage = async ({
     params.set("zone", filters.zones.join(","));
   }
 
-  const res = await axios.get<AnimalsPageResponse>(
+  const res = await axios.get<PaginatedResponse<DailyCareAnimal>>(
     `/api/animals?${params.toString()}`,
   );
   return res.data;
@@ -208,7 +167,7 @@ const DailyAnimalNeedsPage = () => {
   const { user } = useAuth();
   const isWorker = user?.role === "PRACOWNIK";
 
-  const canEditAnimalCare = (animal: AnimalListItem) =>
+  const canEditAnimalCare = (animal: DailyCareAnimal) =>
     isWorker &&
     Boolean(
       user?.id &&
@@ -317,16 +276,19 @@ const DailyAnimalNeedsPage = () => {
         return;
       }
 
-      queryClient.setQueryData<AnimalsPageResponse>(queryKey, (old) => {
-        if (!old) return old;
+      queryClient.setQueryData<PaginatedResponse<DailyCareAnimal>>(
+        queryKey,
+        (old) => {
+          if (!old) return old;
 
-        return {
-          ...old,
-          data: old.data.map((animal) =>
-            animal.id === animalId ? { ...animal, todayCare } : animal,
-          ),
-        };
-      });
+          return {
+            ...old,
+            data: old.data.map((animal) =>
+              animal.id === animalId ? { ...animal, todayCare } : animal,
+            ),
+          };
+        },
+      );
     },
     onSettled: (_data, _error, { animalId, field }) => {
       const key = `${animalId}-${field}`;
@@ -356,7 +318,7 @@ const DailyAnimalNeedsPage = () => {
   };
 
   const handleCareToggle = (
-    animal: AnimalListItem,
+    animal: DailyCareAnimal,
     field: CareField,
     value: boolean,
   ) => {

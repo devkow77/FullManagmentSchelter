@@ -1,3 +1,5 @@
+import type { Cage } from "./cage";
+
 export type AnimalType = "PIES" | "KOT" | "KROLIK" | "CHOMIK" | "ZOLW" | "INNE";
 
 export type AnimalGender = "SAMICA" | "SAMIEC";
@@ -18,16 +20,22 @@ export type AnimalHealthStatus =
   | "ZARAŻONY"
   | "POTRZEBUJE_OPERACJI";
 
-export type Cage = {
-  id: number;
-  zone: string;
-  number: number;
-  label?: string;
-  isOccupied?: boolean;
-  animal?: { id: number; name: string } | null;
+/** Cechy behawioralne zwierzęcia zapisane jako flagi. */
+export type AnimalTraitFlags = {
+  isSterilized: boolean;
+  isVaccinated: boolean;
+  isChildFriendly: boolean;
+  isTrained: boolean;
+  lovesPlay: boolean;
+  lovesWalks: boolean;
+  acceptsDogs: boolean;
+  acceptsCats: boolean;
+  lovesAffection: boolean;
+  poorlyToleratesShelter: boolean;
 };
 
-export type Animal = {
+/** Pełne dane zwierzęcia (GET /api/animals/:id). */
+export type Animal = AnimalTraitFlags & {
   id: number;
   name: string;
   type: AnimalType;
@@ -41,16 +49,6 @@ export type Animal = {
   cageId: number | null;
   cage: Cage | null;
   cageNumber: string | null;
-  isSterilized: boolean;
-  isVaccinated: boolean;
-  isChildFriendly: boolean;
-  isTrained: boolean;
-  lovesPlay: boolean;
-  lovesWalks: boolean;
-  acceptsDogs: boolean;
-  acceptsCats: boolean;
-  lovesAffection: boolean;
-  poorlyToleratesShelter: boolean;
   status: AnimalStatus;
   healthStatus: AnimalHealthStatus;
   nextVisitDate: Date | string | null;
@@ -61,23 +59,73 @@ export type Animal = {
   createdAt?: Date | string;
 };
 
+/** Pozycja listy zwierząt (GET /api/animals). */
 export type AnimalListItem = {
   id: number;
   name: string;
-  type: string;
-  gender: string;
-  size: string;
+  type: AnimalType;
+  gender: AnimalGender;
+  size: AnimalSize;
   breed: string;
-  energyLevel: string;
-  traits: string[];
+  energyLevel: AnimalEnergyLevel;
+  traits: string;
   dateOfBirth: Date | string;
+  description: string;
   cageId: number | null;
   cage: Cage | null;
   cageNumber: string | null;
-  status: string;
-  healthStatus: string;
+  status: AnimalStatus;
+  healthStatus: AnimalHealthStatus;
+  nextVisitDate: Date | string | null;
+  foundAt: Date | string;
+  foundLocation: string;
   imageUrl: string[];
   needsCount: number;
-  nextVisitDate: Date | string | null;
+};
+
+/** Skrócone dane zwierzęcia do list wyboru w formularzach. */
+export type AnimalOption = {
+  id: number;
+  name: string;
+  type: string;
+};
+
+/** Minimalny zestaw danych wymagany przez kartę zwierzęcia. */
+export type AnimalCardItem = {
+  id: number;
+  name: string;
+  imageUrl: string[];
+  dateOfBirth: Date | string;
+  description: string;
+};
+
+/** Zwierzę na liście znalezionych (GET /api/animals/found). */
+export type FoundAnimal = {
+  id: number;
+  name: string;
+  imageUrl: string[];
+  description: string;
+  foundAt: Date | string;
+  foundLocation: string;
+};
+
+/** Zwierzę na liście ulubionych. */
+export type FavouriteAnimal = {
+  id: number;
+  name: string;
+  description: string;
+  gender: string;
+  traits: string;
+  dateOfBirth: Date | string;
+  type: string;
+  imageUrl: string[];
+};
+
+/** Zwierzę najdłużej czekające na adopcję (sekcja na stronie głównej). */
+export type LongestWaitingAnimal = {
+  id: number;
+  name: string;
+  imageUrl: string[];
+  dateOfBirth: Date | string;
   description: string;
 };

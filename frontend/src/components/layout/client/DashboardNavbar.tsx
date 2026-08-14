@@ -1,16 +1,10 @@
-import type { IconType } from "react-icons";
 import { FileText } from "lucide-react";
 import { Link, useLocation } from "react-router";
-
-interface ClientOptions {
-  icon?: IconType;
-  href: string;
-  name: string;
-}
+import type { DashboardNavOption } from "@/types";
 
 const formHref = "/konto/formularz";
 
-const clientOptions: ClientOptions[] = [
+const clientOptions: DashboardNavOption[] = [
   {
     icon: FileText,
     href: formHref,
