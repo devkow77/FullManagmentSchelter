@@ -7,7 +7,10 @@ import { Pagination } from "swiper/modules";
 import "swiper/css";
 import "swiper/css/pagination";
 import { ImageOff, RefreshCw } from "lucide-react";
-import { BlocksRenderer, type BlocksContent } from "@strapi/blocks-react-renderer";
+import {
+  BlocksRenderer,
+  type BlocksContent,
+} from "@strapi/blocks-react-renderer";
 import { ErrorState } from "@/components/shared";
 import { buildCmsImageUrl } from "@/lib/utils";
 import {
@@ -141,7 +144,7 @@ const BlogPostPage = () => {
           aria-labelledby="blog-post-heading"
           className="space-y-6 gap-x-8 lg:flex lg:space-y-8"
         >
-          <div className="relative mx-auto grid aspect-square max-h-100 flex-1 place-items-center overflow-hidden rounded-full bg-black/20">
+          <div className="relative mx-auto grid aspect-square size-60 flex-1 place-items-center overflow-hidden rounded-full bg-black/20 sm:size-80 md:size-100">
             {postImageUrl ? (
               <img
                 src={postImageUrl}
@@ -169,8 +172,8 @@ const BlogPostPage = () => {
               className="text-sm leading-6 font-medium md:text-base md:leading-7"
             >
               <li>
-                Opublikowano {new Date(post.createdAt).toLocaleDateString("pl-PL")}{" "}
-                r.
+                Opublikowano{" "}
+                {new Date(post.createdAt).toLocaleDateString("pl-PL")} r.
               </li>
               <li>
                 Szacowany czas czytania: {calculateTimeReading(postPlainText)}{" "}
