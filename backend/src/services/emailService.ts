@@ -22,6 +22,8 @@ import {
   adoptionStatusChangeTemplate,
   adoptionStatusChangeText,
   getAdoptionStatusEmailSubject,
+  contactFormTemplate,
+  contactFormText,
 } from '../templates/emailTemplates';
 import type { AdoptionStatusEmailKind } from '../types';
 
@@ -338,5 +340,25 @@ export const triggerAdoptionStatusChangeEmail = (params: {
 }) => {
   void sendAdoptionStatusChangeEmail(params).catch((err) => {
     console.error('Błąd wysyłki powiadomienia o statusie adopcji:', err);
+  });
+};
+
+export const sendContactFormEmail = async (params: {
+  fullName: string;
+  email: string;
+  message: string;
+}) => {
+  const { fullName, email, message } = params;
+  const frontendUrl = getFrontendUrl();
+  const transporter = createEmailTransporter();
+
+  await transporter.sendMail({
+    from: getFromAddress(),
+    to: process.env.EMAIL_USER,
+    replyTo: email,
+    subject: `Nowa wiadomość z formularza — ${fullName}`,
+    text: contactFormText({ fullName, email, message }),
+    html: contactFormTemplate({ fullName, email, message, frontendUrl }),
+    attachments: [getLogoAttachment()],
   });
 };

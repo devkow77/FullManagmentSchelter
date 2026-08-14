@@ -1,6 +1,7 @@
 import { useEffect } from "react";
+import { Link } from "react-router";
 import { FullFaqList, fullFaqData } from "@/components/shared";
-import { Container } from "@/components/ui";
+import { Button, Container } from "@/components/ui";
 
 const PAGE_TITLE = "Najczęstsze pytania | Schronisko";
 
@@ -41,12 +42,16 @@ const FaqPage = () => {
               Najczęstsze pytania
             </h1>
             <p className="text-sm leading-6 md:text-base md:leading-7">
-              Masz pytania dotyczące adopcji, wolontariatu lub innych aspektów.
+              Masz pytania dotyczące adopcji, wolontariatu lub innych aspektów
+              życia schroniska?
               <br /> Sprawdź nasze FAQ – być może znajdziesz tam odpowiedź,
               której szukasz!
             </p>
           </div>
           <FullFaqList />
+          <Button variant="success" asChild>
+            <Link to="/kontakt">Skontaktuj się z nami</Link>
+          </Button>
         </section>
       </Container>
     </main>

@@ -11,5 +11,5 @@ export const contactSchema = z.object({
   message: z
     .string()
     .min(10, 'Wiadomość musi mieć minimum 10 znaków.')
-    .max(200, 'Wiadomość nie może mieć więcej niż 200 znaków.'),
+    .max(500, 'Wiadomość nie może mieć więcej niż 500 znaków.'),
 });

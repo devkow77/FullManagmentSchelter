@@ -1,8 +1,7 @@
-import { Button, Container, Input, Label } from "@/components/ui";
+import { Button, Container, Input, Label, Textarea } from "@/components/ui";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Textarea } from "@/components/ui";
 import { useAuth } from "@/context/AuthContext";
 import { useEffect } from "react";
 import axios, { AxiosError } from "axios";
@@ -20,10 +19,18 @@ const contactSchema = z.object({
   message: z
     .string()
     .min(10, "Wiadomość musi mieć minimum 10 znaków.")
-    .max(200, "Wiadomość nie może mieć więcej niż 200 znaków."),
+    .max(500, "Wiadomość nie może mieć więcej niż 500 znaków."),
 });
 
 type ContactFormData = z.infer<typeof contactSchema>;
+
+const getContactFormValues = (
+  user?: { email?: string; fullName?: string } | null,
+): ContactFormData => ({
+  email: user?.email || "",
+  fullName: user?.fullName || "",
+  message: "",
+});
 
 const PAGE_TITLE = "Kontakt | Schronisko";
 
@@ -54,11 +61,7 @@ const ContactPage = () => {
     reset,
   } = useForm<ContactFormData>({
     resolver: zodResolver(contactSchema),
-    defaultValues: {
-      email: user?.email || "",
-      fullName: user?.fullName || "",
-      message: "",
-    },
+    defaultValues: getContactFormValues(user),
   });
 
   useEffect(() => {
@@ -66,24 +69,23 @@ const ContactPage = () => {
   }, []);
 
   useEffect(() => {
-    if (user) {
-      reset({
-        email: user.email,
-        fullName: user.fullName,
-      });
-    }
+    reset(getContactFormValues(user));
   }, [user, reset]);
 
   const onSubmit = async (data: ContactFormData) => {
     try {
       const res = await axios.post("/api/contact", data);
       toast.success(res.data.msg);
-      reset();
+      reset(getContactFormValues(user));
     } catch (err: unknown) {
       if (err instanceof AxiosError) {
-        toast.info(err.response?.data.msg);
+        toast.error(
+          err.response?.data?.msg ??
+            "Wystąpił błąd podczas wysyłania wiadomości.",
+        );
+      } else {
+        toast.error("Wystąpił błąd podczas wysyłania wiadomości.");
       }
-      console.error(err);
     }
   };
 
@@ -197,8 +199,8 @@ const ContactPage = () => {
               <div className="flex flex-wrap items-center justify-between gap-4">
                 <Button
                   type="submit"
+                  variant="success"
                   disabled={isSubmitting}
-                  className="cursor-pointer bg-green-600"
                 >
                   {isSubmitting ? "Wysyłanie..." : "Wyślij wiadomość"}
                 </Button>
@@ -208,6 +210,7 @@ const ContactPage = () => {
                   <Link to="/faq" className="font-semibold">
                     FAQ
                   </Link>
+                  .
                 </p>
               </div>
             </form>

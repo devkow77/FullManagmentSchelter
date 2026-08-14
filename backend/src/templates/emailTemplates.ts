@@ -70,7 +70,8 @@ const emailLayout = (
             <td style="background-color:${COLORS.green50};padding:24px 40px;border-top:1px solid ${COLORS.green100};">
               <p style="margin:0 0 8px;font-size:13px;color:${COLORS.gray600};text-align:center;line-height:1.6;">
                 <strong style="color:${COLORS.green900};">Fundacja Schronisko</strong><br />
-                al. Tadeusza Rejtana 53, 35-326 Rzeszów
+                al. Tadeusz Rejtana 00, 00-000 Rzeszów<br />
+                KRS: 0000000000 &nbsp;|&nbsp; NIP: 0000000000
               </p>
               <p style="margin:0;font-size:12px;color:${COLORS.gray400};text-align:center;">
                 schronisko@example.com
@@ -570,4 +571,52 @@ export const getAdoptionStatusEmailSubject = (
   kind: AdoptionStatusEmailKind,
   animalName: string,
 ) => adoptionStatusEmailCopy[kind].subject(animalName);
+
+export const contactFormTemplate = (params: {
+  fullName: string;
+  email: string;
+  message: string;
+  frontendUrl: string;
+}) =>
+  emailLayout(
+    `
+<tr>
+  <td style="padding:40px 40px 24px;text-align:center;">
+    <div style="width:64px;height:64px;margin:0 auto 20px;background-color:${COLORS.green100};border-radius:50%;line-height:64px;font-size:28px;">📩</div>
+    <h2 style="margin:0 0 12px;font-size:22px;font-weight:700;color:${COLORS.green900};">Nowa wiadomość z formularza</h2>
+    <p style="margin:0;font-size:15px;color:${COLORS.gray600};line-height:1.7;max-width:440px;margin-left:auto;margin-right:auto;">
+      ${escapeHtml(params.fullName)} przesłał wiadomość przez formularz kontaktowy na stronie schroniska.
+    </p>
+  </td>
+</tr>
+<tr>
+  <td style="padding:0 40px 24px;">
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:${COLORS.green50};border-radius:12px;border:1px solid ${COLORS.green100};">
+      <tr>
+        <td style="padding:20px 24px;">
+          <p style="margin:0 0 8px;font-size:13px;font-weight:600;color:${COLORS.green800};text-transform:uppercase;letter-spacing:0.05em;">Nadawca</p>
+          <p style="margin:0 0 16px;font-size:14px;color:${COLORS.gray600};line-height:1.8;">
+            ${escapeHtml(params.fullName)}<br />
+            <a href="mailto:${escapeHtml(params.email)}" style="color:${COLORS.green700};text-decoration:underline;">${escapeHtml(params.email)}</a>
+          </p>
+          <p style="margin:0 0 8px;font-size:13px;font-weight:600;color:${COLORS.green800};text-transform:uppercase;letter-spacing:0.05em;">Wiadomość</p>
+          <p style="margin:0;font-size:14px;color:${COLORS.gray600};line-height:1.8;white-space:pre-wrap;">${escapeHtml(params.message)}</p>
+        </td>
+      </tr>
+    </table>
+  </td>
+</tr>
+${ctaButton(`mailto:${params.email}`, 'Odpowiedz nadawcy')}
+`,
+    `Nowa wiadomość od ${params.fullName}`,
+    params.frontendUrl,
+  );
+
+export const contactFormText = (params: {
+  fullName: string;
+  email: string;
+  message: string;
+}) =>
+  `Nowa wiadomość z formularza kontaktowego\n\nNadawca: ${params.fullName}\nEmail: ${params.email}\n\nWiadomość:\n${params.message}`;
+
 
