@@ -295,7 +295,7 @@ const AdoptionChatBox = () => {
             </div>
           </div>
 
-          <div className="flex-1 space-y-3 overflow-y-auto bg-linear-to-b from-green-50 via-emerald-50/70 to-green-100/80 px-3 py-3">
+          <div className="flex-1 space-y-3 overflow-y-auto bg-green-50 px-3 py-3">
             {messages.map((message) => (
               <div
                 key={message.id}

@@ -64,6 +64,8 @@ Dostęp bez logowania:
 Ścieżki: `/konto`, `/konto/formularz` <br />
 Testowe konta: `michal@example.com`, `katarzyna@example.com`
 
+![Mobilny widok w panelu klienta](docs/mockups/mobile-user-mockup.png)
+
 - **Konto** — lista wniosków adopcyjnych, statusy, anulowanie oczekującego wniosku, odliczanie terminu wizyty po akceptacji
 - **Formularz danych osobowych** — wymagany przed złożeniem wniosku (m.in. kontakt, adres, warunki mieszkaniowe)
 - **Adopcja** — wniosek z karty zwierzęcia, potwierdzenie e-mail, powiadomienia o zmianie statusu
@@ -74,6 +76,8 @@ Testowe konta: `michal@example.com`, `katarzyna@example.com`
 
 Ścieżki m.in. `/pracownik/...`, wspólne `/admin/klatki`, `/admin/adopcje` <br />
 Testowe konta: `pracownik@example.com`, `pracownik2@example.com`
+
+![Mobilny widok w panelu pracownika](docs/mockups/mobile-worker-mockup.png)
 
 - **Zwierzęta** — lista, dodawanie, edycja
 - **Klatki** — zarządzanie klatkami / strefami
@@ -88,6 +92,8 @@ Testowe konta: `pracownik@example.com`, `pracownik2@example.com`
 
 Testowe konta: `admin@example.com`, `admin2@example.com`
 
+![Mobilny widok w panelu admina](docs/mockups/mobile-admin-mockup.png)
+
 Wszystko z panelu pracownika **oraz**:
 
 - **Pracownicy** — zarządzanie kontami personelu
@@ -97,3 +103,9 @@ Wszystko z panelu pracownika **oraz**:
 - **Tydzień pracy** — przypisania stref do pracowników
 - **Codzienne obowiązki** — widok globalny opieki dziennej
 - pełny dostęp do zwierząt, klatek, adopcji, raportów medycznych i zapotrzebowań
+
+### Asystent AI do pomocy w adopcji zwierząt
+
+Asystent AI który pomoże Ci na podstawie podanych danych w rozmowie w wyborze zwierzęcia do adopcji.
+
+![Mobilny widok asystenta AI](docs/mockups/mobile-chatbox-mockup.png)

@@ -136,9 +136,9 @@ const AccountPage = () => {
         <section
           id="info"
           aria-labelledby="client-account-heading"
-          className="space-y-6 gap-x-12 text-center md:flex md:text-left"
+          className="space-y-4 gap-x-12 text-center md:flex md:text-left"
         >
-          <div className="relative mx-auto h-50 w-50 overflow-hidden rounded-full md:mx-0">
+          <div className="relative mx-auto size-30 overflow-hidden rounded-full md:mx-0 md:size-50">
             <img
               src="/avatars/client-logged-avatar.png"
               alt="profilowe klienta"
@@ -147,7 +147,7 @@ const AccountPage = () => {
               className="absolute top-0 left-0 size-full object-cover"
             />
           </div>
-          <div className="space-y-2">
+          <div className="space-y-1 md:space-y-2">
             <h1
               id="client-account-heading"
               className="text-3xl font-bold text-green-900 md:text-5xl"
@@ -397,9 +397,7 @@ const AdoptionCard = ({
   const canCancel = adoption.status === "OCZEKUJACA";
   const shelterVisitDays =
     adoption.status === "ZAAKCEPTOWANA"
-      ? getDaysUntilShelterVisit(
-          adoption.acceptedAt ?? adoption.updatedAt,
-        )
+      ? getDaysUntilShelterVisit(adoption.acceptedAt ?? adoption.updatedAt)
       : null;
   const [isCancelling, setIsCancelling] = useState(false);
 
@@ -487,7 +485,9 @@ const AdoptionCard = ({
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
-              <AlertDialogCancel variant="canceled">Nie, wróć</AlertDialogCancel>
+              <AlertDialogCancel variant="canceled">
+                Nie, wróć
+              </AlertDialogCancel>
               <AlertDialogAction
                 variant="destructive"
                 disabled={isCancelling}
