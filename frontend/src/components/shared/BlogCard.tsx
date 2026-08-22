@@ -19,6 +19,7 @@ const BlogCard = ({ post }: { post: BlogPost }) => {
             src={imageUrl}
             alt={post.title}
             className="absolute size-full object-cover"
+            loading="lazy"
           />
         ) : (
           <ImageOff className="absolute size-10 object-cover text-gray-300 md:size-20" />

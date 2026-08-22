@@ -24,7 +24,7 @@ app.use(
     origin:
       process.env.FRONTEND_URL ??
       (process.env.NODE_ENV === 'production'
-        ? 'https://shelter-with-ai-chatbox.vercel.app'
+        ? 'https://schelter.vercel.app'
         : 'http://localhost:5174'),
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
     credentials: true,
