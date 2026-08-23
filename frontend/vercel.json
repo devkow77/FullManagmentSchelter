@@ -2,7 +2,7 @@
   "rewrites": [
     {
       "source": "/api/:path*",
-      "destination": "https://fullmanagmentschelter.onrender.com/api/:path*"
+      "destination": "https://schronisko-api.duckdns.org/api/:path*"
     },
     {
       "source": "/((?!api/).*)",
