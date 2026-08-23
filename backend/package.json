@@ -1,4 +1,7 @@
 {
+  "engines": {
+    "node": ">=20.19.0"
+  },
   "dependencies": {
     "@prisma/adapter-pg": "^7.6.0",
     "@prisma/client": "^7.6.0",
