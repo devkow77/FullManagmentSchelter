@@ -1,6 +1,5 @@
 import nodemailer from 'nodemailer';
-import path from 'path';
-import { fileURLToPath } from 'url';
+import type { Attachment } from 'nodemailer/lib/mailer';
 import prisma from '../prisma';
 import type { Animal, NewsletterSubscriber } from '../generated/prisma/client';
 import { AnimalStatus } from '../generated/prisma/enums';
@@ -26,12 +25,6 @@ import {
   contactFormText,
 } from '../templates/emailTemplates';
 import type { AdoptionStatusEmailKind } from '../types';
-
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const LOGO_PATH = path.resolve(
-  __dirname,
-  '../../../frontend/public/logo/logo.png',
-);
 
 const ANIMAL_TYPE_LABELS: Record<string, string> = {
   PIES: 'Pies',
@@ -63,16 +56,18 @@ const getFromAddress = () =>
 const getFrontendUrl = () =>
   process.env.FRONTEND_URL ??
   (process.env.NODE_ENV === 'production'
-    ? 'https://shelter-with-ai-chatbox.vercel.app'
+    ? 'https://schelter.vercel.app'
     : 'http://localhost:5174');
 
-const getLogoAttachment = () => ({
+const getLogoAttachment = (): Attachment => ({
   filename: 'logo.png',
-  path: LOGO_PATH,
+  path: `${getFrontendUrl()}/logo/logo.png`,
   cid: EMAIL_LOGO_CID,
 });
 
-const fetchAnimalImageAttachment = async (imageUrl: string) => {
+const fetchAnimalImageAttachment = async (
+  imageUrl: string,
+): Promise<Attachment | null> => {
   try {
     const response = await fetch(imageUrl);
 
@@ -155,7 +150,7 @@ export const notifySubscribersAboutNewAnimal = async (animal: Animal) => {
         unsubscribeUrl,
       };
 
-      const attachments = [getLogoAttachment()];
+      const attachments: Attachment[] = [getLogoAttachment()];
       if (animalImageAttachment) attachments.push(animalImageAttachment);
 
       return transporter.sendMail({
@@ -183,7 +178,10 @@ export const notifySubscribersAboutNewAnimal = async (animal: Animal) => {
 };
 
 export const triggerNewAnimalNotification = (
-  animal: Pick<Animal, 'status' | 'name' | 'type' | 'gender' | 'size' | 'description' | 'imageUrl'>,
+  animal: Pick<
+    Animal,
+    'status' | 'name' | 'type' | 'gender' | 'size' | 'description' | 'imageUrl'
+  >,
 ) => {
   if (animal.status !== AnimalStatus.SZUKA_DOMU) return;
 
@@ -215,10 +213,7 @@ export const sendEmailVerification = async (email: string, code: string) => {
   });
 };
 
-export const sendPasswordResetEmail = async (
-  email: string,
-  token: string,
-) => {
+export const sendPasswordResetEmail = async (email: string, token: string) => {
   const frontendUrl = getFrontendUrl();
   const resetUrl = `${frontendUrl}/reset-hasla/${token}`;
 
