@@ -43,6 +43,7 @@
     "vitest": "^4.1.2"
   },
   "scripts": {
+    "postinstall": "prisma generate",
     "test": "vitest run",
     "test:watch": "vitest",
     "dev": "tsx watch src/server.ts",
