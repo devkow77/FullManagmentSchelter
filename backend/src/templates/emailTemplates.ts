@@ -327,10 +327,7 @@ ${ctaButton(verifyUrl, 'Przejdź do weryfikacji')}
 export const emailVerificationText = (code: string, verifyUrl: string) =>
   `Potwierdź swój adres email\n\nTwój kod weryfikacyjny: ${code}\n\nKod jest ważny przez 15 minut.\n\nMożesz też otworzyć stronę weryfikacji: ${verifyUrl}\n\nJeśli to nie Ty zakładałeś konto, zignoruj tę wiadomość.`;
 
-export const passwordResetTemplate = (
-  resetUrl: string,
-  frontendUrl: string,
-) =>
+export const passwordResetTemplate = (resetUrl: string, frontendUrl: string) =>
   emailLayout(
     `
 <tr>
@@ -438,7 +435,8 @@ const adoptionStatusEmailCopy: Record<
   rejected: {
     emoji: '❌',
     title: 'Wniosek odrzucony',
-    subject: (animalName) => `Decyzja w sprawie wniosku o adopcję — ${animalName}`,
+    subject: (animalName) =>
+      `Decyzja w sprawie wniosku o adopcję — ${animalName}`,
     intro: (userName, animalName) =>
       `Cześć ${userName}! Po rozpatrzeniu Twojego wniosku o adopcję zwierzęcia ${animalName} niestety nie możemy go zaakceptować.`,
     nextSteps:
@@ -447,7 +445,8 @@ const adoptionStatusEmailCopy: Record<
   cancelled: {
     emoji: 'ℹ️',
     title: 'Wniosek anulowany',
-    subject: (animalName) => `Wniosek o adopcję został anulowany — ${animalName}`,
+    subject: (animalName) =>
+      `Wniosek o adopcję został anulowany — ${animalName}`,
     intro: (userName, animalName) =>
       `Cześć ${userName}! Informujemy, że Twój wniosek o adopcję zwierzęcia ${animalName} został anulowany.`,
     nextSteps:
@@ -456,7 +455,8 @@ const adoptionStatusEmailCopy: Record<
   completed: {
     emoji: '🎉',
     title: 'Adopcja sfinalizowana!',
-    subject: (animalName) => `Adopcja sfinalizowana — witaj w domu, ${animalName}!`,
+    subject: (animalName) =>
+      `Adopcja sfinalizowana — witaj w domu, ${animalName}!`,
     intro: (userName, animalName) =>
       `Cześć ${userName}! Z radością informujemy, że adopcja zwierzęcia ${animalName} została sfinalizowana.`,
     nextSteps:
@@ -465,8 +465,7 @@ const adoptionStatusEmailCopy: Record<
   cancelled_after_meeting: {
     emoji: 'ℹ️',
     title: 'Proces adopcji zakończony bez finalizacji',
-    subject: (animalName) =>
-      `Aktualizacja procesu adopcji — ${animalName}`,
+    subject: (animalName) => `Aktualizacja procesu adopcji — ${animalName}`,
     intro: (userName, animalName) =>
       `Cześć ${userName}! Po spotkaniu w schronisku proces adopcji zwierzęcia ${animalName} nie został sfinalizowany, a wniosek został anulowany.`,
     nextSteps:
@@ -475,8 +474,7 @@ const adoptionStatusEmailCopy: Record<
   cancelled_other_accepted: {
     emoji: 'ℹ️',
     title: 'Wniosek anulowany',
-    subject: (animalName) =>
-      `Aktualizacja wniosku o adopcję — ${animalName}`,
+    subject: (animalName) => `Aktualizacja wniosku o adopcję — ${animalName}`,
     intro: (userName, animalName) =>
       `Cześć ${userName}! Twój wniosek o adopcję zwierzęcia ${animalName} został anulowany, ponieważ dla tego zwierzęcia zaakceptowano inny wniosek.`,
     nextSteps:
@@ -619,4 +617,49 @@ export const contactFormText = (params: {
 }) =>
   `Nowa wiadomość z formularza kontaktowego\n\nNadawca: ${params.fullName}\nEmail: ${params.email}\n\nWiadomość:\n${params.message}`;
 
+export const contactFormConfirmationText = (params: {
+  fullName: string;
+  message: string;
+}) =>
+  `Dziękujemy za kontakt, ${params.fullName}!\n\nOtrzymaliśmy Twoją wiadomość i odpowiemy najszybciej jak to możliwe.\n\nTreść Twojej wiadomości:\n${params.message}\n\nZespół Schroniska`;
 
+export const contactFormConfirmationTemplate = (params: {
+  fullName: string;
+  message: string;
+  frontendUrl: string;
+}) =>
+  emailLayout(
+    `
+  <tr>
+    <td style="padding:40px 40px 24px;text-align:center;">
+      <div style="width:64px;height:64px;margin:0 auto 20px;background-color:${COLORS.green100};border-radius:50%;line-height:64px;font-size:28px;">💌</div>
+      <h2 style="margin:0 0 12px;font-size:22px;font-weight:700;color:${COLORS.green900};">Dziękujemy za wiadomość!</h2>
+      <p style="margin:0;font-size:15px;color:${COLORS.gray600};line-height:1.7;max-width:440px;margin-left:auto;margin-right:auto;">
+        Cześć ${escapeHtml(params.fullName)}! Potwierdzamy, że Twoja wiadomość dotarła do nas poprzez formularz kontaktowy. Odpowiemy najszybciej jak to możliwe.
+      </p>
+    </td>
+  </tr>
+  <tr>
+    <td style="padding:0 40px 24px;">
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:${COLORS.green50};border-radius:12px;border:1px solid ${COLORS.green100};">
+        <tr>
+          <td style="padding:20px 24px;">
+            <p style="margin:0 0 8px;font-size:13px;font-weight:600;color:${COLORS.green800};text-transform:uppercase;letter-spacing:0.05em;">Twoja wiadomość</p>
+            <p style="margin:0;font-size:14px;color:${COLORS.gray600};line-height:1.8;white-space:pre-wrap;">${escapeHtml(params.message)}</p>
+          </td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+  ${ctaButton(`${params.frontendUrl}`, 'Wróć na stronę schroniska')}
+  <tr>
+    <td style="padding:0 40px 32px;text-align:center;">
+      <p style="margin:0;font-size:12px;color:${COLORS.gray400};line-height:1.6;">
+        To wiadomość automatyczna — nie musisz na nią odpowiadać.
+      </p>
+    </td>
+  </tr>
+  `,
+    'Potwierdzenie otrzymania wiadomości ze Schroniska',
+    params.frontendUrl,
+  );

@@ -23,6 +23,8 @@ import {
   getAdoptionStatusEmailSubject,
   contactFormTemplate,
   contactFormText,
+  contactFormConfirmationTemplate,
+  contactFormConfirmationText,
 } from '../templates/emailTemplates';
 import type { AdoptionStatusEmailKind } from '../types';
 
@@ -347,13 +349,24 @@ export const sendContactFormEmail = async (params: {
   const frontendUrl = getFrontendUrl();
   const transporter = createEmailTransporter();
 
-  await transporter.sendMail({
-    from: getFromAddress(),
-    to: process.env.EMAIL_USER,
-    replyTo: email,
-    subject: `Nowa wiadomość z formularza — ${fullName}`,
-    text: contactFormText({ fullName, email, message }),
-    html: contactFormTemplate({ fullName, email, message, frontendUrl }),
-    attachments: [getLogoAttachment()],
-  });
+  await Promise.all([
+    transporter.sendMail({
+      from: getFromAddress(),
+      to: process.env.EMAIL_USER,
+      replyTo: email,
+      subject: `Nowa wiadomość z formularza — ${fullName}`,
+      text: contactFormText({ fullName, email, message }),
+      html: contactFormTemplate({ fullName, email, message, frontendUrl }),
+      attachments: [getLogoAttachment()],
+    }),
+    ,
+    transporter.sendMail({
+      from: getFromAddress(),
+      to: email,
+      subject: `Potwierdzenie otrzymania wiadomości — Schronisko`,
+      text: contactFormConfirmationText({ fullName, message }),
+      html: contactFormConfirmationTemplate({ fullName, message, frontendUrl }),
+      attachments: [getLogoAttachment()],
+    }),
+  ]);
 };
