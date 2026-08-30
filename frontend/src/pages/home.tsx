@@ -222,9 +222,9 @@ const HomePage = () => {
               Schronisko
             </h1>
             <p className="text-sm leading-6 md:text-base md:leading-7">
-              Każdego dnia nasze zwierzaki czekają na kogoś, kto da im nowy
-              dom. <br /> Nie bądź obojętny i stań się rodzicem jednego z
-              naszych czworonożnych przyjacieli.
+              Każdego dnia nasze zwierzaki czekają na kogoś, kto da im nowy dom.{" "}
+              <br /> Nie bądź obojętny i stań się rodzicem jednego z naszych
+              czworonożnych przyjacieli.
             </p>
           </div>
           <ul className="grid grid-cols-2 gap-4 md:grid-cols-4 lg:gap-6">
@@ -396,9 +396,7 @@ const HomePage = () => {
                 description="Aktualnie brak postów w naszym blogu. Wróć wkrótce, aby poznać nasze ostatnie akcje."
               />
             ) : (
-              blogPosts.map((post) => (
-                <BlogCard key={post.slug} post={post} />
-              ))
+              blogPosts.map((post) => <BlogCard key={post.slug} post={post} />)
             )}
           </div>
           <Button variant="success" asChild>
@@ -425,6 +423,7 @@ const AnimalTypeCard = ({ animal }: { animal: AnimalTypeTile }) => {
         height={400}
         aria-hidden="true"
         className="absolute size-full object-cover"
+        loading="eager"
       />
       <div className="absolute size-full bg-black/50" aria-hidden="true" />
       <span className="z-2 text-xl font-semibold text-white lg:text-3xl">

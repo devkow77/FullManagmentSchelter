@@ -5,7 +5,12 @@ import { Link } from "react-router";
 import { ImageOff, RefreshCw } from "lucide-react";
 import { BlogCard, EmptyState, ErrorState } from "@/components/shared";
 import { buildCmsImageUrl } from "@/lib/utils";
-import { cmsAdminUrl, getBlogPlainText, getBlogPosts, hasRemoteCms } from "@/lib/cms";
+import {
+  cmsAdminUrl,
+  getBlogPlainText,
+  getBlogPosts,
+  hasRemoteCms,
+} from "@/lib/cms";
 
 const PAGE_TITLE = "Nasze życie schroniska | Schronisko";
 
@@ -121,6 +126,7 @@ const BlogPage = () => {
                         width={1280}
                         height={720}
                         className="absolute size-full object-cover"
+                        loading="lazy"
                       />
                     ) : (
                       <ImageOff
