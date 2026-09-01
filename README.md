@@ -8,6 +8,8 @@ W systemie występują trzy rodzaje kont: **UŻYTKOWNIK**, **PRACOWNIK** oraz **
 
 Aplikacja umożliwia zwykłym użytkownikom łatwy i przejrzysty przebieg adopcji oraz dostęp do najważniejszych informacji o schronisku i podopiecznych. Dla pracowników i administratorów przygotowano dedykowane panele, w których w jednym miejscu zebrano funkcje potrzebne do opieki nad zwierzętami, obsługi wniosków adopcyjnych i zarządzania działalnością schroniska.
 
+📄 [Pobierz lub zobacz pełną prezentację w formacie PDF](docs/prezentacja.pdf)
+
 ---
 
 ## Spis treści

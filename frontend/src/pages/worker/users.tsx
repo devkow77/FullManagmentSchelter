@@ -271,9 +271,6 @@ const WorkerUsersPage = () => {
                 <TableHead className="hidden xl:table-cell">
                   Wypełniony formularz
                 </TableHead>
-                <TableHead className="hidden xl:table-cell">
-                  Zarejestrowany od
-                </TableHead>
                 {isAdmin ? (
                   <TableHead className="w-0 text-right">Opcje</TableHead>
                 ) : null}
@@ -310,9 +307,6 @@ const WorkerUsersPage = () => {
                     <TableCell className="hidden xl:table-cell">
                       {user.isFormFilled ? "Tak" : "Nie"}
                     </TableCell>
-                    <TableCell className="hidden xl:table-cell">
-                      {new Date(user.createdAt).toLocaleDateString("pl-PL")} r.
-                    </TableCell>
                     {isAdmin ? (
                       <TableCell
                         className="w-0 text-right"
@@ -334,7 +328,7 @@ const WorkerUsersPage = () => {
               ) : (
                 <TableRow>
                   <TableCell
-                    colSpan={isAdmin ? 8 : 7}
+                    colSpan={isAdmin ? 7 : 6}
                     className="py-5 text-center font-medium"
                   >
                     Brak użytkowników o podanych filtrach.
