@@ -30,12 +30,7 @@ import {
   formatShelterVisitCountdown,
   getDaysUntilShelterVisit,
 } from "@/lib/utils";
-import type {
-  Adoption,
-  Animal,
-  AnimalHealthStatus,
-  OwnProfile,
-} from "@/types";
+import type { Adoption, Animal, AnimalHealthStatus, OwnProfile } from "@/types";
 import { AnimalCard } from "@/components/shared";
 import { useAuth } from "@/context/AuthContext";
 import { useEffect, useMemo, useState } from "react";
@@ -189,6 +184,7 @@ const AnimalPage = () => {
 
   const animal = data?.[0];
   const otherAnimals = data?.[1] ?? [];
+  const animalImages = animal?.imageUrl?.filter(Boolean) ?? [];
   const existingAdoptionForAnimal = myAdoptions.find(
     (adoption) => adoption.animalId === animal?.id,
   );
@@ -377,14 +373,32 @@ const AnimalPage = () => {
           className="space-y-6 gap-x-8 lg:flex lg:space-y-8"
         >
           <div className="relative mx-auto grid aspect-square size-60 flex-1 place-items-center overflow-hidden rounded-full bg-gray-100 sm:size-80 md:size-100">
-            {animal?.imageUrl[0] ? (
-              <img
-                src={animal.imageUrl[0]}
-                alt={animal.name}
-                width={400}
-                height={400}
-                className="absolute size-full object-cover object-center"
-              />
+            {animalImages.length > 0 ? (
+              <Swiper
+                slidesPerView={1}
+                grabCursor={animalImages.length > 1}
+                allowTouchMove={animalImages.length > 1}
+                loop={animalImages.length > 1}
+                modules={[Pagination]}
+                pagination={{ clickable: true }}
+                className="absolute size-full [&_.swiper-pagination]:bottom-6"
+              >
+                {animalImages.map((image, index) => (
+                  <SwiperSlide key={image}>
+                    <img
+                      src={image}
+                      alt={
+                        index === 0
+                          ? animal?.name
+                          : `${animal?.name} — zdjęcie ${index + 1}`
+                      }
+                      width={400}
+                      height={400}
+                      className="size-full object-cover object-center"
+                    />
+                  </SwiperSlide>
+                ))}
+              </Swiper>
             ) : (
               <ImageOff
                 className="absolute size-10 object-cover text-gray-300 sm:size-20"
